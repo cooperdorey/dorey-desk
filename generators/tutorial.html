@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Tutorial generator – Dorey Desk</title>
+<link rel="icon" href="../assets/icons/icon.svg" type="image/svg+xml">
+<link rel="icon" href="../assets/icons/icon-32.png" sizes="32x32" type="image/png">
+<meta name="theme-color" content="#0F766E">
+<style>
+/* Matches the Dorey Desk site (assets/app.css) */
+:root{--paper:#F2F3F5;--sheet:#FFFFFF;--ink:#1D232B;--muted:#5E6672;--line:#D9DDE3;--brand:#0F766E;--brand-ink:#FFFFFF;
+ --course:#1F3A68;--sol:#EEF6EE;--sol-ink:#2E7D32;--sol-line:#CFE3C6;--tag:#E9EBEF;
+ --ui:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+ --card:"Palatino Linotype",Palatino,"Book Antiqua","URW Palladio L",Georgia,serif}
+@media (prefers-color-scheme:dark){:root{--paper:#16191E;--sheet:#20242B;--ink:#ECEEF1;--muted:#A5ACB7;--line:#343A43;
+ --brand:#5FCFC2;--brand-ink:#062A26;--course:#8FB0E6;--sol:#1B2A1E;--sol-ink:#8FD19A;--sol-line:#2E4A33;--tag:#2A2F37;color-scheme:dark}}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0}
+body{background:var(--paper);color:var(--ink);font-family:var(--ui);font-size:15px;line-height:1.5}
+:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+math{font-family:"Cambria Math","STIX Two Math","Latin Modern Math",math,serif;font-size:1.08em}
+math[display="block"]{margin:.35em 0}
+header{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 28px;padding:22px clamp(16px,5vw,64px) 0}
+.wordmark{font-family:var(--card);font-weight:700;font-size:19px;color:var(--brand);text-decoration:none}
+.crumbs{display:flex;flex-wrap:wrap;font-size:14px;color:var(--muted)}
+.crumbs a{color:var(--muted);text-decoration:none}
+.crumbs a:hover{color:var(--ink);text-decoration:underline}
+.crumbs>*+*::before{content:"›";margin:0 8px;color:var(--line)}
+.intro{max-width:1240px;margin:0 auto;padding:28px clamp(16px,5vw,64px) 0}
+.intro h1{font-family:var(--card);font-weight:700;font-size:clamp(32px,5vw,48px);line-height:1.05;margin:0}
+.intro p{margin:8px 0 0;color:var(--muted);max-width:65ch}
+.wrap{display:grid;grid-template-columns:330px minmax(0,1fr);gap:24px;padding:24px clamp(16px,5vw,64px) 64px;max-width:1240px;margin:0 auto}
+aside{background:var(--sheet);border:1px solid var(--line);border-radius:12px;padding:16px;align-self:start;position:sticky;top:16px;max-height:calc(100vh - 32px);overflow:auto}
+details{border:1px solid var(--line);border-top:4px solid var(--course);border-radius:4px 4px 10px 10px;margin-bottom:12px;background:var(--sheet)}
+summary{cursor:pointer;padding:10px 12px;display:flex;align-items:center;gap:8px;font-family:var(--card);font-weight:700;font-size:16px;list-style:none}
+summary::-webkit-details-marker{display:none}
+summary .course{font-family:var(--ui);font-weight:600;font-size:11.5px;color:var(--muted);margin-left:auto;white-space:nowrap}
+.lessons{padding:2px 12px 10px 34px}
+.lessons label{display:flex;gap:8px;align-items:flex-start;padding:3px 0;font-size:14px;cursor:pointer}
+.lessons input{margin-top:4px}
+.lessons .grp{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin:12px 0 2px}
+.lessons .grp:first-child{margin-top:4px}
+input[type=checkbox]{accent-color:var(--brand)}
+.ctl{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}
+.ctl label{font-size:12px;color:var(--muted);display:block;margin-bottom:3px}
+.ctl input[type=number],.ctl input[type=text]{width:100%;padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink);font:inherit}
+.seedrow{display:flex;gap:6px}
+.check{display:flex;gap:8px;align-items:center;font-size:14px;margin:6px 0}
+button{font:inherit;font-size:13px;padding:7px 12px;border-radius:8px;border:1px solid var(--brand);background:transparent;color:var(--brand);cursor:pointer}
+button.primary{background:var(--brand);color:var(--brand-ink);font-weight:600;font-size:15px;width:100%;padding:10px;margin-top:8px}
+.btnrow{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.btnrow button{flex:1}
+main{min-width:0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 12px}
+.empty{color:var(--muted);background:var(--sheet);border:1px dashed var(--line);border-radius:12px;padding:48px 24px;text-align:center}
+ol.qs{list-style:none;margin:0;padding:0}
+.q{background:var(--sheet);border:1px solid var(--line);border-radius:12px;padding:16px 20px;margin-bottom:14px;break-inside:avoid}
+.qhead{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.num{font-family:var(--card);font-weight:700;font-size:22px;line-height:1;color:var(--brand);min-width:1.4em}
+.tag{font-size:12px;background:var(--tag);color:var(--muted);border-radius:999px;padding:2px 10px}
+.qhead button{margin-left:auto;padding:4px 10px}
+.prompt{font-family:var(--card);font-size:18px;line-height:1.7;overflow-x:auto}
+.sol{margin-top:12px;background:var(--sol);color:var(--sol-ink);border:1px solid var(--sol-line);border-radius:10px;padding:10px 16px;overflow-x:auto;font-family:var(--card);font-size:17px}
+.sol>div{margin:4px 0}
+.ans{font-weight:700;border-top:1px dashed var(--sol-line);padding-top:8px;margin-top:8px}
+table.tv{border-collapse:collapse;margin:8px 0}
+table.tv th,table.tv td{border:1px solid var(--sol-line);padding:4px 12px;text-align:center;font-weight:400}
+.key{display:none}
+@media (max-width:860px){.wrap{grid-template-columns:minmax(0,1fr)}aside{position:static;max-height:none}}
+@media print{
+ :root{--sheet:#fff;--ink:#000;--sol-ink:#000}
+ body{background:#fff;color:#000}
+ header,.intro,aside,.qhead button,.tag{display:none!important}
+ .wrap{display:block;padding:0}
+ .q{border:none;border-bottom:1px solid #ccc;border-radius:0;padding:10px 0 48px}
+ .sol{display:none!important}
+ body.print-key .key{display:block;break-before:page}
+ .key h2{font-family:var(--card);font-size:20px}
+ .key .q{padding-bottom:12px}
+ .key .sol{display:block!important;background:none;border:none;padding:0}
+}
+
+/* tutorial generator */
+.seg{display:flex;gap:6px;margin:4px 0 12px}
+.seg label{flex:1;margin:0;text-align:center}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg span{display:block;padding:7px 4px;border:1px solid var(--brand);border-radius:8px;color:var(--brand);font-size:13px;font-weight:600;cursor:pointer}
+.seg input:checked+span{background:var(--brand);color:var(--brand-ink)}
+.seg input:focus-visible+span{outline:2px solid var(--brand);outline-offset:2px}
+.fieldlabel{font-size:12px;color:var(--muted);margin:12px 0 0}
+.lessons .mins{margin-left:auto;font-size:11.5px;color:var(--muted);white-space:nowrap;padding-left:8px}
+.lessons .lv{font-size:11px;color:var(--brand);font-weight:700;padding-left:6px;white-space:nowrap}
+.timer{position:sticky;top:0;z-index:5;display:flex;flex-wrap:wrap;align-items:center;gap:10px;background:var(--sheet);border:1px solid var(--line);border-radius:12px;padding:8px 14px;margin:0 0 14px}
+.timer .clock{font-family:var(--card);font-weight:700;font-size:30px;line-height:1;min-width:3.4em;color:var(--brand);font-variant-numeric:tabular-nums}
+.timer.low .clock{color:#B3261E}
+.timer .sum{color:var(--muted);font-size:13px;margin-left:auto}
+.timer button{padding:5px 12px}
+.qhead .badge{font-size:12px;color:var(--muted)}
+.qhead .badge b{color:var(--brand)}
+.qbtns{margin-left:auto;display:flex;gap:6px}
+.qbtns button{margin:0;padding:4px 10px}
+.hint{margin-top:10px;background:var(--tag);border-radius:10px;padding:8px 14px;font-size:15px}
+.hint::before{content:"Hint: ";font-weight:700;color:var(--brand)}
+.parts{margin-top:6px}
+.pt{display:flex;gap:10px;margin:8px 0 0 2px}
+.pt>span{min-width:1.9em;font-weight:700;color:var(--muted)}
+.pt>div{flex:1;min-width:0}
+.set-total{font-size:13px;color:var(--muted);margin:0 0 12px}
+
+@media print{
+ .timer,.hint,.qbtns{display:none!important}
+ .q{min-height:var(--space,60mm)}
+ .key .q{min-height:0}
+}
+</style>
+</head>
+<body>
+<header>
+ <a class="wordmark" href="../#">Dorey Desk</a>
+ <nav class="crumbs" aria-label="Where you are"><a href="../#">Home</a><a href="../#generators">Generators</a><span>Tutorial generator</span></nav>
+</header>
+<div class="intro">
+ <h1>Tutorial generator</h1>
+ <p>Hard, unfamiliar questions on Year 11 Advanced and Year 12 differential calculus, chosen to fill a 20, 25 or 30 minute tutorial. Tick the topics, pick the length and generate. Every question has a hint and a worked solution. The same seed and ticks always give the same tutorial, so a copied link reproduces it exactly.</p>
+</div>
+<div class="wrap">
+ <aside>
+  <p class="fieldlabel" style="margin-top:0" id="lenlabel">Tutorial length</p>
+  <div class="seg" role="radiogroup" aria-labelledby="lenlabel">
+   <label><input type="radio" name="len" value="20"><span>20 min</span></label>
+   <label><input type="radio" name="len" value="25" checked><span>25 min</span></label>
+   <label><input type="radio" name="len" value="30"><span>30 min</span></label>
+  </div>
+  <p class="fieldlabel" id="lvlabel">Difficulty</p>
+  <div class="seg" role="radiogroup" aria-labelledby="lvlabel">
+   <label><input type="radio" name="lv" value="0" checked><span>Mixed</span></label>
+   <label><input type="radio" name="lv" value="2"><span>Hard</span></label>
+   <label><input type="radio" name="lv" value="3"><span>Very hard</span></label>
+  </div>
+  <p class="fieldlabel">Topics</p>
+  <div id="topics"></div>
+  <div class="ctl">
+   <div style="grid-column:1/-1"><label for="seed">Seed</label><div class="seedrow"><input id="seed" type="text"><button id="dice" type="button" title="New seed" aria-label="New seed">🎲</button></div></div>
+  </div>
+  <label class="check"><input type="checkbox" id="printkey" checked> Print answer key on last page</label>
+  <button class="primary" id="go">Generate tutorial</button>
+  <div class="btnrow">
+   <button id="toggleAll">Show all solutions</button>
+   <button id="print">Print</button>
+   <button id="copy">Copy link</button>
+  </div>
+ </aside>
+ <main>
+  <div class="timer" id="timer" hidden>
+   <span class="clock" id="clock" aria-live="off">25:00</span>
+   <button id="tStart" type="button">Start</button>
+   <button id="tReset" type="button">Reset</button>
+   <span class="sum" id="meta"></span>
+  </div>
+  <div id="out"><div class="empty">Choose the length and topics, then press Generate.</div></div>
+  <section class="key" id="key"></section>
+ </main>
+</div>
+
+<!-- KaTeX from the site’s own copy, rendered as MathML like the lesson cards -->
+<script src="../assets/vendor/katex.min.js"></script>
+<script src="../assets/vendor/auto-render.min.js"></script>
+
+<script src="engine.js?v=dev"></script>
+<script src="tutorial-bank.js?v=dev"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded',()=>{
+ const $=id=>document.getElementById(id);
+ const newSeed=()=>Math.random().toString(36).slice(2,7);
+ const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+ // ---- sidebar: one block per topic, one tick per question type ----
+ const topics=TOPICS.filter(t=>TUT.some(q=>q.topic===t.id));
+ $('topics').innerHTML=topics.map(t=>`
+  <details open data-topic="${t.id}">
+   <summary><input type="checkbox" class="tsel" aria-label="Select all in ${esc(t.name)}"> ${esc(t.name)}<span class="course">${esc(t.course)}</span></summary>
+   <div class="lessons">${TUT.filter(q=>q.topic===t.id).map(q=>`<label title="${LEVEL_NAME[q.level]}, about ${q.mins} minutes"><input type="checkbox" class="lsel" value="${q.id}" checked> ${esc(q.name)}<span class="mins">${'●'.repeat(q.level-1)} ${q.mins} min</span></label>`).join('')}</div>
+  </details>`).join('');
+ function syncTopic(det){const ls=[...det.querySelectorAll('.lsel')],on=ls.filter(x=>x.checked).length,ts=det.querySelector('.tsel');ts.checked=on===ls.length;ts.indeterminate=on>0&&on<ls.length}
+ document.querySelectorAll('details[data-topic]').forEach(det=>{
+  const ts=det.querySelector('.tsel');
+  ts.addEventListener('click',e=>e.stopPropagation());
+  ts.addEventListener('change',()=>{det.querySelectorAll('.lsel').forEach(x=>x.checked=ts.checked);ts.indeterminate=false});
+  det.querySelectorAll('.lsel').forEach(x=>x.addEventListener('change',()=>syncTopic(det)));
+ });
+ const selected=()=>[...document.querySelectorAll('.lsel:checked')].map(x=>x.value);
+ const radio=name=>document.querySelector(`input[name="${name}"]:checked`).value;
+ const setRadio=(name,v)=>{const el=document.querySelector(`input[name="${name}"][value="${v}"]`);if(el)el.checked=true};
+
+ // ---- state from link ----
+ const h=new URLSearchParams(location.hash.slice(1));
+ $('seed').value=h.get('seed')||newSeed();
+ if(h.get('len'))setRadio('len',h.get('len'));
+ if(h.get('lv'))setRadio('lv',h.get('lv'));
+ const fromLink=(h.get('l')||'').split(',').filter(id=>TUT_BY_ID[id]);
+ if(fromLink.length){document.querySelectorAll('.lsel').forEach(x=>{x.checked=fromLink.includes(x.value)})}
+ document.querySelectorAll('details[data-topic]').forEach(syncTopic);
+
+ $('dice').onclick=()=>{$('seed').value=newSeed();generate()};
+ $('go').onclick=generate;
+ $('print').onclick=()=>{document.body.classList.toggle('print-key',$('printkey').checked);window.print()};
+ $('copy').onclick=async()=>{try{await navigator.clipboard.writeText(location.href);$('copy').textContent='Copied!'}catch(e){$('copy').textContent='Copy failed'}setTimeout(()=>$('copy').textContent='Copy link',1500)};
+ let allShown=false;
+ $('toggleAll').onclick=()=>{allShown=!allShown;document.querySelectorAll('#out .sol').forEach(s=>s.hidden=!allShown);
+  document.querySelectorAll('#out .reveal').forEach(b=>b.textContent=allShown?'Hide solution':'Show solution');
+  $('toggleAll').textContent=allShown?'Hide all solutions':'Show all solutions'};
+
+ // ---- countdown timer ----
+ let left=0,tick=null;
+ const clockText=s=>{s=Math.max(0,s);return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0')};
+ function showClock(){$('clock').textContent=clockText(left);$('timer').classList.toggle('low',left<=120&&left>0||(left===0&&tick!==null))}
+ function stopTimer(){if(tick){clearInterval(tick);tick=null}$('tStart').textContent=left===0?'Start':'Resume'}
+ function resetTimer(){stopTimer();left=(+radio('len'))*60;$('tStart').textContent='Start';showClock()}
+ $('tStart').onclick=()=>{
+  if(tick){stopTimer();return}
+  if(left===0)left=(+radio('len'))*60;
+  $('tStart').textContent='Pause';
+  tick=setInterval(()=>{left--;if(left<=0){left=0;clearInterval(tick);tick=null;$('tStart').textContent='Start'}showClock()},1000);showClock()};
+ $('tReset').onclick=resetTimer;
+
+ function render(el){if(typeof renderMathInElement!=='function')return;
+  renderMathInElement(el,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],output:'mathml',throwOnError:false});evenBrackets(el);unaryMinus(el)}
+ // a minus at the start, or straight after an operator or opening bracket, is a sign, not subtraction: no gap after it
+ function unaryMinus(el){el.querySelectorAll('mo').forEach(mo=>{const t=mo.textContent;if(t!=='−'&&t!=='-')return;
+  const prev=mo.previousElementSibling;if(prev&&!(prev.tagName.toLowerCase()==='mo'&&!/^[)\]|}]$/.test(prev.textContent)))return;
+  mo.setAttribute('lspace','0');mo.setAttribute('rspace','0')})}
+ // same as assets/app.js: \left…\right only stretches around fractions and matrices
+ function evenBrackets(el){el.querySelectorAll('mrow').forEach(row=>{const k=[...row.children],f=k[0],l=k[k.length-1];
+  if(!f||f===l||f.tagName.toLowerCase()!=='mo'||l.tagName.toLowerCase()!=='mo')return;
+  if(f.getAttribute('fence')!=='true'||l.getAttribute('fence')!=='true')return;
+  if(row.querySelector('mfrac, mtable'))return;
+  [f,l].forEach(mo=>{mo.setAttribute('stretchy','false');mo.setAttribute('lspace','0');mo.setAttribute('rspace','0')})})}
+ const solHTML=Q=>`<div class="sol">${Q.sol.map(s=>`<div>${s}</div>`).join('')}<div class="ans">Answer: ${Q.ans}</div></div>`;
+
+ function generate(){
+  const ids=selected(),len=+radio('len'),lv=+radio('lv'),seed=$('seed').value.trim()||newSeed();$('seed').value=seed;
+  if(!ids.length){$('out').innerHTML='<div class="empty">Tick at least one question type, then press Generate.</div>';$('timer').hidden=true;$('key').innerHTML='';return}
+  const p=new URLSearchParams({seed,len,lv});if(ids.length<TUT.length)p.set('l',ids.join(','));history.replaceState(null,'','#'+p);
+  let set;try{set=buildTutorial(ids,len,lv,seed)}catch(e){$('out').innerHTML=`<div class="empty">Generator error: ${esc(e.message)}</div>`;$('timer').hidden=true;return}
+  if(!set.length){$('out').innerHTML='<div class="empty">No questions match those ticks and that difficulty. Tick more question types or choose Mixed.</div>';$('timer').hidden=true;$('key').innerHTML='';return}
+  const total=set.reduce((a,Q)=>a+Q.mins,0);
+  $('meta').textContent=`${set.length} questions · about ${total} min · seed ${seed}`;
+  $('timer').hidden=false;resetTimer();
+  $('out').innerHTML=`<ol class="qs">${set.map((Q,i)=>`
+   <li class="q" style="--space:${Q.mins*9}mm"><div class="qhead"><span class="num">${i+1}</span><span class="tag">${esc(Q.t.topicName)}</span><span class="badge"><b>${LEVEL_NAME[Q.level]}</b> · about ${Q.mins} min</span>
+    <span class="qbtns"><button class="hintbtn" type="button">Hint</button><button class="reveal" type="button">Show solution</button></span></div>
+   <div class="prompt">${Q.q}</div><div class="hint" hidden>${esc(Q.t.hint)}</div>${solHTML(Q).replace('<div class="sol">','<div class="sol" hidden>')}</li>`).join('')}</ol>`;
+  $('key').innerHTML=`<h2>Answer key</h2><ol class="qs">${set.map((Q,i)=>`<li class="q"><div class="qhead"><span class="num">${i+1}</span></div>${solHTML(Q)}</li>`).join('')}</ol>`;
+  document.querySelectorAll('#out .reveal').forEach(b=>b.onclick=()=>{const s=b.closest('.q').querySelector('.sol');s.hidden=!s.hidden;b.textContent=s.hidden?'Show solution':'Hide solution'});
+  document.querySelectorAll('#out .hintbtn').forEach(b=>b.onclick=()=>{const s=b.closest('.q').querySelector('.hint');s.hidden=!s.hidden;b.textContent=s.hidden?'Hint':'Hide hint'});
+  allShown=false;$('toggleAll').textContent='Show all solutions';
+  render($('out'));render($('key'));
+ }
+ if(location.hash.length>1)generate();
+});
+</script>
+<script src="picker.js?v=dev"></script>
+</body>
+</html>

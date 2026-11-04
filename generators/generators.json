@@ -25,5 +25,14 @@
    "12 ADV",
    "11 ADV"
   ]
+ },
+ {
+  "file": "tutorial.html",
+  "name": "Tutorial generator",
+  "desc": "Hard, unfamiliar questions on Year 11 Advanced and Year 12 differential calculus, chosen to fill a 20, 25 or 30 minute tutorial. Each question has a hint and a worked solution; includes a countdown timer and prints with working space plus an answer key.",
+  "courses": [
+   "12 ADV",
+   "11 ADV"
+  ]
  }
 ]
