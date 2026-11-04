@@ -20,7 +20,7 @@ We Do levels) live in the Lesson Creator project; this file covers the repo form
   (The app draws non-fraction `\left…\right` pairs at normal size so pairs always match.)
 - Before committing, run `python3 scripts/build_manifest.py`; it must report no problems.
 - Classroom tools: one self-contained page per tool in `classroom/`, registered in
-  `classroom/classroom.json`. The seating chart is a plain SVG room plan for now (24 desks); if names are added later they must stay in
+  `classroom/classroom.json`. The seating chart is a plain SVG room plan for now (29 desks); if names are added later they must stay in
   browser storage only. Never put student names, rosters or exported seating files in this public repo, and
   never test with real names.
   New top-level site folders must also be added to the `cp -r` line in `.github/workflows/pages.yml`.

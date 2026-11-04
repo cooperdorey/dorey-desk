@@ -47,11 +47,11 @@ svg{display:block;width:100%;height:auto;font-family:var(--ui)}
 
 <div class="intro">
   <h1>Seating chart</h1>
-  <p>3 rows of 8 desks, each row split into two tables of 4. The front is at the bottom.</p>
+  <p>3 rows of 8 desks, each split into two tables of 4, then a front row of 4 desks and one double-length desk. The front is at the bottom.</p>
 </div>
 
 <main>
-  <svg id="room" viewBox="0 0 1000 460" role="img" aria-label="Classroom plan: three rows of eight desks in two tables of four, windows down the left wall, door on the right wall near the bottom corner, lectern bottom-left"></svg>
+  <svg id="room" viewBox="0 0 1000 534" role="img" aria-label="Classroom plan: three rows of eight desks in two tables of four, a front row of four desks and one double-length desk, windows down the left wall, door on the right wall near the bottom corner, lectern bottom-left"></svg>
 </main>
 
 <script>
@@ -60,8 +60,8 @@ svg{display:block;width:100%;height:auto;font-family:var(--ui)}
 const NS = 'http://www.w3.org/2000/svg';
 const el = (name, attrs, text) => { const e = document.createElementNS(NS, name); for (const k in attrs) e.setAttribute(k, attrs[k]); if (text) e.textContent = text; return e };
 
-// Room: x 10–990, y 10–450. Windows run down the whole left wall, the door is in the right wall near the bottom corner.
-const ROOM = {x:10, y:10, w:980, h:440}, WIN_W = 36;
+// Room: x 10–990. Windows run down the whole left wall, the door is in the right wall near the bottom corner.
+const ROOM = {x:10, y:10, w:980, h:514}, WIN_W = 36, BOTTOM = ROOM.y + ROOM.h;
 const DESK = {w:84, h:52}, TABLE = 4, ROWS = 3, AISLE = 80, ROW_GAP = 48, TOP = 50;
 
 const svg = document.getElementById('room');
@@ -72,25 +72,29 @@ svg.appendChild(el('rect', {class:'glass', x:ROOM.x, y:ROOM.y, width:WIN_W, heig
 svg.appendChild(el('text', {class:'lbl', transform:`translate(${ROOM.x + WIN_W/2 + 5} ${ROOM.y + ROOM.h/2}) rotate(-90)`}, 'Windows'));
 
 // walls, with a gap in the right-hand wall for the door (near the bottom corner)
-svg.appendChild(el('path', {class:'wall', d:`M990 340 V10 H10 V450 H990 V420`}));
+const gapTop = BOTTOM - 110, gapBottom = BOTTOM - 30;
+svg.appendChild(el('path', {class:'wall', d:`M990 ${gapTop} V10 H10 V${BOTTOM} H990 V${gapBottom}`}));
 // door: hinge at the bottom of the gap, leaf swung open into the room along the bottom, with its arc
-svg.appendChild(el('path', {class:'door', d:'M990 420 H910 M990 340 A80 80 0 0 0 910 420'}));
-svg.appendChild(el('text', {class:'lbl', x:866, y:392}, 'Door'));
+svg.appendChild(el('path', {class:'door', d:`M990 ${gapBottom} H910 M990 ${gapTop} A80 80 0 0 0 910 ${gapBottom}`}));
+svg.appendChild(el('text', {class:'lbl', x:866, y:gapTop + 52}, 'Door'));
 
-// desks: 3 rows × (4 + gap + 4), tables of 4 pushed together
+// desks, numbered row by row from the top left. Tables of 4 are pushed together.
 const blockW = 2*TABLE*DESK.w + AISLE, x0 = ROOM.x + WIN_W + (ROOM.w - WIN_W - blockW)/2;
+const rowY = r => TOP + r*(DESK.h + ROW_GAP);
+const xOf = k => x0 + k*DESK.w + (k >= TABLE ? AISLE : 0);           // k = 0–7 along a full row
 let n = 0;
-for (let r = 0; r < ROWS; r++){
-  for (let k = 0; k < 2*TABLE; k++){
-    const x = x0 + k*DESK.w + (k >= TABLE ? AISLE : 0), y = TOP + r*(DESK.h + ROW_GAP);
-    const g = el('g', {'data-desk': ++n});
-    g.appendChild(el('rect', {class:'desk', x, y, width:DESK.w, height:DESK.h, rx:4}));
-    svg.appendChild(g);
-  }
-}
+const desk = (x, y, w) => {
+  const g = el('g', {'data-desk': ++n});
+  g.appendChild(el('rect', {class:'desk', x, y, width:w, height:DESK.h, rx:4}));
+  svg.appendChild(g);
+};
+for (let r = 0; r < ROWS; r++) for (let k = 0; k < 2*TABLE; k++) desk(xOf(k), rowY(r), DESK.w);
+// front row: 4 desks on the left, then one desk twice as long on the right
+for (let k = 0; k < TABLE; k++) desk(xOf(k), rowY(ROWS), DESK.w);
+desk(xOf(2*TABLE) - 2*DESK.w, rowY(ROWS), 2*DESK.w);                    // right-aligned with the tables above
 
 // teacher lectern: bottom-left corner, turned 45°
-const L = {w:84, h:46, cx:ROOM.x + WIN_W + 76, cy:ROOM.y + ROOM.h - 62};
+const L = {w:84, h:46, cx:ROOM.x + WIN_W + 76, cy:BOTTOM - 58};
 const lec = el('g', {transform:`rotate(45 ${L.cx} ${L.cy})`});
 lec.appendChild(el('rect', {class:'lectern', x:L.cx - L.w/2, y:L.cy - L.h/2, width:L.w, height:L.h, rx:4}));
 lec.appendChild(el('text', {class:'lbl', x:L.cx, y:L.cy + 5}, 'Lectern'));
