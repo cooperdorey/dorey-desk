@@ -135,13 +135,13 @@ async function showStart(){
     <span class="big">Generators</span><span class="small" id="genCount">Random questions with worked solutions</span>`;
   const room = document.createElement('a'); room.className = 'choice room'; room.href = '#classroom';
   room.innerHTML = `<span class="desk-icon" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>
-    <span class="big">Classroom</span><span class="small" id="roomCount">Seating charts for each class · your names stay in your browser</span>`;
+    <span class="big">Classroom</span><span class="small" id="roomCount">The classroom plan and seating chart</span>`;
   tiles.replaceChildren(lessons, gens, room);
   document.title = 'Dorey Desk';
   const g = await loadGenerators();
   const c = $('genCount'); if (c && g.length) c.textContent = `Random questions with worked solutions · ${plural(g.length,'generator')}`;
   const k = await loadClassroom();
-  const r = $('roomCount'); if (r && k.length) r.textContent = `Seating charts for each class, with names kept in your browser · ${plural(k.length,'tool')}`;
+  const r = $('roomCount'); if (r && k.length) r.textContent = `The classroom plan and seating chart · ${plural(k.length,'tool')}`;
 }
 
 // ---------- home: classroom ----------
@@ -155,7 +155,7 @@ async function loadClassroom(){
 async function showClassroom(){
   showHome(); crumbs([{label:'Home',href:'#'},{label:'Classroom'}]); paint($('home'), null);
   $('prompt').textContent = 'Choose a classroom tool';
-  $('promptSub').textContent = 'Each opens in its own page. Anything you type stays in this browser.';
+  $('promptSub').textContent = 'Each opens in its own page.';
   const tiles = $('tiles'); tiles.className = 'tiles gens'; tiles.replaceChildren();
   document.title = 'Classroom – Dorey Desk';
   const k = await loadClassroom();

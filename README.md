@@ -94,16 +94,13 @@ stable once used.
 The start page's **Classroom** tile lists classroom tools from `classroom/classroom.json`
 (`file`, `name`, `desc`), one self-contained page each in `classroom/`.
 
-- **Seating chart** (`seating.html`): the 3 × 5 desk-pair room (door front-left, windows on the
-  right, lectern front-centre, group table, teacher desk and storage at the back). Each class has its own
-  plan. Add names one per line, then click a name and a seat (or drag on a computer) to place or swap, or use
-  Fill randomly, Fill in list order or Shuffle everyone. "Teacher desk by the door" drops the front-left pair
-  and moves the teacher desk to the left wall. Output is Print (A4 landscape), Save as image (PNG) or
-  Export/Import file.
+- **Seating chart** (`seating.html`): kept deliberately simple, to be built up a feature at a time. It
+  draws the room as an SVG: 3 rows of 8 desks, each row split into two tables of 4, windows down the whole
+  left wall, the door in the bottom-right corner and the teacher lectern in the bottom-left corner turned 45°.
+  The front is at the bottom. Each desk is a `<g data-desk="n">` (1–24, row by row from the top left).
 
-Student names are kept only in the browser's own storage (`doreyDesk.seating.v1`). They are never
-uploaded or committed, so the public site holds no student data. Exported files contain names, so keep
-them on school systems, not in this repository.
+If names or rosters are added later, keep them in the browser's own storage. Never commit student names
+or exported seating files to this public repository.
 
 ## A lesson file
 
