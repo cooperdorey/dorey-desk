@@ -2,6 +2,6 @@
  {
   "file": "seating.html",
   "name": "Seating chart",
-  "desc": "Upload a class list (.xlsx or .csv), seat each name on a desk of the classroom plan, and download it as an A4 PDF. Names stay in your browser."
+  "desc": "Upload a class list (.xlsx or .csv), seat each name on a desk of the classroom plan, save the plan for next time, and download it as an A4 PDF. Names stay in your browser."
  }
 ]

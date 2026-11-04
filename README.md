@@ -104,7 +104,10 @@ The start page's **Classroom** tile lists classroom tools from `classroom/classr
   class name as the heading) onto one A4 landscape page using the vendored jsPDF. The spreadsheet reader is
   a small built-in unzip and XML reader (no library), so it handles `.xlsx`, not the old `.xls`.
 
-Names are read and held in the browser only. They are never uploaded or saved, and reloading clears them.
+**Saving plans.** *Save plan* stores the plan on screen under the class name in the browser's own
+storage (`localStorage`, key `doreyDesk.seating.plans.v1`). Saved plans are listed down the left side, like the
+lessons, and clicking one opens it. The × deletes it, and *New plan* starts a blank one. Plans, and the student
+names in them, stay in that browser on that computer: they are never uploaded and do not sync between devices.
 Never commit student names, class lists or exported seating PDFs to this public repository.
 
 ## A lesson file

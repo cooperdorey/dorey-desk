@@ -20,12 +20,37 @@
 html,body{margin:0}
 body{background:var(--paper);color:var(--ink);font-family:var(--ui);font-size:15px;line-height:1.5}
 :focus-visible{outline:2px solid var(--brand);outline-offset:2px}
-header{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 28px;padding:22px clamp(16px,5vw,64px) 0}
-.wordmark{font-family:var(--card);font-weight:700;font-size:19px;color:var(--brand);text-decoration:none}
-.crumbs{display:flex;flex-wrap:wrap;font-size:14px;color:var(--muted)}
-.crumbs a{color:var(--muted);text-decoration:none}
-.crumbs a:hover{color:var(--ink);text-decoration:underline}
-.crumbs>*+*::before{content:"›";margin:0 8px;color:var(--line)}
+.layout{display:grid;grid-template-columns:300px minmax(0,1fr);min-height:100vh}
+.side{position:sticky;top:0;height:100vh;overflow-y:auto;background:var(--tint);border-right:1px solid var(--line);display:flex;flex-direction:column}
+.side-top{padding:18px 18px 10px}
+.side-home{font-family:var(--card);font-weight:700;font-size:16px;color:var(--brand);text-decoration:none}
+.side-crumbs{margin-top:6px;font-size:13px;color:var(--muted);display:flex;flex-wrap:wrap}
+.side-crumbs a{color:var(--muted);text-decoration:none}
+.side-crumbs a:hover{color:var(--ink);text-decoration:underline}
+.side-crumbs>*+*::before{content:"›";margin:0 6px;color:var(--line)}
+.side-head{margin:6px 12px 8px;padding:12px 14px;border-radius:8px;background:var(--brand);color:var(--brand-ink);font-family:var(--card);font-weight:700;font-size:17px;line-height:1.3}
+.side-head small{display:block;font-family:var(--ui);font-weight:400;font-size:12.5px;opacity:.85;margin-top:2px}
+.side-list{display:flex;flex-direction:column;padding:4px 0 8px}
+.plan{display:flex;align-items:stretch;border-left:4px solid transparent}
+.plan:hover{background:rgba(0,0,0,.04)}
+.plan[aria-current="true"]{background:var(--panel);border-left-color:var(--brand)}
+.plan .open{flex:1;min-width:0;display:block;padding:9px 6px 9px 12px;border:0;border-radius:0;background:transparent;color:var(--ink);font:inherit;font-size:14.5px;line-height:1.35;text-align:left}
+.plan .open:hover{background:transparent}
+.plan[aria-current="true"] .open{font-weight:600}
+.plan .open small{display:block;font-weight:400;font-size:12px;color:var(--muted)}
+.plan .del{flex:none;width:34px;border:0;border-radius:0;background:transparent;color:var(--muted);font-size:18px;line-height:1;padding:0}
+.plan .del:hover{background:transparent;color:#B42318}
+.side-empty,.side-note{margin:4px 16px;font-size:12.5px;color:var(--muted)}
+.side-note{margin-top:auto;padding:12px 0 18px}
+.side-toggle{display:none;border-color:var(--line);color:var(--ink)}
+@media (max-width:900px){
+  .layout{grid-template-columns:minmax(0,1fr)}
+  .side{position:fixed;z-index:20;inset:0 auto 0 0;width:min(320px,88vw);transform:translateX(-102%);transition:transform .2s ease;box-shadow:0 0 40px rgba(0,0,0,.25)}
+  .layout.open .side{transform:none}
+  .side-toggle{display:inline-block}
+}
+@media (prefers-reduced-motion:reduce){.side{transition:none}}
+.content{min-width:0}
 .intro,.tools,main{max-width:1100px;margin:0 auto;padding-left:clamp(16px,5vw,64px);padding-right:clamp(16px,5vw,64px)}
 .intro{padding-top:28px}
 .intro h1{font-family:var(--card);font-weight:700;font-size:clamp(32px,5vw,48px);line-height:1.05;margin:0}
@@ -68,25 +93,35 @@ svg{display:block;width:100%;height:auto;font-family:var(--ui)}
 </head>
 <body>
 
-<header>
-  <a class="wordmark" href="../#">Dorey Desk</a>
-  <nav class="crumbs" aria-label="Where you are"><a href="../#">Home</a><a href="../#classroom">Classroom</a><span>Seating chart</span></nav>
-</header>
+<div class="layout" id="layout">
+<aside class="side" id="side">
+  <div class="side-top">
+    <a class="side-home" href="../#">Dorey Desk</a>
+    <nav class="side-crumbs" aria-label="Where you are"><a href="../#">Home</a><a href="../#classroom">Classroom</a><span>Seating chart</span></nav>
+  </div>
+  <div class="side-head">Saved plans<small id="savedCount"></small></div>
+  <nav class="side-list" id="savedList" aria-label="Saved seating plans"></nav>
+  <p class="side-note">Saved plans stay in this browser on this computer. They are not uploaded and do not sync to other devices.</p>
+</aside>
 
+<div class="content">
 <div class="intro">
   <h1>Seating chart</h1>
-  <p>Upload a class list, click a name and then a desk to seat it, then download the plan as an A4 PDF. The front is at the bottom.</p>
+  <p>Upload a class list, click a name and then a desk to seat it, then save the plan or download it as an A4 PDF. The front is at the bottom.</p>
 </div>
 
 <div class="tools">
   <div class="row">
+    <button type="button" id="sideToggle" class="side-toggle" aria-controls="side" aria-expanded="false">Saved plans</button>
     <button type="button" id="upload" class="solid">Upload class list</button>
     <input type="file" id="file" accept=".xlsx,.csv,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden>
-    <input type="text" id="cls" maxlength="40" placeholder="Class name (printed on the PDF)" aria-label="Class name">
+    <input type="text" id="cls" maxlength="40" placeholder="Class name (used to save, and printed on the PDF)" aria-label="Class name">
+    <button type="button" id="save" class="solid">Save plan</button>
     <button type="button" id="pdf" class="solid">Download A4 PDF</button>
     <button type="button" id="clear" class="quiet">Clear desks</button>
+    <button type="button" id="newPlan" class="quiet">New plan</button>
   </div>
-  <p class="note">Use an .xlsx or .csv with the last name in the first column and the first name in the second (or one column of "Last First"). Columns headed First name and Last name work in either order. The file is read in your browser; nothing is uploaded, and names are not saved, so reloading the page clears them.</p>
+  <p class="note">Use an .xlsx or .csv with the last name in the first column and the first name in the second (or one column of "Last First"). Columns headed First name and Last name work in either order. The file is read in your browser and is never uploaded. Saving keeps the plan, with the student names, in this browser only; delete plans you no longer need with the × in the list.</p>
   <div class="bar" id="bar" role="status" aria-live="polite"></div>
   <div class="pool" id="pool" aria-label="Names not yet seated"></div>
 </div>
@@ -94,6 +129,8 @@ svg{display:block;width:100%;height:auto;font-family:var(--ui)}
 <main>
   <svg id="room" viewBox="0 0 1000 534" role="group" aria-label="Classroom plan: three rows of eight desks in two tables of four, a front row of four desks and one double-length desk, windows down the left wall, door on the right wall near the bottom corner, lectern bottom-left"></svg>
 </main>
+</div>
+</div>
 
 <script src="../assets/vendor/jspdf.umd.min.js"></script>
 <script>
@@ -292,11 +329,81 @@ $('file').addEventListener('change', async e => {
     const rows = ext === 'xlsx' ? await readXlsx(await f.arrayBuffer()) : readCsv(await f.text());
     const names = namesFromRows(rows);
     if (!names.length) return alert('No names were found. Put the names in the first column, or use First name and Last name columns.');
-    desks.forEach(d => d.name = null); pool = names; sel = null;
+    if (isDirty() && hasNames() && !confirm('Replace the names on screen with this class list? Changes you have not saved will be lost.')) return;
+    desks.forEach(d => d.name = null); pool = names; sel = null; loaded = null;
     if (!$('cls').value) $('cls').value = f.name.replace(/\.[^.]+$/, '').slice(0, 40);
-    paint();
+    paint(); renderList();
   } catch(err){ alert("That file couldn't be read. Try saving it again as .xlsx or .csv."); }
 });
+
+// ---------- saved plans (in this browser only) ----------
+const KEY = 'doreyDesk.seating.plans.v1';
+const copyName = n => ({l1:String(n.l1 || ''), l2:String(n.l2 || '')});
+const okName = n => n && typeof n === 'object' && (n.l1 || n.l2);
+function readPlans(){
+  try {
+    const a = JSON.parse(localStorage.getItem(KEY));
+    return Array.isArray(a) ? a.filter(p => p && typeof p.name === 'string' && Array.isArray(p.desks)) : [];
+  } catch(e){ return [] }
+}
+function writePlans(a){ try { localStorage.setItem(KEY, JSON.stringify(a)); return true } catch(e){ return false } }
+const snapshot = () => JSON.stringify([desks.map(d => d.name ? copyName(d.name) : null), pool.map(copyName)]);
+let loaded = null, savedSnap = snapshot();                           // loaded: name of the saved plan on screen
+const isDirty = () => snapshot() !== savedSnap;
+const hasNames = () => desks.some(d => d.name) || pool.length > 0;
+const byName = (a, b) => a.name.localeCompare(b.name, undefined, {numeric:true, sensitivity:'base'});
+
+function renderList(){
+  const plans = readPlans().sort(byName), list = $('savedList');
+  $('savedCount').textContent = plans.length ? `${plans.length} saved` : 'Nothing saved yet';
+  list.replaceChildren();
+  if (!plans.length){ const p = document.createElement('p'); p.className = 'side-empty'; p.textContent = 'Seat a class, give it a name and press Save plan. It will appear here.'; list.appendChild(p); return }
+  for (const pl of plans){
+    const seated = pl.desks.filter(okName).length, extra = Array.isArray(pl.pool) ? pl.pool.filter(okName).length : 0;
+    const when = pl.saved ? new Date(pl.saved).toLocaleDateString('en-AU', {day:'numeric', month:'short'}) : '';
+    const row = document.createElement('div'); row.className = 'plan'; row.dataset.name = pl.name;
+    if (pl.name === loaded) row.setAttribute('aria-current', 'true');
+    const open = document.createElement('button'); open.type = 'button'; open.className = 'open';
+    open.append(pl.name);
+    const sm = document.createElement('small'); sm.textContent = `${seated} seated${extra ? `, ${extra} not seated` : ''}${when ? ' · ' + when : ''}`; open.appendChild(sm);
+    const del = document.createElement('button'); del.type = 'button'; del.className = 'del'; del.textContent = '×'; del.setAttribute('aria-label', 'Delete ' + pl.name);
+    row.append(open, del); list.appendChild(row);
+  }
+}
+function setSide(open){ $('layout').classList.toggle('open', open); $('sideToggle').setAttribute('aria-expanded', open) }
+$('sideToggle').addEventListener('click', () => setSide(!$('layout').classList.contains('open')));
+
+$('save').addEventListener('click', () => {
+  const name = $('cls').value.trim();
+  if (!name){ $('cls').focus(); return alert('Give the class a name first, in the box beside Upload class list.') }
+  if (!hasNames()) return alert('There are no names to save yet.');
+  const plans = readPlans(), i = plans.findIndex(p => p.name === name);
+  if (i >= 0 && name !== loaded && !confirm(`There is already a saved plan called "${name}". Replace it?`)) return;
+  const entry = {name, saved:new Date().toISOString(), desks:desks.map(d => d.name ? copyName(d.name) : null), pool:pool.map(copyName)};
+  if (i >= 0) plans[i] = entry; else plans.push(entry);
+  if (!writePlans(plans)) return alert("This browser can't keep saved plans (a private window, or storage turned off). Use Download A4 PDF to keep this plan.");
+  loaded = name; savedSnap = snapshot(); renderList(); paint();
+});
+$('savedList').addEventListener('click', e => {
+  const row = e.target.closest('.plan'); if (!row) return;
+  const name = row.dataset.name, pl = readPlans().find(p => p.name === name); if (!pl) return renderList();
+  if (e.target.closest('.del')){
+    if (!confirm(`Delete the saved plan "${name}"? This can't be undone.`)) return;
+    writePlans(readPlans().filter(p => p.name !== name));
+    if (loaded === name) loaded = null;
+    return renderList();
+  }
+  if (isDirty() && hasNames() && !confirm(`Open "${name}"? Changes you have not saved to the plan on screen will be lost.`)) return;
+  desks.forEach((d, i) => d.name = okName(pl.desks[i]) ? copyName(pl.desks[i]) : null);
+  pool = (Array.isArray(pl.pool) ? pl.pool : []).filter(okName).map(copyName);
+  $('cls').value = name; loaded = name; savedSnap = snapshot(); sel = null; setSide(false); paint(); renderList();
+});
+$('newPlan').addEventListener('click', () => {
+  if (isDirty() && hasNames() && !confirm('Start a new plan? Changes you have not saved will be lost.')) return;
+  desks.forEach(d => d.name = null); pool = []; sel = null; loaded = null; $('cls').value = ''; savedSnap = snapshot(); paint(); renderList();
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') setSide(false) });
+window.addEventListener('storage', e => { if (e.key === KEY) renderList() });
 
 // ---------- A4 PDF ----------
 const PDF_CSS = 'svg{font-family:Helvetica,Arial,sans-serif}.floor{fill:#fff}.wall{fill:none;stroke:#1D232B;stroke-width:3;stroke-linejoin:round;stroke-linecap:round}' +
@@ -324,7 +431,7 @@ $('pdf').addEventListener('click', async () => {
   } catch(err){ alert("The PDF couldn't be made in this browser. Try Chrome or Edge.") }
 });
 
-paint();
+paint(); renderList();
 })();
 </script>
 </body>
