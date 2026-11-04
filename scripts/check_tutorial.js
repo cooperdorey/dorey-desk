@@ -28,7 +28,7 @@ TUT.forEach(t=>{const w='template '+t.id;
  if(ids.has(t.id))fail(w,'duplicate id');ids.add(t.id);
  if(!topicIds.has(t.topic))fail(w,'unknown topic '+t.topic);
  if(![2,3].includes(t.level))fail(w,'level');
- if(!(t.mins>=3&&t.mins<=10))fail(w,'mins');
+ if(t.mins!==Math.round(t.marks*1.8))fail(w,"mins not 1.8 per mark");
  if(!t.hint)fail(w,'missing hint');
  if(!/^(Original question|(Similar to|Style of) HSC 20(2[0-6]) Q\d+(\([a-z]\))?)$/.test(t.src))fail(w,'bad source label: '+t.src);
  const seen=new Set();let made=0,nulls=0;

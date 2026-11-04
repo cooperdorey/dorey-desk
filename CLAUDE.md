@@ -44,7 +44,7 @@ We Do levels) live in the Lesson Creator project; this file covers the repo form
   (all maths must parse in KaTeX; no `NaN`, `undefined`, `+ -` or `1x`).
 - Tutorial generator (`generators/tutorial.html`): hard, unfamiliar questions for a 20, 25 or 30 minute tutorial. Its bank is
   `generators/tutorial-bank.js` (loads after engine.js; independent of lesson ids and `CODE_ORDER`). Each template has a topic id
-  from `TOPICS`, minutes, level (2 Hard, 3 Very hard), a hint and `gen(R)`, which must return a `chk()` that tests the printed
+  from `TOPICS`, a (now ignored) minutes value, level (2 Hard, 3 Very hard), a hint and `gen(R)`; marks per part live in `TUT_MARKS` (from similar HSC parts) and minutes are 1.8 per mark, which must return a `chk()` that tests the printed
   answer numerically. `buildTutorial` fills the time target within 2 minutes. Run `node scripts/check_tutorial.js` before committing.
   The page also builds A4 pages (student sheet with working space sized by minutes and a Working space setting; teacher answers with hints)
   and downloads them as PDFs with the vendored jsPDF + html-to-image, as the LSQ does.
