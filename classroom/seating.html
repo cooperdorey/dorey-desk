@@ -1,0 +1,455 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Seating chart – Dorey Desk</title>
+<link rel="icon" href="../assets/icons/icon.svg" type="image/svg+xml">
+<link rel="icon" href="../assets/icons/icon-32.png" sizes="32x32" type="image/png">
+<meta name="theme-color" content="#0F766E">
+<style>
+/* Matches the Dorey Desk site (assets/app.css) and the generators */
+:root{--paper:#F2F3F5;--panel:#FFFFFF;--ink:#1D232B;--muted:#5E6672;--line:#D9DDE3;--brand:#0F766E;--brand-ink:#FFFFFF;--tint:#E3F2F0;
+ --ui:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+ --card:"Palatino Linotype",Palatino,"Book Antiqua","URW Palladio L",Georgia,serif}
+@media (prefers-color-scheme:dark){:root{--paper:#16191E;--panel:#20242B;--ink:#ECEEF1;--muted:#A5ACB7;--line:#343A43;
+ --brand:#5FCFC2;--brand-ink:#062A26;--tint:#1B3A37;color-scheme:dark}}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0}
+body{background:var(--paper);color:var(--ink);font-family:var(--ui);font-size:15px;line-height:1.5}
+:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+header{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 28px;padding:22px clamp(16px,5vw,64px) 0}
+.wordmark{font-family:var(--card);font-weight:700;font-size:19px;color:var(--brand);text-decoration:none}
+.crumbs{display:flex;flex-wrap:wrap;font-size:14px;color:var(--muted)}
+.crumbs a{color:var(--muted);text-decoration:none}
+.crumbs a:hover{color:var(--ink);text-decoration:underline}
+.crumbs>*+*::before{content:"›";margin:0 8px;color:var(--line)}
+.intro{max-width:1280px;margin:0 auto;padding:28px clamp(16px,5vw,64px) 0}
+.intro h1{font-family:var(--card);font-weight:700;font-size:clamp(32px,5vw,48px);line-height:1.05;margin:0}
+.intro p{margin:8px 0 0;color:var(--muted);max-width:72ch}
+.wrap{display:grid;grid-template-columns:320px minmax(0,1fr);gap:24px;padding:24px clamp(16px,5vw,64px) 64px;max-width:1280px;margin:0 auto}
+aside{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;align-self:start;position:sticky;top:16px;max-height:calc(100vh - 32px);overflow:auto}
+aside h2{font-size:11.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin:18px 0 8px}
+aside h2:first-child{margin-top:0}
+label.f{display:block;font-size:12px;color:var(--muted);margin-bottom:3px}
+select,textarea,input[type=text]{width:100%;padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink);font:inherit}
+textarea{min-height:92px;resize:vertical}
+button{font:inherit;font-size:13px;padding:7px 12px;border-radius:8px;border:1px solid var(--brand);background:transparent;color:var(--brand);cursor:pointer}
+button:hover:not(:disabled){background:var(--tint)}
+button:disabled{opacity:.5;cursor:default}
+button.solid{background:var(--brand);color:var(--brand-ink);font-weight:600}
+button.solid:hover:not(:disabled){background:var(--brand);filter:brightness(1.08)}
+button.quiet{border-color:var(--line);color:var(--ink)}
+button.danger{border-color:#B42318;color:#B42318}
+@media (prefers-color-scheme:dark){button.danger{border-color:#F97066;color:#F97066}}
+.row{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.row>*{flex:1 1 auto}
+.check{display:flex;gap:8px;align-items:flex-start;font-size:14px;cursor:pointer;margin-top:10px}
+.check input{margin-top:4px;accent-color:var(--brand)}
+.check small{display:block;color:var(--muted);font-size:12px}
+.note{font-size:12px;color:var(--muted);margin:10px 0 0}
+.warn{background:#FFF4E5;color:#7A4B00;border:1px solid #F2C27B;border-radius:8px;padding:8px 10px;font-size:12.5px;margin-top:10px}
+@media (prefers-color-scheme:dark){.warn{background:#3A2C12;color:#F3D39A;border-color:#6B5320}}
+.pool{display:flex;flex-wrap:wrap;gap:6px;min-height:44px;padding:8px;border:1px dashed var(--line);border-radius:10px;background:var(--paper)}
+.pool.over{border-color:var(--brand);background:var(--tint)}
+.pool .none{font-size:12.5px;color:var(--muted);align-self:center}
+.chip{padding:4px 10px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font-size:13px;line-height:1.3;cursor:grab}
+.chip:hover:not(:disabled){background:var(--tint)}
+.chip.sel,.chip[aria-pressed=true]{border-color:var(--brand);background:var(--tint);box-shadow:0 0 0 2px var(--brand)}
+main{min-width:0}
+.selbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;min-height:46px;padding:8px 12px;margin-bottom:12px;border:1px solid var(--line);border-radius:10px;background:var(--panel);font-size:14px}
+.selbar.on{border-color:var(--brand);background:var(--tint)}
+.selbar .msg{flex:1 1 220px;color:var(--muted)}
+.selbar.on .msg{color:var(--ink)}
+.selbar button{padding:5px 10px}
+.scroll{overflow:auto;border-radius:12px}
+
+/* The sheet is always a light "paper" page, so printing and the PNG look the same in any theme */
+.sheet{--s-ink:#1D232B;--s-muted:#5E6672;--s-line:#B9C0CA;--s-zone:#F2F3F5;--s-desk:#FFFFFF;--s-board:#2B3440;--s-brand:#0F766E;--s-tint:#DDF0EE;
+  min-width:720px;background:#fff;color:var(--s-ink);border:1px solid var(--line);border-radius:12px;padding:18px 20px 20px}
+.sheet-head{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px 16px;margin-bottom:12px}
+.sheet-head h2{font-family:var(--card);font-weight:700;font-size:26px;line-height:1.1;margin:0}
+.sheet-head p{margin:0;font-size:12.5px;color:var(--s-muted)}
+.room{display:grid;grid-template-columns:92px minmax(0,1fr) 40px;
+  grid-template-areas:"board board board" "left front right" "left desks right" "left back right" "wall wall wall";gap:0 14px}
+.board,.wall{border-radius:6px;text-align:center;font-size:12.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:8px 10px}
+.board{grid-area:board;background:var(--s-board);color:#fff;margin-bottom:10px}
+.wall{grid-area:wall;background:var(--s-zone);color:var(--s-muted);border:1px solid var(--s-line);margin-top:14px;font-weight:600}
+.left{grid-area:left;display:flex;flex-direction:column;gap:12px;align-items:stretch;font-size:11.5px;color:var(--s-muted)}
+.right{grid-area:right;display:flex;align-items:center;justify-content:center;border-radius:6px;
+  background:repeating-linear-gradient(0deg,#E6F0F7 0 10px,#CFE0EC 10px 12px);color:#2F4A60;font-size:12px;font-weight:600;letter-spacing:.05em;
+  writing-mode:vertical-rl;text-orientation:mixed;text-align:center;padding:10px 0}
+.door{border:1.5px dashed var(--s-line);border-radius:6px;padding:8px 8px 10px;line-height:1.3}
+.door svg{display:block;margin:0 0 4px;width:34px;height:34px}
+.door b{display:block;color:var(--s-ink);font-size:12px}
+.tdesk{border:1.5px solid var(--s-ink);border-radius:5px;background:var(--s-desk);padding:8px;text-align:center;font-weight:600;color:var(--s-ink)}
+.front{grid-area:front;display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px;margin-bottom:8px;
+  border-bottom:1.5px dashed var(--s-line);font-size:11.5px;color:var(--s-muted)}
+.lectern{border:1.5px solid var(--s-ink);border-radius:4px;background:var(--s-desk);padding:5px 9px;font-weight:600;color:var(--s-ink);text-align:center;line-height:1.25}
+.lectern small{display:block;font-weight:400;color:var(--s-muted);font-size:10.5px}
+.desks{grid-area:desks;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0 34px}
+.col{display:flex;flex-direction:column;gap:10px}
+.pair{display:grid;grid-template-columns:1fr 1fr;border:1.5px solid var(--s-ink);border-radius:6px;background:var(--s-desk);overflow:hidden}
+.pair.gone{border:1.5px dashed var(--s-line);background:transparent;display:flex;align-items:center;justify-content:center;
+  min-height:52px;font-size:11.5px;color:var(--s-muted);text-align:center;padding:4px}
+.seat{all:unset;box-sizing:border-box;display:flex;align-items:center;justify-content:center;min-height:52px;padding:4px 6px;text-align:center;
+  font:600 13px/1.2 var(--ui);color:var(--s-ink);cursor:pointer;overflow-wrap:anywhere}
+.seat+.seat{border-left:1px solid var(--s-line)}
+.seat:hover{background:var(--s-zone)}
+.seat.empty{cursor:default}
+.seat.sel{background:var(--s-tint);box-shadow:inset 0 0 0 3px var(--s-brand)}
+.seat.over{background:var(--s-tint)}
+.seat:focus-visible{outline:2px solid var(--s-brand);outline-offset:-3px}
+.seat[draggable=true]{cursor:grab;-webkit-user-drag:element}   /* all:unset above removes the browser's drag behaviour */
+.back{grid-area:back;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0 34px;margin-top:14px;align-items:stretch}
+.zone{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:46px;padding:6px 8px;border:1.5px solid var(--s-ink);
+  border-radius:6px;background:var(--s-desk);font-size:12px;font-weight:600;line-height:1.25}
+.zone small{display:block;font-weight:400;color:var(--s-muted);font-size:10.5px}
+.zone.table{border-radius:999px}
+.zone.store{border-style:dashed;border-color:var(--s-line);background:var(--s-zone);color:var(--s-muted)}
+.zone.moved{border-style:dashed;border-color:var(--s-line);background:transparent;color:var(--s-muted)}
+
+@media (max-width:980px){.wrap{grid-template-columns:1fr}aside{position:static;max-height:none}}
+
+@media print{
+ @page{size:A4 landscape;margin:9mm}
+ body{background:#fff}
+ header,.intro,aside,.selbar{display:none!important}
+ .wrap{display:block;padding:0;max-width:none}
+ .scroll{overflow:visible}
+ .sheet{border:0;border-radius:0;padding:0;min-width:0;width:100%}
+ .seat.sel{background:transparent;box-shadow:none}
+ .seat.empty{background:transparent}
+ *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <a class="wordmark" href="../#">Dorey Desk</a>
+  <nav class="crumbs" aria-label="Where you are"><a href="../#">Home</a><a href="../#classroom">Classroom</a><span>Seating chart</span></nav>
+</header>
+
+<div class="intro">
+  <h1>Seating chart</h1>
+  <p>Build a seating plan for each class on the 3 × 5 desk-pair layout. Names stay in this browser; nothing is uploaded or saved on the site.</p>
+</div>
+
+<div class="wrap">
+<aside aria-label="Seating chart controls">
+  <h2>Class</h2>
+  <label class="f" for="classSel">Choose a class</label>
+  <select id="classSel"></select>
+  <div class="row">
+    <button type="button" id="newClass" class="quiet">New</button>
+    <button type="button" id="renameClass" class="quiet">Rename</button>
+    <button type="button" id="deleteClass" class="danger">Delete</button>
+  </div>
+  <label class="check"><input type="checkbox" id="alt"><span>Teacher desk by the door<small>Drops the front-left desk pair and puts the teacher desk on the left wall past the door.</small></span></label>
+
+  <h2>Add students</h2>
+  <label class="f" for="names">One name per line</label>
+  <textarea id="names" placeholder="Paste a class list here"></textarea>
+  <div class="row"><button type="button" id="addNames" class="solid">Add to unseated</button></div>
+
+  <h2>Unseated <span id="poolCount"></span></h2>
+  <div class="pool" id="pool" aria-label="Students not yet seated"></div>
+  <p class="note" id="capNote"></p>
+
+  <h2>Arrange</h2>
+  <div class="row">
+    <button type="button" id="fillRandom">Fill empty seats randomly</button>
+    <button type="button" id="fillOrder">Fill in list order</button>
+    <button type="button" id="shuffleAll">Shuffle everyone</button>
+    <button type="button" id="clearSeats" class="quiet">Clear seats</button>
+  </div>
+  <p class="note">Click a name, then a seat to place or swap. Dragging also works on a computer.</p>
+
+  <h2>Output</h2>
+  <div class="row">
+    <button type="button" id="print" class="solid">Print</button>
+    <button type="button" id="png">Save as image</button>
+  </div>
+  <div class="row">
+    <button type="button" id="exportBtn" class="quiet">Export file</button>
+    <button type="button" id="importBtn" class="quiet">Import file</button>
+  </div>
+  <input type="file" id="importFile" accept="application/json,.json" hidden>
+  <div class="warn" id="saveWarn" hidden>This browser can't keep changes between visits (private window?). Use Export file to keep your plan.</div>
+  <p class="note">Exported files contain student names. Keep them on school systems, not in the repository.</p>
+</aside>
+
+<main>
+  <div class="selbar" id="selbar" role="status" aria-live="polite"></div>
+  <div class="scroll">
+    <div class="sheet" id="sheet">
+      <div class="sheet-head"><h2 id="sheetTitle"></h2><p>As students face the front. Door front-left, windows on the right.</p></div>
+      <div class="room" id="room" role="group" aria-label="Classroom seating chart"></div>
+    </div>
+  </div>
+</main>
+</div>
+
+<script src="../assets/vendor/html-to-image.js"></script>
+<script>
+(function(){
+'use strict';
+const COLS = 3, ROWS = 5, PER = 2, N = COLS*ROWS*PER;     // 3 columns × 5 rows of pairs = 30 seats
+const KEY = 'doreyDesk.seating.v1';                       // browser storage only; names never leave the device
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const seatIndex = (c, r, s) => (c*ROWS + r)*PER + s;
+const blank = () => ({seats:Array(N).fill(''), pool:[], alt:false});
+
+let store = load(), sel = null, canSave = true;
+const cur = () => store.classes[store.current];
+const removed = i => cur().alt && i < PER;                // alt layout drops the front-left pair (column 1, row 1)
+
+function clean(c){
+  const seats = Array.isArray(c && c.seats) ? c.seats.slice(0, N).map(x => typeof x === 'string' ? x : '') : [];
+  while (seats.length < N) seats.push('');
+  const pool = Array.isArray(c && c.pool) ? c.pool.filter(x => typeof x === 'string' && x.trim()) : [];
+  return {seats, pool, alt: !!(c && c.alt)};
+}
+function normalise(s){
+  const out = {current:'', classes:{}};
+  if (s && s.classes && typeof s.classes === 'object') for (const k of Object.keys(s.classes)) out.classes[k] = clean(s.classes[k]);
+  const keys = Object.keys(out.classes);
+  if (!keys.length){ out.classes['Class 1'] = blank(); keys.push('Class 1') }
+  out.current = out.classes[s && s.current] ? s.current : keys[0];
+  return out;
+}
+function load(){
+  try { const raw = localStorage.getItem(KEY); if (raw) return normalise(JSON.parse(raw)) } catch(e){}
+  return normalise(null);
+}
+function save(){
+  try { localStorage.setItem(KEY, JSON.stringify(store)) } catch(e){ canSave = false }
+  $('saveWarn').hidden = canSave;
+}
+
+// ---------- moving names ----------
+function nameAt(r){ return r.t === 'seat' ? cur().seats[r.i] : cur().pool[r.i] }
+function move(src, dst){
+  const c = cur(), name = nameAt(src);
+  if (!name) return;
+  if (dst.t === 'seat'){
+    if (removed(dst.i)) return;
+    const other = c.seats[dst.i];
+    c.seats[dst.i] = name;
+    if (src.t === 'seat') c.seats[src.i] = other;                 // seat ↔ seat swaps
+    else { c.pool.splice(src.i, 1); if (other) c.pool.push(other) } // pool → seat sends the occupant to Unseated
+  } else if (src.t === 'seat'){
+    c.seats[src.i] = ''; c.pool.push(name);                        // seat → Unseated
+  }
+  save();
+}
+function unseat(i){ const c = cur(); if (c.seats[i]){ c.pool.push(c.seats[i]); c.seats[i] = ''; save() } }
+const freeSeats = () => { const a = []; for (let r = 0; r < ROWS; r++) for (let col = 0; col < COLS; col++) for (let s = 0; s < PER; s++){ const i = seatIndex(col, r, s); if (!removed(i)) a.push(i) } return a };  // reading order, front row first
+function shuffle(a){ for (let i = a.length - 1; i > 0; i--){ const j = Math.floor(Math.random()*(i+1)); [a[i], a[j]] = [a[j], a[i]] } return a }
+
+// ---------- drawing ----------
+function seatLabel(i){
+  const col = Math.floor(i/(ROWS*PER)), r = Math.floor((i % (ROWS*PER))/PER), s = i % PER, nm = cur().seats[i];
+  return `Column ${col+1}, row ${r+1}, ${s ? 'right' : 'left'} seat: ${nm || 'empty'}`;
+}
+function render(){
+  const c = cur(), names = Object.keys(store.classes);
+  $('classSel').innerHTML = names.map(n => `<option value="${esc(n)}"${n === store.current ? ' selected' : ''}>${esc(n)}</option>`).join('');
+  $('alt').checked = c.alt;
+  $('sheetTitle').textContent = store.current;
+  document.title = `${store.current} seating chart – Dorey Desk`;
+
+  const doorSvg = '<svg viewBox="0 0 34 34" aria-hidden="true"><path d="M4 30V4h2v26zM6 4a26 26 0 0 1 26 26" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>';
+  let cols = '';
+  for (let col = 0; col < COLS; col++){
+    cols += '<div class="col">';
+    for (let r = 0; r < ROWS; r++){
+      const i0 = seatIndex(col, r, 0);
+      if (removed(i0)){ cols += '<div class="pair gone">Teacher desk moved to the left wall</div>'; continue }
+      cols += '<div class="pair">';
+      for (let s = 0; s < PER; s++){
+        const i = i0 + s, nm = c.seats[i], on = sel && sel.t === 'seat' && sel.i === i;
+        cols += `<button type="button" class="seat${nm ? '' : ' empty'}${on ? ' sel' : ''}" data-i="${i}" draggable="${nm ? 'true' : 'false'}" aria-pressed="${on}" aria-label="${esc(seatLabel(i))}">${esc(nm)}</button>`;
+      }
+      cols += '</div>';
+    }
+    cols += '</div>';
+  }
+  $('room').innerHTML = `
+    <div class="board">Front · whiteboard and smart board</div>
+    <div class="left">
+      <div class="door">${doorSvg}<b>Door</b>Keep this corner clear</div>
+      ${c.alt ? '<div class="tdesk">Teacher desk<br><small>by the door</small></div>' : ''}
+    </div>
+    <div class="front"><span>About 1 m clear in front of the boards</span><div class="lectern">Lectern<small>front-right · roll aside for the full board</small></div></div>
+    <div class="desks">${cols}</div>
+    <div class="right">Windows · lower the front blinds first</div>
+    <div class="back">
+      <div class="zone table">Group table<small>reteaching, or working at the board</small></div>
+      ${c.alt ? '<div class="zone moved">Teacher desk is by the door</div>' : '<div class="zone">Teacher desk<small>centre back, sees every screen</small></div>'}
+      <div class="zone store">Storage<small>trays, papers, books</small></div>
+    </div>
+    <div class="wall">Back · whiteboard and shelving</div>`;
+
+  const pool = $('pool');
+  pool.innerHTML = c.pool.length
+    ? c.pool.map((n, i) => `<button type="button" class="chip" data-p="${i}" draggable="true" aria-pressed="${!!(sel && sel.t === 'pool' && sel.i === i)}">${esc(n)}</button>`).join('')
+    : '<span class="none">Everyone is seated</span>';
+  const seated = c.seats.filter(Boolean).length, cap = freeSeats().length, total = seated + c.pool.length;
+  $('poolCount').textContent = c.pool.length ? `(${c.pool.length})` : '';
+  $('capNote').textContent = total
+    ? `${total} student${total === 1 ? '' : 's'}, ${seated} seated, ${cap} seat${cap === 1 ? '' : 's'} in this layout.` + (total > cap ? ` ${total - cap} more than the seats available.` : '')
+    : `${cap} seats in this layout.`;
+  renderSel();
+}
+function renderSel(){
+  const bar = $('selbar');
+  if (!sel){ bar.className = 'selbar'; bar.innerHTML = '<span class="msg">Click a name to pick it up, then click a seat.</span>'; return }
+  const nm = nameAt(sel);
+  bar.className = 'selbar on';
+  bar.innerHTML = `<span class="msg"><strong>${esc(nm)}</strong> · click a seat to place or swap${sel.t === 'seat' ? ', or Unseat' : ''}</span>
+    ${sel.t === 'seat' ? '<button type="button" data-act="unseat">Unseat</button>' : ''}
+    <button type="button" data-act="rename" class="quiet">Rename</button>
+    <button type="button" data-act="remove" class="danger">Remove</button>
+    <button type="button" data-act="cancel" class="quiet">Cancel</button>`;
+}
+const redraw = () => { render() };
+
+// ---------- clicking and dragging ----------
+$('room').addEventListener('click', e => {
+  const b = e.target.closest('.seat'); if (!b) return;
+  const i = +b.dataset.i;
+  if (!sel){ if (cur().seats[i]) sel = {t:'seat', i} }
+  else if (sel.t === 'seat' && sel.i === i) sel = null;
+  else { move(sel, {t:'seat', i}); sel = null }
+  redraw();
+});
+$('pool').addEventListener('click', e => {
+  const b = e.target.closest('.chip'); if (!b) return;
+  const i = +b.dataset.p;
+  if (!sel || sel.t === 'pool') sel = (sel && sel.t === 'pool' && sel.i === i) ? null : {t:'pool', i};
+  else { move(sel, {t:'pool'}); sel = null }
+  redraw();
+});
+$('selbar').addEventListener('click', e => {
+  const act = e.target.closest('button') && e.target.closest('button').dataset.act; if (!act || !sel) return;
+  const c = cur(), list = sel.t === 'seat' ? c.seats : c.pool, nm = list[sel.i];
+  if (act === 'unseat') unseat(sel.i);
+  if (act === 'rename'){ const v = prompt('Name', nm); if (v === null) return; if (v.trim()){ list[sel.i] = v.trim(); save() } }
+  if (act === 'remove'){ if (!confirm(`Remove ${nm} from this class?`)) return; if (sel.t === 'seat') c.seats[sel.i] = ''; else c.pool.splice(sel.i, 1); save() }
+  sel = null; redraw();
+});
+document.addEventListener('keydown', e => {
+  if (!sel || /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
+  if (e.key === 'Escape'){ sel = null; redraw() }
+  if ((e.key === 'Delete' || e.key === 'Backspace') && sel.t === 'seat'){ e.preventDefault(); unseat(sel.i); sel = null; redraw() }
+});
+
+let drag = null;
+document.addEventListener('dragstart', e => {
+  const s = e.target.closest && e.target.closest('.seat'), p = e.target.closest && e.target.closest('.chip');
+  drag = s ? {t:'seat', i:+s.dataset.i} : p ? {t:'pool', i:+p.dataset.p} : null;
+  if (drag){ e.dataTransfer.setData('text/plain', 'seat'); e.dataTransfer.effectAllowed = 'move' }
+});
+document.addEventListener('dragend', () => { drag = null; document.querySelectorAll('.over').forEach(x => x.classList.remove('over')) });
+$('room').addEventListener('dragover', e => { const b = e.target.closest('.seat'); if (b && drag){ e.preventDefault(); b.classList.add('over') } });
+$('room').addEventListener('dragleave', e => { const b = e.target.closest('.seat'); if (b) b.classList.remove('over') });
+$('room').addEventListener('drop', e => {
+  const b = e.target.closest('.seat'); if (!b || !drag) return;
+  e.preventDefault(); move(drag, {t:'seat', i:+b.dataset.i}); drag = null; sel = null; redraw();
+});
+$('pool').addEventListener('dragover', e => { if (drag){ e.preventDefault(); $('pool').classList.add('over') } });
+$('pool').addEventListener('dragleave', () => $('pool').classList.remove('over'));
+$('pool').addEventListener('drop', e => { e.preventDefault(); $('pool').classList.remove('over'); if (drag){ move(drag, {t:'pool'}); drag = null; sel = null; redraw() } });
+
+// ---------- classes ----------
+$('classSel').addEventListener('change', e => { store.current = e.target.value; sel = null; save(); redraw() });
+function askName(msg, def){
+  const v = prompt(msg, def || ''); if (v === null) return null;
+  const n = v.trim().slice(0, 40); if (!n) return null;
+  if (store.classes[n] && n !== def){ alert('There is already a class with that name.'); return null }
+  return n;
+}
+$('newClass').addEventListener('click', () => {
+  const n = askName('Name for the new class (for example 12 ADV P3)'); if (!n) return;
+  store.classes[n] = blank(); store.current = n; sel = null; save(); redraw();
+});
+$('renameClass').addEventListener('click', () => {
+  const old = store.current, n = askName('New name for this class', old); if (!n || n === old) return;
+  const next = {}; for (const k of Object.keys(store.classes)) next[k === old ? n : k] = store.classes[k];
+  store.classes = next; store.current = n; save(); redraw();
+});
+$('deleteClass').addEventListener('click', () => {
+  if (!confirm(`Delete the class "${store.current}" and its seating plan? This can't be undone.`)) return;
+  delete store.classes[store.current];
+  if (!Object.keys(store.classes).length) store.classes['Class 1'] = blank();
+  store.current = Object.keys(store.classes)[0]; sel = null; save(); redraw();
+});
+$('alt').addEventListener('change', e => {
+  const c = cur(); c.alt = e.target.checked;
+  if (c.alt) for (let i = 0; i < PER; i++) if (c.seats[i]){ c.pool.push(c.seats[i]); c.seats[i] = '' }
+  sel = null; save(); redraw();
+});
+
+// ---------- students and arranging ----------
+$('addNames').addEventListener('click', () => {
+  const list = $('names').value.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+  if (!list.length) return;
+  cur().pool.push(...list); $('names').value = ''; save(); redraw();
+});
+function fill(order){
+  const c = cur(), seats = freeSeats().filter(i => !c.seats[i]);
+  if (order === 'random') shuffle(seats);
+  const pool = order === 'random' ? shuffle(c.pool.slice()) : c.pool.slice();
+  const n = Math.min(seats.length, pool.length);
+  for (let k = 0; k < n; k++) c.seats[seats[k]] = pool[k];
+  c.pool = pool.slice(n); sel = null; save(); redraw();
+}
+$('fillRandom').addEventListener('click', () => fill('random'));
+$('fillOrder').addEventListener('click', () => fill('order'));
+$('shuffleAll').addEventListener('click', () => {
+  const c = cur(), all = shuffle(c.seats.filter(Boolean).concat(c.pool)), seats = freeSeats();
+  c.seats = Array(N).fill(''); const n = Math.min(seats.length, all.length);
+  for (let k = 0; k < n; k++) c.seats[seats[k]] = all[k];
+  c.pool = all.slice(n); sel = null; save(); redraw();
+});
+$('clearSeats').addEventListener('click', () => {
+  const c = cur(); if (!c.seats.some(Boolean)) return;
+  if (!confirm('Move everyone back to Unseated?')) return;
+  c.pool.push(...c.seats.filter(Boolean)); c.seats = Array(N).fill(''); sel = null; save(); redraw();
+});
+
+// ---------- output ----------
+$('print').addEventListener('click', () => { sel = null; redraw(); window.print() });
+function download(href, name){ const a = document.createElement('a'); a.href = href; a.download = name; document.body.appendChild(a); a.click(); a.remove() }
+const fileName = ext => `Seating ${store.current}.${ext}`.replace(/[\\/:*?"<>|]/g, '');
+$('png').addEventListener('click', async () => {
+  sel = null; redraw();
+  try {
+    const url = await htmlToImage.toPng($('sheet'), {pixelRatio:2, backgroundColor:'#ffffff'});
+    download(url, fileName('png'));
+  } catch(e){ alert('The image could not be made in this browser. Try Print, then Save as PDF.') }
+});
+$('exportBtn').addEventListener('click', () => {
+  const url = URL.createObjectURL(new Blob([JSON.stringify(store, null, 1)], {type:'application/json'}));
+  download(url, 'dorey-desk-seating.json'); setTimeout(() => URL.revokeObjectURL(url), 2000);
+});
+$('importBtn').addEventListener('click', () => $('importFile').click());
+$('importFile').addEventListener('change', async e => {
+  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+  try {
+    const next = normalise(JSON.parse(await f.text()));
+    if (!confirm(`Replace the plans in this browser with the ${Object.keys(next.classes).length} class(es) in this file?`)) return;
+    store = next; sel = null; save(); redraw();
+  } catch(err){ alert("That file isn't a Dorey Desk seating export.") }
+});
+
+save(); render();
+})();
+</script>
+</body>
+</html>

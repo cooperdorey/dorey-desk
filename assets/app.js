@@ -100,6 +100,7 @@ function route(){
   if (y) return showCourses(y);
   if (parts[0]==='lessons') return showYears();
   if (parts[0]==='generators') return showGenerators();
+  if (parts[0]==='classroom') return showClassroom();
   showStart();
 }
 function showHome(){ $('lesson').hidden = true; $('drb').hidden = true; $('home').hidden = false; $('status').hidden = true; window.scrollTo(0,0) }
@@ -132,10 +133,38 @@ async function showStart(){
   const gens = document.createElement('a'); gens.className = 'choice gen'; gens.href = '#generators';
   gens.innerHTML = `<span class="dice" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
     <span class="big">Generators</span><span class="small" id="genCount">Random questions with worked solutions</span>`;
-  tiles.replaceChildren(lessons, gens);
+  const room = document.createElement('a'); room.className = 'choice room'; room.href = '#classroom';
+  room.innerHTML = `<span class="desk-icon" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>
+    <span class="big">Classroom</span><span class="small" id="roomCount">Seating charts for each class · your names stay in your browser</span>`;
+  tiles.replaceChildren(lessons, gens, room);
   document.title = 'Dorey Desk';
   const g = await loadGenerators();
   const c = $('genCount'); if (c && g.length) c.textContent = `Random questions with worked solutions · ${plural(g.length,'generator')}`;
+  const k = await loadClassroom();
+  const r = $('roomCount'); if (r && k.length) r.textContent = `Seating charts for each class, with names kept in your browser · ${plural(k.length,'tool')}`;
+}
+
+// ---------- home: classroom ----------
+let ROOM = null;
+async function loadClassroom(){
+  if (ROOM) return ROOM;
+  try { const r = await fetch('classroom/classroom.json',{cache:'no-store'}); ROOM = r.ok ? await r.json() : [] }
+  catch(e){ ROOM = [] }
+  return ROOM;
+}
+async function showClassroom(){
+  showHome(); crumbs([{label:'Home',href:'#'},{label:'Classroom'}]); paint($('home'), null);
+  $('prompt').textContent = 'Choose a classroom tool';
+  $('promptSub').textContent = 'Each opens in its own page. Anything you type stays in this browser.';
+  const tiles = $('tiles'); tiles.className = 'tiles gens'; tiles.replaceChildren();
+  document.title = 'Classroom – Dorey Desk';
+  const k = await loadClassroom();
+  if (!k.length){ tiles.innerHTML = '<p class="empty-note">No classroom tools yet.</p>'; return }
+  tiles.replaceChildren(...k.map(x=>{
+    const a = document.createElement('a'); a.className = 'generator'; a.href = 'classroom/' + encodeURI(x.file);
+    a.innerHTML = `<span class="t">${esc(x.name)}</span><span class="d">${esc(x.desc||'')}</span>`;
+    return a;
+  }));
 }
 
 // ---------- home: generators ----------

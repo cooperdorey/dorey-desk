@@ -19,6 +19,10 @@ We Do levels) live in the Lesson Creator project; this file covers the repo form
 - Brackets: use plain `( )`; use `\left( … \right)` only around fractions. Don't use `\big`.
   (The app draws non-fraction `\left…\right` pairs at normal size so pairs always match.)
 - Before committing, run `python3 scripts/build_manifest.py`; it must report no problems.
+- Classroom tools: one self-contained page per tool in `classroom/`, registered in
+  `classroom/classroom.json`. The seating chart keeps student names in browser storage only. Never put
+  student names, rosters or exported seating files in this public repo, and never test with real names.
+  New top-level site folders must also be added to the `cp -r` line in `.github/workflows/pages.yml`.
 - Generators: one page per generator in `generators/`, registered in
   `generators/generators.json`. The question bank (`gen` functions, topics, lessons and each
   lesson's `marks`) lives in `generators/engine.js`, shared by the question generator, the

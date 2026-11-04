@@ -11,6 +11,7 @@ Open a lesson, copy cards as images into OneNote, and toggle the worked solution
 ```
 index.html                 the app
 assets/app.css, app.js     styles and behaviour
+classroom/                 classroom tools (seating chart), listed in classroom.json
 scripts/build_manifest.py  builds manifest.json (the lesson list) and checks lessons
 lessons/
   year-12/                 _meta.json → {"name": "Year 12"}
@@ -19,7 +20,7 @@ lessons/
         1.01-the-derivative-of-exponential-functions.html
 ```
 
-The start page offers Lessons or Generators. Lessons steps through Year → Course → Topic, then
+The start page offers Lessons, Generators or Classroom. Lessons steps through Year → Course → Topic, then
 asks **Lessons** or **DRB**. Lessons opens the topic's lessons down the side; DRB shows the
 topic's Dorey's Resource Book to read in the page, download as a PDF or open in a new tab.
 All of it comes from the folders.
@@ -87,6 +88,22 @@ The question generator's topics and lessons are the `TOPICS` list near the botto
 `<script id="engine">`. Each lesson points at a generator function that returns the question,
 the worked-solution lines and the answer. Lesson ids appear in shared links, so keep them
 stable once used.
+
+## Classroom
+
+The start page's **Classroom** tile lists classroom tools from `classroom/classroom.json`
+(`file`, `name`, `desc`), one self-contained page each in `classroom/`.
+
+- **Seating chart** (`seating.html`): the 3 × 5 desk-pair room (door front-left, windows on the
+  right, lectern front-right, group table, teacher desk and storage at the back). Each class has its own
+  plan. Add names one per line, then click a name and a seat (or drag on a computer) to place or swap, or use
+  Fill randomly, Fill in list order or Shuffle everyone. "Teacher desk by the door" drops the front-left pair
+  and moves the teacher desk to the left wall. Output is Print (A4 landscape), Save as image (PNG) or
+  Export/Import file.
+
+Student names are kept only in the browser's own storage (`doreyDesk.seating.v1`). They are never
+uploaded or committed, so the public site holds no student data. Exported files contain names, so keep
+them on school systems, not in this repository.
 
 ## A lesson file
 
