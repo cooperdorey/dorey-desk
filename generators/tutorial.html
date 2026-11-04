@@ -108,6 +108,9 @@ table.tv th,table.tv td{border:1px solid var(--sol-line);padding:4px 12px;text-a
 .pt{display:flex;gap:10px;margin:8px 0 0 2px}
 .pt>span{min-width:1.9em;font-weight:700;color:var(--muted)}
 .pt>div{flex:1;min-width:0}
+.pt.one{margin-left:0}
+.pm{font-family:var(--ui);font-size:11.5px;color:#555;white-space:nowrap;align-self:flex-end;margin-left:auto;padding-left:10px}
+.parts .pt>.pm{align-self:flex-start;padding-top:3px}
 .set-total{font-size:13px;color:var(--muted);margin:0 0 12px}
 .full{grid-column:1/-1}
 select{width:100%;padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink);font:inherit}
@@ -350,7 +353,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   hs.forEach((x,i)=>{if(cur.length&&used+x>avail){pages.push(cur);cur=[];used=0}cur.push(i);used+=x+10});if(cur.length)pages.push(cur);return pages}
  function buildSheets(set,info){
   const qp=questionPages(set,info),n=qp.length;
-  $('sheet').innerHTML=`<div class="pages">${qp.map((pg,pi)=>`<div class="pagebox"><div class="page">${pi===0?headHTML(info):`<div class="cont"><span>${esc(info.title)} (continued)</span><span>Name: ______________________</span></div>`}${pg.map(({i,space},j)=>qBlock(set[i],i,space,j===0)).join('')}${foot(info,pi,n,'Tutorial')}</div></div>`).join('')}</div>`;
+  $('sheet').innerHTML=`<div class="pages">${qp.map((pg,pi)=>`<div class="pagebox"><div class="page">${pi===0?headHTML(info):`<div class="cont"><span>${esc(info.title)} (continued)</span></div>`}${pg.map(({i,space},j)=>qBlock(set[i],i,space,j===0)).join('')}${foot(info,pi,n,'Tutorial')}</div></div>`).join('')}</div>`;
   const ap=answerPages(set),m=ap.length;
   $('ans').innerHTML=`<div class="pages">${ap.map((pg,pi)=>`<div class="pagebox"><div class="page akey"><div class="phead"><div><h2>${esc(info.title)}: answers</h2><div class="sub">${esc(info.topics)}</div></div><div class="right">${info.cls?esc(info.cls)+'<br>':''}teacher copy</div></div>${pg.map(i=>aBlock(set[i],i)).join('')}${foot(info,pi,m,'Answers')}</div></div>`).join('')}</div>`;
   render($('sheet'));render($('ans'));
