@@ -95,7 +95,7 @@ The start page's **Classroom** tile lists classroom tools from `classroom/classr
 (`file`, `name`, `desc`), one self-contained page each in `classroom/`.
 
 - **Seating chart** (`seating.html`): the 3 × 5 desk-pair room (door front-left, windows on the
-  right, lectern front-right, group table, teacher desk and storage at the back). Each class has its own
+  right, lectern front-centre, group table, teacher desk and storage at the back). Each class has its own
   plan. Add names one per line, then click a name and a seat (or drag on a computer) to place or swap, or use
   Fill randomly, Fill in list order or Shuffle everyone. "Teacher desk by the door" drops the front-left pair
   and moves the teacher desk to the left wall. Output is Print (A4 landscape), Save as image (PNG) or
