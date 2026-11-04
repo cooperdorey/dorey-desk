@@ -30,6 +30,7 @@ TUT.forEach(t=>{const w='template '+t.id;
  if(![2,3].includes(t.level))fail(w,'level');
  if(!(t.mins>=3&&t.mins<=10))fail(w,'mins');
  if(!t.hint)fail(w,'missing hint');
+ if(!/^(Original question|(Similar to|Style of) HSC 20(2[0-6]) Q\d+(\([a-z]\))?)$/.test(t.src))fail(w,'bad source label: '+t.src);
  const seen=new Set();let made=0,nulls=0;
  for(let s=0;s<SEEDS;s++){const Q=t.gen(makeRng(w+s));
   if(!Q){nulls++;continue}

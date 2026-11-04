@@ -337,7 +337,18 @@ tut('tt-ln-show','12adv-differentiation','Show that the derivative of a log is s
    chk:()=>{const f=x=>Math.log(x+Math.sqrt(x*x+a));return [0.3,1.1,2.4,-0.8].every(x=>tNear(tFx(f,x),1/Math.sqrt(x*x+a)))}}});
 
 // ================= building a tutorial =================
-const TUT_BY_ID={};TUT.forEach(t=>{TUT_BY_ID[t.id]=t;t.topicName=(TOPICS.find(x=>x.id===t.topic)||{name:t.topic}).name});
+// Where each question type comes from. "Similar to" means the same task adapted; "Style of" means the same kind of skill and wording.
+// Only questions found in the 2020-2026 HSC Mathematics Advanced papers are cited; everything else is ours.
+const TUT_SRC={
+ 'tt-tangents-from-point':'Similar to HSC 2021 Q31',
+ 'tt-ln-origin':'Similar to HSC 2020 Q29(b)',
+ 'tt-ambiguous':'Similar to HSC 2021 Q18',
+ 'tt-exp-origin':'Style of HSC 2020 Q29(b)',
+ 'tt-ode':'Style of HSC 2022 Q27(a)',
+ 'tt-ln-show':'Style of HSC 2026 Q21(a)',
+ 'tt-sqrt-quot':'Style of HSC 2025 Q25(a)',
+ 'tt-touching':'Style of HSC 2025 Q24'};
+const TUT_BY_ID={};TUT.forEach(t=>{TUT_BY_ID[t.id]=t;t.src=TUT_SRC[t.id]||'Original question';t.topicName=(TOPICS.find(x=>x.id===t.topic)||{name:t.topic}).name});
 
 // Picks questions whose estimated times add up to the target (within 2 minutes), spread over the ticked topics where possible,
 // then returns them easiest first. The same seed, targets and ticks always give the same tutorial.

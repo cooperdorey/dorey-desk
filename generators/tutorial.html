@@ -143,6 +143,8 @@ select{width:100%;padding:7px 9px;border:1px solid var(--line);border-radius:8px
 .akey .src{font-family:var(--ui);font-size:10.5px;color:#6b7280;margin-top:3px}
 .akey .final{font-weight:700;border-top:1px dashed #9cc29f;margin-top:4px;padding-top:4px;color:#111}
 .mi{display:flow-root}
+.srcline{font-family:var(--ui);font-size:11px;letter-spacing:.02em;color:var(--muted);margin:0 0 3px}
+.page .srcline{font-size:10.5px;color:#8a8f98}
 .measure{position:absolute;left:-10000px;top:0;visibility:hidden}
 .busy{position:fixed;inset:0;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;z-index:9;color:#fff;font-size:16px}
 
@@ -303,7 +305,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   $('out').innerHTML=`<ol class="qs">${set.map((Q,i)=>`
    <li class="q" style="--space:${Q.mins*9}mm"><div class="qhead"><span class="num">${i+1}</span><span class="tag">${esc(Q.t.topicName)}</span><span class="badge"><b>${LEVEL_NAME[Q.level]}</b> · about ${Q.mins} min</span>
     <span class="qbtns"><button class="hintbtn" type="button">Hint</button><button class="reveal" type="button">Show solution</button></span></div>
-   <div class="prompt">${Q.q}</div><div class="hint" hidden>${esc(Q.t.hint)}</div>${solHTML(Q).replace('<div class="sol">','<div class="sol" hidden>')}</li>`).join('')}</ol>`;
+   <div class="prompt"><div class="srcline">${esc(Q.t.src)}</div>${Q.q}</div><div class="hint" hidden>${esc(Q.t.hint)}</div>${solHTML(Q).replace('<div class="sol">','<div class="sol" hidden>')}</li>`).join('')}</ol>`;
   $('key').innerHTML=`<h2>Answer key</h2><ol class="qs">${set.map((Q,i)=>`<li class="q"><div class="qhead"><span class="num">${i+1}</span></div>${solHTML(Q)}</li>`).join('')}</ol>`;
   document.querySelectorAll('#out .reveal').forEach(b=>b.onclick=()=>{const s=b.closest('.q').querySelector('.sol');s.hidden=!s.hidden;b.textContent=s.hidden?'Show solution':'Hide solution'});
   document.querySelectorAll('#out .hintbtn').forEach(b=>b.onclick=()=>{const s=b.closest('.q').querySelector('.hint');s.hidden=!s.hidden;b.textContent=s.hidden?'Hint':'Hide hint'});
@@ -332,8 +334,8 @@ document.addEventListener('DOMContentLoaded',()=>{
  const headHTML=info=>`<div class="phead"><div><h2>${esc(info.title)}</h2><div class="sub">${esc(info.topics)}</div></div><div class="right">${info.cls?esc(info.cls)+'<br>':''}${info.date?new Date(info.date+'T00:00').toLocaleDateString('en-AU',{day:'numeric',month:'long',year:'numeric'})+'<br>':''}about ${info.total} minutes</div></div>
   <div class="details"><div>Name:</div><div>${info.cls?'Class: '+esc(info.cls):'Class:'}</div><div>Date:</div></div>
   <div class="inst">Work in pairs and show all working. You are not expected to finish every question: these are hard on purpose.</div>`;
- const qBlock=(Q,i,space,top)=>`<div class="tq${top?' top':''}"><div class="n">${i+1}</div><div class="qt">${Q.q}</div><div class="mk">${Q.mins} min</div>${space==null?'':`<div class="space" style="height:${space}px"></div>`}</div>`;
- const aBlock=(Q,i)=>`<div class="tq akey"><div class="n">${i+1}</div><div><div class="qt">${Q.q}</div><div class="steps">${Q.sol.map(x=>`<div>${x}</div>`).join('')}<div class="final">Answer: ${Q.ans}</div></div><div class="src">Hint: ${esc(Q.t.hint)}</div></div><div class="mk"></div></div>`;
+ const qBlock=(Q,i,space,top)=>`<div class="tq${top?' top':''}"><div class="n">${i+1}</div><div class="qt"><div class="srcline">${esc(Q.t.src)}</div>${Q.q}</div><div class="mk">${Q.mins} min</div>${space==null?'':`<div class="space" style="height:${space}px"></div>`}</div>`;
+ const aBlock=(Q,i)=>`<div class="tq akey"><div class="n">${i+1}</div><div><div class="qt"><div class="srcline">${esc(Q.t.src)}</div>${Q.q}</div><div class="steps">${Q.sol.map(x=>`<div>${x}</div>`).join('')}<div class="final">Answer: ${Q.ans}</div></div><div class="src">Hint: ${esc(Q.t.hint)}</div></div><div class="mk"></div></div>`;
  const foot=(info,pi,n,what)=>`<div class="pfoot"><span>Dorey Desk · ${what} · seed ${esc(info.seed)}</span><span>Page ${pi+1} of ${n}</span></div>`;
 
  // questions go in order, a question never splits across pages, and each page's spare height is shared out by minutes
