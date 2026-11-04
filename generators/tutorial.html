@@ -331,9 +331,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   pg.style.cssText='height:auto;padding:0;width:674px;overflow:visible;box-shadow:none';
   pg.innerHTML=htmls.map(x=>`<div class="mi">${x}</div>`).join('');box.append(pg);document.body.append(box);render(pg);
   const hs=[...pg.querySelectorAll('.mi')].map(e=>e.getBoundingClientRect().height);box.remove();return hs}
- const headHTML=info=>`<div class="phead"><div><h2>${esc(info.title)}</h2></div><div class="right">about ${info.total} minutes</div></div>
-  <div class="details" style="grid-template-columns:minmax(0,360px)"><div>Name:</div></div>
-  <div class="inst">Work in pairs and show all working. You are not expected to finish every question: these are hard on purpose.</div>`;
+ const headHTML=info=>`<div class="phead"><div><h2>${esc(info.title)}</h2></div><div class="right">about ${info.total} minutes</div></div>`;
  const qBlock=(Q,i,space,top)=>`<div class="tq${top?' top':''}"><div class="n">${i+1}</div><div class="qt"><div class="srcline">${esc(Q.t.src)}</div>${Q.q}</div><div class="mk">${Q.mins} min</div>${space==null?'':`<div class="space" style="height:${space}px"></div>`}</div>`;
  const aBlock=(Q,i)=>`<div class="tq akey"><div class="n">${i+1}</div><div><div class="qt"><div class="srcline">${esc(Q.t.src)}</div>${Q.q}</div><div class="steps">${Q.sol.map(x=>`<div>${x}</div>`).join('')}<div class="final">Answer: ${Q.ans}</div></div><div class="src">Hint: ${esc(Q.t.hint)}</div></div><div class="mk"></div></div>`;
  const foot=(info,pi,n,what)=>`<div class="pfoot"><span>Dorey Desk · ${what} · seed ${esc(info.seed)}</span><span>Page ${pi+1} of ${n}</span></div>`;
