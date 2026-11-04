@@ -10,29 +10,57 @@
 <meta name="theme-color" content="#0F766E">
 <style>
 /* Matches the Dorey Desk site (assets/app.css) */
-:root{--paper:#F2F3F5;--panel:#FFFFFF;--ink:#1D232B;--muted:#5E6672;--line:#D9DDE3;--brand:#0F766E;--glass:#DCEBF5;--glass-line:#9DB9CC;
+:root{--paper:#F2F3F5;--panel:#FFFFFF;--ink:#1D232B;--muted:#5E6672;--line:#D9DDE3;--brand:#0F766E;--brand-ink:#FFFFFF;--tint:#E3F2F0;--glass:#DCEBF5;--glass-line:#9DB9CC;
  --ui:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
  --card:"Palatino Linotype",Palatino,"Book Antiqua","URW Palladio L",Georgia,serif}
 @media (prefers-color-scheme:dark){:root{--paper:#16191E;--panel:#20242B;--ink:#ECEEF1;--muted:#A5ACB7;--line:#343A43;
- --brand:#5FCFC2;--glass:#243746;--glass-line:#46687F;color-scheme:dark}}
+ --brand:#5FCFC2;--brand-ink:#062A26;--tint:#1B3A37;--glass:#243746;--glass-line:#46687F;color-scheme:dark}}
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 html,body{margin:0}
 body{background:var(--paper);color:var(--ink);font-family:var(--ui);font-size:15px;line-height:1.5}
+:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
 header{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 28px;padding:22px clamp(16px,5vw,64px) 0}
 .wordmark{font-family:var(--card);font-weight:700;font-size:19px;color:var(--brand);text-decoration:none}
 .crumbs{display:flex;flex-wrap:wrap;font-size:14px;color:var(--muted)}
 .crumbs a{color:var(--muted);text-decoration:none}
 .crumbs a:hover{color:var(--ink);text-decoration:underline}
 .crumbs>*+*::before{content:"›";margin:0 8px;color:var(--line)}
-.intro{max-width:1100px;margin:0 auto;padding:28px clamp(16px,5vw,64px) 0}
+.intro,.tools,main{max-width:1100px;margin:0 auto;padding-left:clamp(16px,5vw,64px);padding-right:clamp(16px,5vw,64px)}
+.intro{padding-top:28px}
 .intro h1{font-family:var(--card);font-weight:700;font-size:clamp(32px,5vw,48px);line-height:1.05;margin:0}
 .intro p{margin:8px 0 0;color:var(--muted)}
-main{max-width:1100px;margin:0 auto;padding:24px clamp(16px,5vw,64px) 64px}
+.tools{padding-top:20px}
+.row{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+button{font:inherit;font-size:14px;padding:8px 14px;border-radius:8px;border:1px solid var(--brand);background:transparent;color:var(--brand);cursor:pointer}
+button:hover:not(:disabled){background:var(--tint)}
+button:disabled{opacity:.5;cursor:default}
+button.solid{background:var(--brand);color:var(--brand-ink);font-weight:600}
+button.solid:hover:not(:disabled){background:var(--brand);filter:brightness(1.08)}
+button.quiet{border-color:var(--line);color:var(--ink)}
+input[type=text]{flex:1 1 220px;max-width:300px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--ink);font:inherit;font-size:14px}
+.note{font-size:12.5px;color:var(--muted);margin:10px 0 0;max-width:80ch}
+.bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;min-height:46px;padding:8px 12px;margin-top:14px;border:1px solid var(--line);border-radius:10px;background:var(--panel);font-size:14px}
+.bar.on{border-color:var(--brand);background:var(--tint)}
+.bar .msg{flex:1 1 240px;color:var(--muted)}
+.bar.on .msg{color:var(--ink)}
+.bar button{padding:5px 10px;font-size:13px}
+.pool{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.chip{padding:4px 11px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font-size:13.5px;line-height:1.3}
+.chip:hover{background:var(--tint)}
+.chip[aria-pressed=true]{border-color:var(--brand);background:var(--tint);box-shadow:0 0 0 2px var(--brand)}
+main{padding-top:20px;padding-bottom:64px}
 svg{display:block;width:100%;height:auto;font-family:var(--ui)}
 .wall{fill:none;stroke:var(--ink);stroke-width:3;stroke-linejoin:round;stroke-linecap:round}
 .floor{fill:var(--panel)}
 .glass{fill:var(--glass);stroke:var(--glass-line);stroke-width:1.5}
 .desk{fill:var(--panel);stroke:var(--ink);stroke-width:2}
+[data-desk]{cursor:pointer}
+[data-desk]:hover .desk{fill:var(--tint)}
+[data-desk]:focus-visible{outline:none}
+[data-desk]:focus-visible .desk{stroke:var(--brand);stroke-width:4}
+.desk.sel{fill:var(--tint);stroke:var(--brand);stroke-width:4}
+.nm{fill:var(--ink);font-family:Helvetica,Arial,sans-serif;font-weight:600;text-anchor:middle;pointer-events:none}   /* same font as the PDF, so the fitting below matches it */
 .lectern{fill:var(--panel);stroke:var(--ink);stroke-width:2.5}
 .door{fill:none;stroke:var(--muted);stroke-width:2}
 .lbl{fill:var(--muted);font-size:15px;font-weight:600;letter-spacing:.04em;text-anchor:middle}
@@ -47,24 +75,39 @@ svg{display:block;width:100%;height:auto;font-family:var(--ui)}
 
 <div class="intro">
   <h1>Seating chart</h1>
-  <p>3 rows of 8 desks, each split into two tables of 4, then a front row of 4 desks and one double-length desk. The front is at the bottom.</p>
+  <p>Upload a class list, click a name and then a desk to seat it, then download the plan as an A4 PDF. The front is at the bottom.</p>
+</div>
+
+<div class="tools">
+  <div class="row">
+    <button type="button" id="upload" class="solid">Upload class list</button>
+    <input type="file" id="file" accept=".xlsx,.csv,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden>
+    <input type="text" id="cls" maxlength="40" placeholder="Class name (printed on the PDF)" aria-label="Class name">
+    <button type="button" id="pdf" class="solid">Download A4 PDF</button>
+    <button type="button" id="clear" class="quiet">Clear desks</button>
+  </div>
+  <p class="note">Use an .xlsx or .csv with names in the first column, or with First name and Last name columns. The file is read in your browser; nothing is uploaded, and names are not saved, so reloading the page clears them.</p>
+  <div class="bar" id="bar" role="status" aria-live="polite"></div>
+  <div class="pool" id="pool" aria-label="Names not yet seated"></div>
 </div>
 
 <main>
-  <svg id="room" viewBox="0 0 1000 534" role="img" aria-label="Classroom plan: three rows of eight desks in two tables of four, a front row of four desks and one double-length desk, windows down the left wall, door on the right wall near the bottom corner, lectern bottom-left"></svg>
+  <svg id="room" viewBox="0 0 1000 534" role="group" aria-label="Classroom plan: three rows of eight desks in two tables of four, a front row of four desks and one double-length desk, windows down the left wall, door on the right wall near the bottom corner, lectern bottom-left"></svg>
 </main>
 
+<script src="../assets/vendor/jspdf.umd.min.js"></script>
 <script>
 (function(){
 'use strict';
-const NS = 'http://www.w3.org/2000/svg';
+const NS = 'http://www.w3.org/2000/svg', $ = id => document.getElementById(id);
 const el = (name, attrs, text) => { const e = document.createElementNS(NS, name); for (const k in attrs) e.setAttribute(k, attrs[k]); if (text) e.textContent = text; return e };
 
+// ---------- the room ----------
 // Room: x 10–990. Windows run down the whole left wall, the door is in the right wall near the bottom corner.
 const ROOM = {x:10, y:10, w:980, h:514}, WIN_W = 36, BOTTOM = ROOM.y + ROOM.h;
 const DESK = {w:84, h:52}, TABLE = 4, ROWS = 3, AISLE = 80, ROW_GAP = 48, TOP = 50;
 
-const svg = document.getElementById('room');
+const svg = $('room');
 svg.appendChild(el('rect', {class:'floor', x:ROOM.x, y:ROOM.y, width:ROOM.w, height:ROOM.h}));
 
 // windows (left wall, full height)
@@ -82,16 +125,18 @@ svg.appendChild(el('text', {class:'lbl', x:866, y:gapTop + 52}, 'Door'));
 const blockW = 2*TABLE*DESK.w + AISLE, x0 = ROOM.x + WIN_W + (ROOM.w - WIN_W - blockW)/2;
 const rowY = r => TOP + r*(DESK.h + ROW_GAP);
 const xOf = k => x0 + k*DESK.w + (k >= TABLE ? AISLE : 0);           // k = 0–7 along a full row
-let n = 0;
-const desk = (x, y, w) => {
-  const g = el('g', {'data-desk': ++n});
-  g.appendChild(el('rect', {class:'desk', x, y, width:w, height:DESK.h, rx:4}));
-  svg.appendChild(g);
-};
-for (let r = 0; r < ROWS; r++) for (let k = 0; k < 2*TABLE; k++) desk(xOf(k), rowY(r), DESK.w);
+const desks = [];                                                     // {w, rect, t1, t2, name}
+function addDesk(x, y, w){
+  const g = el('g', {'data-desk': desks.length + 1, tabindex:0, role:'button'});
+  const rect = el('rect', {class:'desk', x, y, width:w, height:DESK.h, rx:4});
+  const t1 = el('text', {class:'nm', x:x + w/2}), t2 = el('text', {class:'nm', x:x + w/2});
+  g.append(rect, t1, t2); svg.appendChild(g);
+  desks.push({x, y, w, g, rect, t1, t2, name:null});
+}
+for (let r = 0; r < ROWS; r++) for (let k = 0; k < 2*TABLE; k++) addDesk(xOf(k), rowY(r), DESK.w);
 // front row: 4 desks on the left, then one desk twice as long on the right
-for (let k = 0; k < TABLE; k++) desk(xOf(k), rowY(ROWS), DESK.w);
-desk(xOf(2*TABLE) - 2*DESK.w, rowY(ROWS), 2*DESK.w);                    // right-aligned with the tables above
+for (let k = 0; k < TABLE; k++) addDesk(xOf(k), rowY(ROWS), DESK.w);
+addDesk(xOf(2*TABLE) - 2*DESK.w, rowY(ROWS), 2*DESK.w);                // right-aligned with the tables above
 
 // teacher lectern: bottom-left corner, turned 45°
 const L = {w:84, h:46, cx:ROOM.x + WIN_W + 76, cy:BOTTOM - 58};
@@ -99,6 +144,184 @@ const lec = el('g', {transform:`rotate(45 ${L.cx} ${L.cy})`});
 lec.appendChild(el('rect', {class:'lectern', x:L.cx - L.w/2, y:L.cy - L.h/2, width:L.w, height:L.h, rx:4}));
 lec.appendChild(el('text', {class:'lbl', x:L.cx, y:L.cy + 5}, 'Lectern'));
 svg.appendChild(lec);
+
+// ---------- names ----------
+let pool = [], sel = null;                                            // sel: {t:'pool'|'desk', i}
+const label = n => (n.l1 + ' ' + n.l2).trim();
+function toName(s){                                                   // "First Last" or "Last, First"
+  s = String(s).trim().replace(/\s+/g, ' ');
+  if (s.includes(',')){ const [a, ...r] = s.split(','); return {l1:r.join(',').trim(), l2:a.trim()} }
+  const i = s.lastIndexOf(' ');
+  return i < 0 ? {l1:s, l2:''} : {l1:s.slice(0, i), l2:s.slice(i + 1)};
+}
+function namesFromRows(rows){
+  rows = rows.filter(r => r.some(c => String(c == null ? '' : c).trim()));
+  if (!rows.length) return [];
+  const cell = (r, i) => String(r[i] == null ? '' : r[i]).trim().replace(/\s+/g, ' ');
+  const head = rows[0].map((_, i) => cell(rows[0], i));
+  const fi = head.findIndex(h => /^(first|given|preferred)/i.test(h)), li = head.findIndex(h => /^(last|sur|family)/i.test(h));
+  if (fi >= 0 && li >= 0) return rows.slice(1).map(r => ({l1:cell(r, fi), l2:cell(r, li)})).filter(n => n.l1 || n.l2);
+  const start = /^(name|names|student|students|full ?name|student name)$/i.test(head[0] || '') ? 1 : 0;
+  return rows.slice(start).map(r => toName(cell(r, 0))).filter(n => n.l1 || n.l2);
+}
+
+function paint(){
+  desks.forEach((d, i) => {
+    const n = d.name, lines = n ? [n.l1, n.l2].filter(Boolean) : [];
+    d.rect.classList.toggle('sel', !!(sel && sel.t === 'desk' && sel.i === i));
+    d.g.setAttribute('aria-label', `Desk ${i + 1}: ${n ? label(n) : 'empty'}`);
+    d.t1.textContent = lines[0] || ''; d.t2.textContent = lines[1] || '';
+    if (!lines.length) return;
+    for (const t of [d.t1, d.t2]) t.setAttribute('font-size', 15);
+    const widest = Math.max(d.t1.getComputedTextLength(), d.t2.getComputedTextLength()), room = d.w - 12;   // measured at 15px
+    const size = widest > room ? Math.max(5.5, 15*room/widest) : 15;
+    const cy = d.y + DESK.h/2, gap = size*1.15, y1 = (lines.length === 2 ? cy - gap/2 : cy) + size*0.35;
+    for (const t of [d.t1, d.t2]) t.setAttribute('font-size', size.toFixed(1));
+    d.t1.setAttribute('y', y1.toFixed(1)); d.t2.setAttribute('y', (y1 + gap).toFixed(1));
+  });
+  $('pool').innerHTML = pool.map((n, i) => `<button type="button" class="chip" data-p="${i}" aria-pressed="${!!(sel && sel.t === 'pool' && sel.i === i)}"></button>`).join('');
+  $('pool').querySelectorAll('.chip').forEach((b, i) => b.textContent = label(pool[i]));
+  const bar = $('bar'), placed = desks.filter(d => d.name).length;
+  if (sel){
+    const n = sel.t === 'pool' ? pool[sel.i] : desks[sel.i].name;
+    bar.className = 'bar on';
+    bar.innerHTML = '<span class="msg"><strong></strong> is picked up. Click a desk to place it' + (sel.t === 'desk' ? ' or swap it' : '') + '.</span>' +
+      (sel.t === 'desk' ? '<button type="button" data-act="back">Return to list</button>' : '') + '<button type="button" data-act="cancel" class="quiet">Cancel</button>';
+    bar.querySelector('strong').textContent = label(n);
+  } else {
+    bar.className = 'bar';
+    const total = placed + pool.length;
+    bar.innerHTML = '<span class="msg"></span>';
+    bar.firstChild.textContent = total ? `${total} name${total === 1 ? '' : 's'}: ${placed} seated, ${pool.length} not yet seated. ${total > desks.length ? `There are only ${desks.length} desks.` : 'Click a name, then a desk.'}` : `Upload a class list to begin. There are ${desks.length} desks.`;
+  }
+}
+
+function clickDesk(i){
+  const d = desks[i];
+  if (!sel){ if (d.name) sel = {t:'desk', i}; return paint() }
+  if (sel.t === 'desk' && sel.i === i){ sel = null; return paint() }
+  if (sel.t === 'pool'){ const n = pool.splice(sel.i, 1)[0]; if (d.name) pool.push(d.name); d.name = n }
+  else { const from = desks[sel.i]; [from.name, d.name] = [d.name, from.name] }
+  sel = null; paint();
+}
+svg.addEventListener('click', e => { const g = e.target.closest('[data-desk]'); if (g) clickDesk(+g.dataset.desk - 1) });
+svg.addEventListener('keydown', e => { const g = e.target.closest && e.target.closest('[data-desk]'); if (g && (e.key === 'Enter' || e.key === ' ')){ e.preventDefault(); clickDesk(+g.dataset.desk - 1) } });
+$('pool').addEventListener('click', e => {
+  const b = e.target.closest('.chip'); if (!b) return;
+  const i = +b.dataset.p;
+  if (sel && sel.t === 'desk'){ pool.push(desks[sel.i].name); desks[sel.i].name = null; sel = null }
+  else sel = (sel && sel.t === 'pool' && sel.i === i) ? null : {t:'pool', i};
+  paint();
+});
+$('bar').addEventListener('click', e => {
+  const act = e.target.closest('button') && e.target.closest('button').dataset.act;
+  if (act === 'back' && sel && sel.t === 'desk'){ pool.push(desks[sel.i].name); desks[sel.i].name = null }
+  if (act) { sel = null; paint() }
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && sel){ sel = null; paint() } });
+$('clear').addEventListener('click', () => { desks.forEach(d => { if (d.name){ pool.push(d.name); d.name = null } }); sel = null; paint() });
+
+// ---------- reading the class list (.xlsx or .csv, all in the browser) ----------
+async function inflateRaw(u8){
+  const out = new Blob([u8]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+  return new Uint8Array(await new Response(out).arrayBuffer());
+}
+function unzip(buf){                                                  // returns async name → text (or null)
+  const dv = new DataView(buf), u8 = new Uint8Array(buf);
+  let e = buf.byteLength - 22; while (e >= 0 && dv.getUint32(e, true) !== 0x06054b50) e--;
+  if (e < 0) throw new Error('not a zip');
+  const count = dv.getUint16(e + 10, true), files = {}; let p = dv.getUint32(e + 16, true);
+  for (let k = 0; k < count; k++){
+    if (dv.getUint32(p, true) !== 0x02014b50) throw new Error('bad zip');
+    const nl = dv.getUint16(p + 28, true), xl = dv.getUint16(p + 30, true), cl = dv.getUint16(p + 32, true);
+    files[new TextDecoder().decode(u8.subarray(p + 46, p + 46 + nl))] = {method:dv.getUint16(p + 10, true), size:dv.getUint32(p + 20, true), at:dv.getUint32(p + 42, true)};
+    p += 46 + nl + xl + cl;
+  }
+  return async name => {
+    const f = files[name]; if (!f) return null;
+    const start = f.at + 30 + dv.getUint16(f.at + 26, true) + dv.getUint16(f.at + 28, true), data = u8.subarray(start, start + f.size);
+    return new TextDecoder().decode(f.method === 0 ? data : await inflateRaw(data));
+  };
+}
+const xml = s => new DOMParser().parseFromString(s, 'application/xml');
+const all = (n, tag) => Array.from(n.getElementsByTagNameNS('*', tag));
+const colIndex = ref => { let n = 0; for (const ch of ref.replace(/[^A-Za-z]/g, '').toUpperCase()) n = n*26 + ch.charCodeAt(0) - 64; return n - 1 };
+async function readXlsx(buf){
+  const read = await unzip(buf);
+  const wb = xml(await read('xl/workbook.xml')), sheet = all(wb, 'sheet')[0];
+  const rid = sheet.getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships', 'id') || sheet.getAttribute('r:id');
+  const rel = all(xml(await read('xl/_rels/workbook.xml.rels')), 'Relationship').find(r => r.getAttribute('Id') === rid);
+  const target = rel.getAttribute('Target'), path = target.startsWith('/') ? target.slice(1) : 'xl/' + target;
+  const ss = await read('xl/sharedStrings.xml');
+  const strings = ss ? all(xml(ss), 'si').map(si => all(si, 't').map(t => t.textContent).join('')) : [];
+  const rows = [];
+  for (const row of all(xml(await read(path)), 'row')){
+    const out = [];
+    for (const c of all(row, 'c')){
+      const t = c.getAttribute('t'), v = all(c, 'v')[0], idx = colIndex(c.getAttribute('r') || '');
+      out[idx < 0 ? out.length : idx] = t === 's' ? strings[+v.textContent] : t === 'inlineStr' ? all(c, 't').map(x => x.textContent).join('') : v ? v.textContent : '';
+    }
+    rows.push(Array.from(out, x => x == null ? '' : x));
+  }
+  return rows;
+}
+function readCsv(text){
+  text = text.replace(/^﻿/, '');
+  const first = text.split(/\r?\n/)[0] || '', d = first.includes('\t') ? '\t' : first.includes(',') || !first.includes(';') ? ',' : ';';
+  const rows = []; let row = [], cur = '', q = false;
+  for (let i = 0; i < text.length; i++){
+    const ch = text[i];
+    if (q){ if (ch === '"'){ if (text[i + 1] === '"'){ cur += '"'; i++ } else q = false } else cur += ch }
+    else if (ch === '"') q = true;
+    else if (ch === d){ row.push(cur); cur = '' }
+    else if (ch === '\n' || ch === '\r'){ if (ch === '\r' && text[i + 1] === '\n') i++; row.push(cur); rows.push(row); row = []; cur = '' }
+    else cur += ch;
+  }
+  if (cur || row.length){ row.push(cur); rows.push(row) }
+  return rows;
+}
+$('upload').addEventListener('click', () => $('file').click());
+$('file').addEventListener('change', async e => {
+  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+  try {
+    const ext = (f.name.split('.').pop() || '').toLowerCase();
+    if (ext !== 'xlsx' && ext !== 'csv') return alert('Please choose an .xlsx or .csv file. For an older .xls file, open it in Excel and Save As .xlsx.');
+    const rows = ext === 'xlsx' ? await readXlsx(await f.arrayBuffer()) : readCsv(await f.text());
+    const names = namesFromRows(rows);
+    if (!names.length) return alert('No names were found. Put the names in the first column, or use First name and Last name columns.');
+    desks.forEach(d => d.name = null); pool = names; sel = null;
+    if (!$('cls').value) $('cls').value = f.name.replace(/\.[^.]+$/, '').slice(0, 40);
+    paint();
+  } catch(err){ alert("That file couldn't be read. Try saving it again as .xlsx or .csv."); }
+});
+
+// ---------- A4 PDF ----------
+const PDF_CSS = 'svg{font-family:Helvetica,Arial,sans-serif}.floor{fill:#fff}.wall{fill:none;stroke:#1D232B;stroke-width:3;stroke-linejoin:round;stroke-linecap:round}' +
+  '.glass{fill:#DCEBF5;stroke:#9DB9CC;stroke-width:1.5}.desk{fill:#fff;stroke:#1D232B;stroke-width:2}.lectern{fill:#fff;stroke:#1D232B;stroke-width:2.5}' +
+  '.door{fill:none;stroke:#5E6672;stroke-width:2}.lbl{fill:#5E6672;font-size:15px;font-weight:600;letter-spacing:.04em;text-anchor:middle}.nm{fill:#1D232B;font-weight:600;text-anchor:middle}';
+$('pdf').addEventListener('click', async () => {
+  sel = null; paint();
+  try {
+    const W = 3000, H = Math.round(W*534/1000), clone = svg.cloneNode(true);
+    clone.querySelectorAll('.sel').forEach(n => n.classList.remove('sel'));
+    ['role', 'aria-label', 'style'].forEach(a => clone.removeAttribute(a));
+    clone.querySelectorAll('[tabindex],[role],[aria-label]').forEach(n => { n.removeAttribute('tabindex'); n.removeAttribute('role'); n.removeAttribute('aria-label') });
+    clone.setAttribute('xmlns', NS); clone.setAttribute('width', W); clone.setAttribute('height', H);
+    clone.insertBefore(el('style', {}, PDF_CSS), clone.firstChild);
+    const img = new Image();
+    await new Promise((ok, no) => { img.onload = ok; img.onerror = no; img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(new XMLSerializer().serializeToString(clone)) });
+    const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+    const cx = cv.getContext('2d'); cx.fillStyle = '#fff'; cx.fillRect(0, 0, W, H); cx.drawImage(img, 0, 0, W, H);
+    const doc = new window.jspdf.jsPDF({orientation:'landscape', unit:'mm', format:'a4'}), title = $('cls').value.trim();
+    let top = 10;
+    if (title){ doc.setFont('helvetica', 'bold'); doc.setFontSize(18); doc.text(title, 10, 17); top = 22 }
+    const w = Math.min(277, (210 - top - 10)*W/H), h = w*H/W;
+    doc.addImage(cv.toDataURL('image/png'), 'PNG', 10 + (277 - w)/2, top, w, h);
+    doc.save(('Seating ' + (title || 'plan') + '.pdf').replace(/[\\/:*?"<>|]/g, ''));
+  } catch(err){ alert("The PDF couldn't be made in this browser. Try Chrome or Edge.") }
+});
+
+paint();
 })();
 </script>
 </body>

@@ -2,6 +2,6 @@
  {
   "file": "seating.html",
   "name": "Seating chart",
-  "desc": "The classroom plan: 3 rows of 8 desks in two tables of 4, a front row of 4 desks and one double-length desk, windows down the left, door off the right wall near the bottom corner, lectern bottom-left."
+  "desc": "Upload a class list (.xlsx or .csv), seat each name on a desk of the classroom plan, and download it as an A4 PDF. Names stay in your browser."
  }
 ]

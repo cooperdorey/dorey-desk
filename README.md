@@ -94,13 +94,18 @@ stable once used.
 The start page's **Classroom** tile lists classroom tools from `classroom/classroom.json`
 (`file`, `name`, `desc`), one self-contained page each in `classroom/`.
 
-- **Seating chart** (`seating.html`): kept deliberately simple, to be built up a feature at a time. It
-  draws the room as an SVG: 3 rows of 8 desks, each row split into two tables of 4, a front row of 4 desks plus one double-length desk on the right, windows down the whole
-  left wall, the door in the right-hand wall near the bottom corner and the teacher lectern in the bottom-left corner turned 45°.
-  The front is at the bottom. Each desk is a `<g data-desk="n">` (1–29, row by row from the top left).
+- **Seating chart** (`seating.html`): the room as an SVG: 3 rows of 8 desks, each row split into two tables
+  of 4, then a front row of 4 desks plus one double-length desk on the right; windows down the whole left wall,
+  the door in the right-hand wall near the bottom corner and the teacher lectern in the bottom-left corner
+  turned 45°. The front is at the bottom. Each desk is a `<g data-desk="n">` (1–29, row by row from the top left).
+  **Upload class list** reads an `.xlsx` (first sheet) or `.csv` in the browser, with names in the first column
+  or First name / Last name columns (a "Name" header is skipped). Click a name, then a desk, to seat it; click a
+  seated name and another desk to swap, or Return to list. **Download A4 PDF** draws the plan (with an optional
+  class name as the heading) onto one A4 landscape page using the vendored jsPDF. The spreadsheet reader is
+  a small built-in unzip and XML reader (no library), so it handles `.xlsx`, not the old `.xls`.
 
-If names or rosters are added later, keep them in the browser's own storage. Never commit student names
-or exported seating files to this public repository.
+Names are read and held in the browser only. They are never uploaded or saved, and reloading clears them.
+Never commit student names, class lists or exported seating PDFs to this public repository.
 
 ## A lesson file
 
