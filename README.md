@@ -98,8 +98,8 @@ The start page's **Classroom** tile lists classroom tools from `classroom/classr
   of 4, then a front row of 4 desks plus one double-length desk on the right; windows down the whole left wall,
   the door in the right-hand wall near the bottom corner and the teacher lectern in the bottom-left corner
   turned 45°. The front is at the bottom. Each desk is a `<g data-desk="n">` (1–29, row by row from the top left).
-  **Upload class list** reads an `.xlsx` (first sheet) or `.csv` in the browser, with names in the first column
-  or First name / Last name columns (a "Name" header is skipped). Click a name, then a desk, to seat it; click a
+  **Upload class list** reads an `.xlsx` (first sheet) or `.csv` in the browser, with the last name in column A and the
+  first name in column B (or one column of "Last First" or "Last, First"); columns headed First name / Last name work in either order (a "Name" header is skipped). Click a name, then a desk, to seat it; click a
   seated name and another desk to swap, or Return to list. **Download A4 PDF** draws the plan (with an optional
   class name as the heading) onto one A4 landscape page using the vendored jsPDF. The spreadsheet reader is
   a small built-in unzip and XML reader (no library), so it handles `.xlsx`, not the old `.xls`.

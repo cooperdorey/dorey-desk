@@ -86,7 +86,7 @@ svg{display:block;width:100%;height:auto;font-family:var(--ui)}
     <button type="button" id="pdf" class="solid">Download A4 PDF</button>
     <button type="button" id="clear" class="quiet">Clear desks</button>
   </div>
-  <p class="note">Use an .xlsx or .csv with names in the first column, or with First name and Last name columns. The file is read in your browser; nothing is uploaded, and names are not saved, so reloading the page clears them.</p>
+  <p class="note">Use an .xlsx or .csv with the last name in the first column and the first name in the second (or one column of "Last First"). Columns headed First name and Last name work in either order. The file is read in your browser; nothing is uploaded, and names are not saved, so reloading the page clears them.</p>
   <div class="bar" id="bar" role="status" aria-live="polite"></div>
   <div class="pool" id="pool" aria-label="Names not yet seated"></div>
 </div>
@@ -148,11 +148,11 @@ svg.appendChild(lec);
 // ---------- names ----------
 let pool = [], sel = null;                                            // sel: {t:'pool'|'desk', i}
 const label = n => (n.l1 + ' ' + n.l2).trim();
-function toName(s){                                                   // "First Last" or "Last, First"
+function toName(s){                                                   // one cell: "Last First" or "Last, First"
   s = String(s).trim().replace(/\s+/g, ' ');
   if (s.includes(',')){ const [a, ...r] = s.split(','); return {l1:r.join(',').trim(), l2:a.trim()} }
-  const i = s.lastIndexOf(' ');
-  return i < 0 ? {l1:s, l2:''} : {l1:s.slice(0, i), l2:s.slice(i + 1)};
+  const i = s.indexOf(' ');
+  return i < 0 ? {l1:s, l2:''} : {l1:s.slice(i + 1), l2:s.slice(0, i)};
 }
 function namesFromRows(rows){
   rows = rows.filter(r => r.some(c => String(c == null ? '' : c).trim()));
@@ -160,9 +160,12 @@ function namesFromRows(rows){
   const cell = (r, i) => String(r[i] == null ? '' : r[i]).trim().replace(/\s+/g, ' ');
   const head = rows[0].map((_, i) => cell(rows[0], i));
   const fi = head.findIndex(h => /^(first|given|preferred)/i.test(h)), li = head.findIndex(h => /^(last|sur|family)/i.test(h));
-  if (fi >= 0 && li >= 0) return rows.slice(1).map(r => ({l1:cell(r, fi), l2:cell(r, li)})).filter(n => n.l1 || n.l2);
+  const ok = n => n.l1 || n.l2;
+  if (fi >= 0 && li >= 0) return rows.slice(1).map(r => ({l1:cell(r, fi), l2:cell(r, li)})).filter(ok);   // headed columns, either order
   const start = /^(name|names|student|students|full ?name|student name)$/i.test(head[0] || '') ? 1 : 0;
-  return rows.slice(start).map(r => toName(cell(r, 0))).filter(n => n.l1 || n.l2);
+  const two = rows.slice(start).filter(r => cell(r, 0) && cell(r, 1)).length > (rows.length - start)/2;
+  if (two) return rows.slice(start).map(r => ({l1:cell(r, 1), l2:cell(r, 0)})).filter(ok);                   // no header: last name, then first name
+  return rows.slice(start).map(r => toName(cell(r, 0))).filter(ok);
 }
 
 function paint(){
