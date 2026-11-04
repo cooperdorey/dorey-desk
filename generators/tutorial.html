@@ -363,11 +363,19 @@ document.addEventListener('DOMContentLoaded',()=>{
  async function toPDF(box,name){const pages=[...$(box).querySelectorAll('.page')];if(!pages.length)return;$('busy').hidden=false;
   const hid={s:$('sheet').hidden,a:$('ans').hidden,o:$('out').hidden};$('sheet').hidden=false;$('ans').hidden=false;
   document.querySelectorAll('.pages').forEach(el=>el.style.setProperty('--z',1));
-  try{const {jsPDF}=window.jspdf;const pdf=new jsPDF({orientation:'p',unit:'mm',format:'a4',compress:true});
-   for(let i=0;i<pages.length;i++){const url=await htmlToImage.toJpeg(pages[i],{pixelRatio:2.5,quality:.92,backgroundColor:'#ffffff',width:794,height:1123,style:{transform:'none'}});
-    if(i)pdf.addPage();pdf.addImage(url,'JPEG',0,0,210,297,undefined,'FAST')}
-   pdf.save(name)}
-  catch(e){alert('Could not make the PDF: '+e.message)}
+  const snap=(el,ratio)=>htmlToImage.toJpeg(el,{pixelRatio:ratio,quality:.92,backgroundColor:'#ffffff',width:794,height:1123,style:{transform:'none'}});
+  const build=async ratio=>{const {jsPDF}=window.jspdf;const pdf=new jsPDF({orientation:'p',unit:'mm',format:'a4',compress:true});
+   try{await snap(pages[0],1)}catch(e){}   // first render in Safari and Firefox can come out blank: warm up
+   for(let i=0;i<pages.length;i++){const url=await snap(pages[i],ratio);
+    if(i)pdf.addPage();pdf.addImage(url,'JPEG',0,0,210,297,undefined,'FAST');await new Promise(r=>setTimeout(r,30))}
+   return pdf};
+  try{
+   if(!window.jspdf||!window.htmlToImage)throw new Error('the PDF libraries did not load (refresh the page and try again)');
+   let pdf;try{pdf=await build(2.5)}catch(e){pdf=await build(1.5)}   // lighter pass for phones and tablets that run out of memory
+   const blob=pdf.output('blob'),u=URL.createObjectURL(blob),a=document.createElement('a');
+   a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();
+   setTimeout(()=>URL.revokeObjectURL(u),60000)}
+  catch(e){alert('Could not make the PDF: '+(e&&e.message||e))}
   finally{$('sheet').hidden=hid.s;$('ans').hidden=hid.a;fitZoom();$('busy').hidden=true}}
  const fname=k=>{const c=current||{info:{}};return ['Tutorial',k,c.info.cls,c.info.date,c.seed].filter(Boolean).join('_').replace(/[^\w.-]+/g,'-')+'.pdf'};
  $('pdfQ').onclick=()=>toPDF('sheet',fname('sheet'));
