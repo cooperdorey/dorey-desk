@@ -51,7 +51,7 @@ svg{display:block;width:100%;height:auto;font-family:var(--ui)}
 </div>
 
 <main>
-  <svg id="room" viewBox="0 0 1000 490" role="img" aria-label="Classroom plan: three rows of eight desks in two tables of four, windows down the left wall, door bottom-right, lectern bottom-left"></svg>
+  <svg id="room" viewBox="0 0 1000 460" role="img" aria-label="Classroom plan: three rows of eight desks in two tables of four, windows down the left wall, door on the right wall near the bottom corner, lectern bottom-left"></svg>
 </main>
 
 <script>
@@ -60,7 +60,7 @@ svg{display:block;width:100%;height:auto;font-family:var(--ui)}
 const NS = 'http://www.w3.org/2000/svg';
 const el = (name, attrs, text) => { const e = document.createElementNS(NS, name); for (const k in attrs) e.setAttribute(k, attrs[k]); if (text) e.textContent = text; return e };
 
-// Room: x 10–990, y 10–450. Windows run down the whole left wall, the door is bottom-right.
+// Room: x 10–990, y 10–450. Windows run down the whole left wall, the door is in the right wall near the bottom corner.
 const ROOM = {x:10, y:10, w:980, h:440}, WIN_W = 36;
 const DESK = {w:84, h:52}, TABLE = 4, ROWS = 3, AISLE = 80, ROW_GAP = 48, TOP = 50;
 
@@ -71,11 +71,11 @@ svg.appendChild(el('rect', {class:'floor', x:ROOM.x, y:ROOM.y, width:ROOM.w, hei
 svg.appendChild(el('rect', {class:'glass', x:ROOM.x, y:ROOM.y, width:WIN_W, height:ROOM.h}));
 svg.appendChild(el('text', {class:'lbl', transform:`translate(${ROOM.x + WIN_W/2 + 5} ${ROOM.y + ROOM.h/2}) rotate(-90)`}, 'Windows'));
 
-// walls, with a gap in the bottom wall for the door
-svg.appendChild(el('path', {class:'wall', d:`M880 450 H10 V10 H990 V450 H960`}));
-// door: hinge at the right, leaf swung open into the room, with its arc
-svg.appendChild(el('path', {class:'door', d:'M960 450 V370 M880 450 A80 80 0 0 1 960 370'}));
-svg.appendChild(el('text', {class:'lbl', x:920, y:476}, 'Door'));
+// walls, with a gap in the right-hand wall for the door (near the bottom corner)
+svg.appendChild(el('path', {class:'wall', d:`M990 340 V10 H10 V450 H990 V420`}));
+// door: hinge at the bottom of the gap, leaf swung open into the room along the bottom, with its arc
+svg.appendChild(el('path', {class:'door', d:'M990 420 H910 M990 340 A80 80 0 0 0 910 420'}));
+svg.appendChild(el('text', {class:'lbl', x:866, y:392}, 'Door'));
 
 // desks: 3 rows × (4 + gap + 4), tables of 4 pushed together
 const blockW = 2*TABLE*DESK.w + AISLE, x0 = ROOM.x + WIN_W + (ROOM.w - WIN_W - blockW)/2;

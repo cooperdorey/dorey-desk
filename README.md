@@ -96,7 +96,7 @@ The start page's **Classroom** tile lists classroom tools from `classroom/classr
 
 - **Seating chart** (`seating.html`): kept deliberately simple, to be built up a feature at a time. It
   draws the room as an SVG: 3 rows of 8 desks, each row split into two tables of 4, windows down the whole
-  left wall, the door in the bottom-right corner and the teacher lectern in the bottom-left corner turned 45°.
+  left wall, the door in the right-hand wall near the bottom corner and the teacher lectern in the bottom-left corner turned 45°.
   The front is at the bottom. Each desk is a `<g data-desk="n">` (1–24, row by row from the top left).
 
 If names or rosters are added later, keep them in the browser's own storage. Never commit student names
