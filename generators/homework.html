@@ -46,6 +46,7 @@ input[type=checkbox]{accent-color:var(--brand)}
 .ctl{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}
 .ctl .full{grid-column:1/-1}
 .ctl label{font-size:12px;color:var(--muted);display:block;margin-bottom:3px}
+.ctl select{width:100%;padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink);font:inherit}
 .ctl input{width:100%;padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink);font:inherit}
 .seedrow{display:flex;gap:6px}
 .hint{font-size:12px;color:var(--muted);margin:-4px 0 8px}
@@ -97,6 +98,7 @@ main{min-width:0}
 .akey .steps>div{margin:2px 0}
 .akey .final{font-weight:700;border-top:1px dashed #9cc29f;margin-top:4px;padding-top:4px;color:#111}
 .akey .src{font-family:var(--ui);font-size:10.5px;color:#6b7280;margin-top:3px}
+.akey .src b{color:#1F3A68}
 .measure{position:absolute;left:-10000px;top:0;visibility:hidden}
 .busy{position:fixed;inset:0;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;z-index:9;color:#fff;font-size:16px}
 @media (max-width:860px){.wrap{grid-template-columns:minmax(0,1fr)}aside{position:static;max-height:none}}
@@ -109,7 +111,7 @@ main{min-width:0}
 </header>
 <div class="intro">
  <h1>Weekly homework</h1>
- <p>Tick the lessons to draw from. The sheet is two A4 pages, to print double-sided as one sheet, set out like an HSC extended-response question: parts (a), (b), (c)… that build from short skills to multi-step questions, with marks in the margin and lined working space. Download it as a PDF, with a separate sample-answers PDF.</p>
+ <p>Tick the lessons to draw from. The sheet is two A4 pages, to print double-sided as one sheet, set out like an HSC extended-response question: parts (a), (b), (c)… that build from short skills to multi-step questions, with marks in the margin and lined working space. Parts can be past HSC questions, as set or with new numbers. Download it as a PDF, with a separate sample-answers PDF, then make the matching end-of-week LSQ in one click.</p>
 </div>
 <div class="wrap">
  <aside>
@@ -121,6 +123,8 @@ main{min-width:0}
    <div><label for="due">Due</label><input id="due" type="date"></div>
    <div><label for="marks">Marks</label><input id="marks" type="number" min="6" max="30" value="20"></div>
    <div class="full hint">Two A4 pages: one sheet printed double-sided. 16 to 24 marks fit well. The suggested time follows the HSC rate of 1.8 minutes a mark.</div>
+   <div class="full"><label for="hsc">HSC questions</label><select id="hsc"></select></div>
+   <div class="full hint">Where a lesson has past HSC questions, they are used as set, with new numbers, or both. The answers say which paper and question.</div>
    <div class="full"><label for="seed">Seed or sheet code</label><div class="seedrow"><input id="seed" type="text"><button id="dice" type="button" title="New sheet" aria-label="New sheet">🎲</button></div></div>
   </div>
   <div class="hint">To find the answers to a printed sheet, type the faint code at the bottom of its page here and press Generate.</div>
@@ -129,7 +133,9 @@ main{min-width:0}
    <button id="pdfQ" disabled>Download homework PDF</button>
    <button id="pdfA" disabled>Download answers PDF</button>
    <button id="copy">Copy link</button>
+   <button id="mkLsq" disabled>Make this week's LSQ</button>
   </div>
+  <div class="hint" style="margin-top:8px">The LSQ gets one question on the same skill as each part of this sheet, with new numbers, plus a few review questions from the lessons you tick there.</div>
  </aside>
  <main>
   <p class="meta" id="meta"></p>
@@ -146,12 +152,12 @@ main{min-width:0}
 <script src="../assets/vendor/html-to-image.js"></script>
 <script src="../assets/vendor/jspdf.umd.min.js"></script>
 <script src="engine.js?v=dev"></script>
+<script src="hsc-bank.js?v=dev"></script>
+<script src="week.js?v=dev"></script>
 <script>
 const HSC_MIN_PER_MARK=1.8;              // HSC papers: 180 minutes for 100 marks
-const MAX_ONE_MARK=2;                    // HSC questions are mostly 2 and 3 mark parts; keep 1-mark parts as warm-ups
 const PAGE_H=1123,PAD_TOP=48,PAD_BOT=44,FOOT=30;
 const SPACE_MIN=40;                      // smallest working space under a part (px)
-const PART=i=>'('+String.fromCharCode(97+i)+')';
 
 document.addEventListener('DOMContentLoaded',()=>{
  const $=id=>document.getElementById(id);
@@ -173,6 +179,8 @@ document.addEventListener('DOMContentLoaded',()=>{
 
  // ---- state from link ----
  const h=new URLSearchParams(location.hash.slice(1));
+ $('hsc').innerHTML=HSC_MODES.map(([k,t])=>`<option value="${k}">${esc(t)}</option>`).join('');
+ $('hsc').value=HSC_CODE[h.get('hs')]!==undefined?h.get('hs'):'mix';
  $('seed').value=h.get('seed')||newSeed();
  $('marks').value=h.get('m')||20;
  if(h.get('c'))$('cls').value=h.get('c');
@@ -205,24 +213,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   if(row.querySelector('mfrac, mtable'))return;
   [f,l].forEach(mo=>{mo.setAttribute('stretchy','false');mo.setAttribute('lspace','0');mo.setAttribute('rspace','0')})})}
 
- // ---- choosing the parts ----
- // Like the LSQ: lessons are dealt round-robin across topics so the sheet spreads over everything ticked,
- // and each part is kept only if it fits the marks still to fill. For HSC practice the 2 and 3 mark lessons
- // come first in the deal and 1-mark parts are capped. Parts are then ordered easier to harder.
- function buildSheet(ids,target,seed){const R=makeRng('hw|'+seed+'|'+ids.join(','));
-  const byTopic=new Map();R.sample(ids,ids.length).forEach(id=>{const t=LESSONS[id].topic.id;if(!byTopic.has(t))byTopic.set(t,[]);byTopic.get(t).push(id)});
-  byTopic.forEach(L=>L.sort((a,b)=>(LESSONS[b].marks>1)-(LESSONS[a].marks>1)));   // bigger lessons first, random order otherwise
-  const deck=[];const lists=R.sample([...byTopic.values()],byTopic.size);let more=true;
-  for(let i=0;more;i++){more=false;lists.forEach(L=>{if(i<L.length){deck.push(L[i]);more=true}})}
-  const out=[],seen=new Set();let total=0,ones=0,misses=0,pos=0;
-  const onlyOnes=deck.every(id=>(LESSONS[id].marks||2)===1);
-  while(total<target&&misses<deck.length*4){const id=deck[pos%deck.length];pos++;const L=LESSONS[id];
-   let Q,tries=0;do{Q=L.gen(R);tries++}while(seen.has(Q.q)&&tries<30);
-   const mk=Q.marks||L.marks||2;
-   if(seen.has(Q.q)||total+mk>target||(mk===1&&!onlyOnes&&ones>=MAX_ONE_MARK)){misses++;continue}
-   seen.add(Q.q);out.push({...Q,marks:mk,lesson:L,order:out.length});total+=mk;if(mk===1)ones++;misses=0}
-  // easier to harder: by marks, keeping the dealt order within equal marks
-  return out.sort((a,b)=>a.marks-b.marks||a.order-b.order)}
+ // ---- choosing the parts: buildHomeworkSet in week.js (shared with the LSQ generator) ----
 
  // ---- page building ----
  const fmtDate=d=>{if(!d)return'';const [y,m,dd]=d.split('-');return `${+dd}/${+m}/${y}`};
@@ -235,7 +226,7 @@ document.addEventListener('DOMContentLoaded',()=>{
    <div class="qhead">Question 1 <span>(${info.total} marks)</span></div>`}
  const inl=s=>String(s).replace(/\$\$([\s\S]+?)\$\$/g,(m,x)=>`<div>$\\displaystyle ${x}$</div>`);
  const qHTML=(Q,i,space)=>`<div class="pq"><div class="n">${PART(i)}</div><div class="p">${inl(Q.q).replace(/\\frac/g,'\\dfrac')}</div><div class="mk">${Q.marks}</div>${space==null?'':`<div class="space" style="height:${space}px"></div>`}</div>`;
- const aHTML=(Q,i)=>`<div class="pq"><div class="n">${PART(i)}</div><div><div class="lbl">Sample answer</div><div class="steps">${Q.sol.map(s=>`<div>${inl(s)}</div>`).join('')}<div class="final">Answer: ${inl(Q.ans)}</div></div><div class="src">${esc(Q.lesson.topic.name)} · ${esc(Q.lesson.name)}</div></div><div class="mk">${Q.marks}</div></div>`;
+ const aHTML=(Q,i)=>`<div class="pq"><div class="n">${PART(i)}</div><div><div class="lbl">Sample answer</div><div class="steps">${Q.sol.map(s=>`<div>${inl(s)}</div>`).join('')}<div class="final">Answer: ${inl(Q.ans)}</div></div><div class="src">${esc(Q.lesson.topic.name)} · ${esc(Q.lesson.name)}${Q.hsc?` · <b>${esc(hscLabel(Q))}</b>`:''}</div></div><div class="mk">${Q.marks}</div></div>`;
  const foot=(info,p,n,label,end)=>`<div class="pfoot"><span>${esc(fullTitle(info))}${info.cls?' · '+esc(info.cls):''}${label?' · '+label:''}</span>${info.code?`<span class="code">${esc(info.code)}</span>`:''}<span${end?' class="end"':''}>${end==='turn'?'Please turn over':end?'End of homework':`Page ${p} of ${n}`}</span></div>`;
  const contHTML=info=>`<div class="cont"><span>${esc(fullTitle(info))}: Question 1 (continued)</span><span>Name: ______________________</span></div>`;
 
@@ -262,26 +253,27 @@ document.addEventListener('DOMContentLoaded',()=>{
   hs.forEach((h,i)=>{if(cur.length&&used+h>avail){pages.push(cur);cur=[];used=0}cur.push(i);used+=h+4});if(cur.length)pages.push(cur);return pages}
 
  let current=null;
- // a sheet code from a printed sheet (seed.marks.lessons) rebuilds that exact sheet
- function applyCode(){const v=$('seed').value.trim();if(!v.includes('.'))return;const c=readSheetCode(v,1);if(!c)return;
+ // a sheet code from a printed sheet (seed.marks.hsc.lessons.used) rebuilds that exact sheet
+ function applyCode(){const v=$('seed').value.trim();if(!v.includes('.'))return;const c=readHwCode(v);if(!c)return;
   document.querySelectorAll('.lsel').forEach(x=>x.checked=c.ids.includes(x.value));
   document.querySelectorAll('details[data-topic]').forEach(det=>{syncTopic(det);det.open=!!det.querySelector('.lsel:checked')});
-  $('marks').value=c.nums[0];$('seed').value=c.seed;$('topics').dispatchEvent(new Event('change',{bubbles:true}))}
+  $('marks').value=c.marks;$('hsc').value=c.mode;$('seed').value=c.seed}
  function generate(){applyCode();
-  const ids=selected();const seed=$('seed').value.trim()||newSeed();$('seed').value=seed;
+  const ids=selected();const seed=cleanSeed($('seed').value.trim()||newSeed());$('seed').value=seed;const mode=$('hsc').value;
   const target=Math.max(6,Math.min(30,+$('marks').value||20));$('marks').value=target;
-  if(!ids.length){$('out').innerHTML='<div class="empty">Tick at least one lesson, then press Generate.</div>';$('meta').textContent='';$('tabs').hidden=true;$('pdfQ').disabled=$('pdfA').disabled=true;return}
-  const p=new URLSearchParams({seed,m:target,l:ids.join(',')});
+  if(!ids.length){$('out').innerHTML='<div class="empty">Tick at least one lesson, then press Generate.</div>';$('meta').textContent='';$('tabs').hidden=true;$('pdfQ').disabled=$('pdfA').disabled=$('mkLsq').disabled=true;return}
+  const p=new URLSearchParams({seed,m:target,hs:mode,l:ids.join(',')});
   [['c','cls'],['w','week'],['d','due']].forEach(([k,id])=>{if($(id).value.trim())p.set(k,$(id).value.trim())});
   if($('title').value.trim()&&$('title').value.trim()!=='Homework')p.set('ti',$('title').value.trim());history.replaceState(null,'','#'+p);
-  let set;try{set=buildSheet(ids,target,seed)}catch(e){$('out').innerHTML=`<div class="empty">Generator error: ${esc(e.message)}</div>`;return}
-  const info={code:sheetCode(seed,[target],ids),title:$('title').value.trim()||'Homework',cls:$('cls').value.trim(),week:$('week').value.trim(),due:$('due').value};
+  let set;try{set=buildHomeworkSet(ids,target,seed,mode)}catch(e){$('out').innerHTML=`<div class="empty">Generator error: ${esc(e.message)}</div>`;return}
+  const info={title:$('title').value.trim()||'Homework',cls:$('cls').value.trim(),week:$('week').value.trim(),due:$('due').value};
   const refresh=()=>{info.total=set.reduce((s,Q)=>s+Q.marks,0);info.topics=[...new Set(set.map(Q=>Q.lesson.topic.name))].join(' · ')};
   refresh();
   // keep to the two sides: drop the smallest part (the latest of equal ones) until it fits
   let pages=packPages(set,info);
   while(!pages&&set.length>1){const lo=Math.min(...set.map(Q=>Q.marks));let small=-1;set.forEach((Q,i)=>{if(Q.marks===lo)small=i});
    set=set.filter((_,i)=>i!==small);refresh();pages=packPages(set,info)}
+  const used=[...new Set(set.map(Q=>Q.lesson.id))];info.code=hwCode(seed,target,mode,ids,used);
   const np=pages.length;
   $('out').innerHTML=`<div class="pages">${pages.map((pg,pi)=>`<div class="pagebox"><div class="page qpage">${pi===0?headHTML(info):contHTML(info)}${pg.map(({i,space})=>qHTML(set[i],i,space)).join('')}${foot(info,pi+1,np,'',pi===np-1?true:'turn')}</div></div>`).join('')}</div>`;
   const ap=answerPages(set);
@@ -289,8 +281,9 @@ document.addEventListener('DOMContentLoaded',()=>{
   render($('out'));render($('ans'));
   const short=info.total<target?` (${target} asked: the closest fit on two sides)`:'';
   const mix=[3,2,1].map(m=>[m,set.filter(Q=>Q.marks===m).length]).filter(x=>x[1]).map(([m,n])=>`${n}×${m}`).join(' + ');
-  $('meta').textContent=`${set.length} parts (${mix}) · ${info.total} marks${short} · about ${suggested(info.total)} minutes · sheet code ${info.code}`;
-  $('tabs').hidden=false;show('q');$('pdfQ').disabled=$('pdfA').disabled=false;current={info,seed};
+  const nh=set.filter(Q=>Q.hsc).length;
+  $('meta').textContent=`${set.length} parts (${mix}) · ${info.total} marks${short}${nh?` · ${nh} from HSC papers`:''} · about ${suggested(info.total)} minutes · sheet code ${info.code}`;
+  $('tabs').hidden=false;show('q');$('pdfQ').disabled=$('pdfA').disabled=$('mkLsq').disabled=false;current={info,seed,mode};
  }
 
  // ---- fit pages to the panel width ----
@@ -308,6 +301,9 @@ document.addEventListener('DOMContentLoaded',()=>{
   catch(e){alert('Could not make the PDF: '+e.message)}
   finally{$('out').hidden=wasQ;$('ans').hidden=wasA;fitZoom();$('busy').hidden=true}}
  const fname=k=>{const c=current||{info:{}};return [c.info.cls,'Homework',c.info.week,k,c.seed].filter(Boolean).join('_').replace(/[^\w.-]+/g,'-')+'.pdf'};
+ $('mkLsq').onclick=()=>{if(!current)return;const p=new URLSearchParams({hw:current.info.code});
+  if(current.info.cls)p.set('c',current.info.cls);if(current.info.week)p.set('ti','Low Stakes Quiz · '+current.info.week);p.set('hs',current.mode);
+  window.open('lsq.html#'+p,'_blank')};
  $('pdfQ').onclick=()=>toPDF('#out .page',fname(''));
  $('pdfA').onclick=()=>toPDF('#ans .page',fname('answers'));
 

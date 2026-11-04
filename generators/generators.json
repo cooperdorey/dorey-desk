@@ -11,7 +11,7 @@
  {
   "file": "lsq.html",
   "name": "LSQ generator",
-  "desc": "A Low Stakes Quiz from the topics you tick, sized to the time you set, on two A4 pages. Downloads as a PDF with a separate answers PDF.",
+  "desc": "A Low Stakes Quiz from the topics you tick, sized to the time you set, on two A4 pages. Can be linked to a homework sheet: a twin of each homework part plus review questions. Downloads as a PDF with a separate answers PDF.",
   "courses": [
    "12 ADV",
    "11 ADV"
@@ -20,7 +20,7 @@
  {
   "file": "homework.html",
   "name": "Homework generator",
-  "desc": "A weekly homework sheet, two A4 pages to print double-sided, set out like an HSC extended-response question, parts building from short skills to multi-step. Downloads as a PDF with a separate sample-answers PDF.",
+  "desc": "A weekly homework sheet, two A4 pages to print double-sided, set out like an HSC extended-response question, with past HSC questions as set or with new numbers. Downloads as a PDF with a separate sample-answers PDF, and makes the matching end-of-week LSQ.",
   "courses": [
    "12 ADV",
    "11 ADV"

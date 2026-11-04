@@ -45,6 +45,7 @@ input[type=checkbox]{accent-color:var(--brand)}
 .ctl{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}
 .ctl .full{grid-column:1/-1}
 .ctl label{font-size:12px;color:var(--muted);display:block;margin-bottom:3px}
+.ctl select{width:100%;padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink);font:inherit}
 .ctl input{width:100%;padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink);font:inherit}
 .seedrow{display:flex;gap:6px}
 .hint{font-size:12px;color:var(--muted);margin:-4px 0 8px}
@@ -85,6 +86,8 @@ main{min-width:0}
 .akey .pq{grid-template-columns:30px minmax(0,1fr) 62px;padding-bottom:8px}
 .akey .steps{font-size:14px;color:#14532D}
 .akey .steps>div{margin:2px 0}
+.akey .src{font-family:var(--ui);font-size:10.5px;color:#6b7280;margin-top:3px}
+.akey .src b{color:#1F3A68}
 .akey .final{font-weight:700;border-top:1px dashed #9cc29f;margin-top:4px;padding-top:4px;color:#111}
 .measure{position:absolute;left:-10000px;top:0;visibility:hidden}
 .busy{position:fixed;inset:0;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;z-index:9;color:#fff;font-size:16px}
@@ -98,10 +101,11 @@ main{min-width:0}
 </header>
 <div class="intro">
  <h1>Low Stakes Quiz</h1>
- <p>Tick the topics or lessons to draw from. The quiz picks a random spread of them, sized to the time you set, laid out on two A4 pages with working space. Download it as a PDF, with a separate answers PDF.</p>
+ <p>Tick the topics or lessons to draw from. The quiz picks a random spread of them, sized to the time you set, laid out on two A4 pages with working space. Or link it to a homework sheet: one new question on the skill of each homework part, plus review questions from earlier weeks. Download it as a PDF, with a separate answers PDF.</p>
 </div>
 <div class="wrap">
  <aside>
+  <div class="hint" id="poolhint" hidden>Linked to a homework sheet: tick lessons from earlier weeks for the review questions.</div>
   <div id="topics"></div>
   <div class="ctl">
    <div class="full"><label for="title">Title</label><input id="title" type="text" value="Low Stakes Quiz"></div>
@@ -110,6 +114,10 @@ main{min-width:0}
    <div><label for="mins">Time (minutes)</label><input id="mins" type="number" min="5" max="60" value="20"></div>
    <div><label for="marks">Marks</label><input id="marks" type="number" min="3" max="40"></div>
    <div class="full hint">Marks follow the time at about a mark a minute. Change either one.</div>
+   <div class="full"><label for="hsc">HSC questions</label><select id="hsc"></select></div>
+   <div class="full"><label for="hw">Linked homework (sheet code)</label><input id="hw" type="text" placeholder="Optional: the code from a homework sheet"></div>
+   <div class="full hint" id="hwhint">Paste the faint code from the bottom of a homework page, or press "Make this week's LSQ" on the homework generator. Each homework part gets a twin: the same skill with new numbers. Lessons ticked on the left are then used for review questions.</div>
+   <div id="nrevbox" hidden><label for="nrev">Review questions</label><input id="nrev" type="number" min="0" max="6" value="2"></div>
    <div class="full"><label for="seed">Seed or sheet code</label><div class="seedrow"><input id="seed" type="text"><button id="dice" type="button" title="New quiz" aria-label="New quiz">🎲</button></div></div>
   </div>
   <div class="hint">To find the answers to a printed quiz, type the faint code at the bottom of its page here and press Generate.</div>
@@ -135,6 +143,8 @@ main{min-width:0}
 <script src="../assets/vendor/html-to-image.js"></script>
 <script src="../assets/vendor/jspdf.umd.min.js"></script>
 <script src="engine.js?v=dev"></script>
+<script src="hsc-bank.js?v=dev"></script>
+<script src="week.js?v=dev"></script>
 <script>
 const MIN_PER_MARK=1;                   // about a mark a minute for short fluency questions (HSC papers run at 1.8)
 const PAGE_H=1123,PAD_TOP=52,PAD_BOT=44,FOOT=30;
@@ -160,6 +170,9 @@ document.addEventListener('DOMContentLoaded',()=>{
 
  // ---- state from link ----
  const h=new URLSearchParams(location.hash.slice(1));
+ $('hsc').innerHTML=HSC_MODES.map(([k,t])=>`<option value="${k}">${esc(t)}</option>`).join('');
+ $('hsc').value=HSC_CODE[h.get('hs')]!==undefined?h.get('hs'):'mix';
+ $('hw').value=h.get('hw')||'';$('nrev').value=h.get('nr')||2;
  $('seed').value=h.get('seed')||newSeed();
  $('mins').value=h.get('t')||20;
  $('marks').value=h.get('m')||Math.round($('mins').value/MIN_PER_MARK);
@@ -170,7 +183,12 @@ document.addEventListener('DOMContentLoaded',()=>{
  fromLink.forEach(id=>{const el=document.querySelector(`.lsel[value="${id}"]`);if(el)el.checked=true});
  document.querySelectorAll('details[data-topic]').forEach(det=>{syncTopic(det);if(det.querySelector('.lsel:checked'))det.open=true});
 
- $('mins').addEventListener('input',()=>{$('marks').value=Math.max(3,Math.round((+$('mins').value||20)/MIN_PER_MARK))});
+ // with a linked homework the quiz is as long as its twins need, until the marks or minutes are set by hand
+ let marksTouched=+h.get('m')>0;
+ $('marks').addEventListener('input',()=>{marksTouched=true});
+ $('mins').addEventListener('input',()=>{marksTouched=true;$('marks').value=Math.max(3,Math.round((+$('mins').value||20)/MIN_PER_MARK))});
+ function showLink(){const on=!!$('hw').value.trim();$('nrevbox').hidden=!on;$('poolhint').hidden=!on}
+ $('hw').addEventListener('input',()=>{marksTouched=false;showLink()});showLink();
  $('dice').onclick=()=>{$('seed').value=newSeed();generate()};
  $('go').onclick=generate;
  $('copy').onclick=async()=>{try{await navigator.clipboard.writeText(location.href);$('copy').textContent='Copied!'}catch(e){$('copy').textContent='Copy failed'}setTimeout(()=>$('copy').textContent='Copy link',1500)};
@@ -197,13 +215,13 @@ document.addEventListener('DOMContentLoaded',()=>{
  // ---- choosing questions ----
  // Lessons are dealt round-robin across topics (in a random order) so the quiz spreads over everything ticked.
  // Each question is kept only if it fits the marks still to fill; a lesson is not reused until all have been used.
- function buildQuiz(ids,target,seed){const R=makeRng('lsq|'+seed+'|'+ids.join(','));
+ function buildQuiz(ids,target,seed,mode){const R=makeRng('lsq|'+seed+'|'+ids.join(','));
   const byTopic=new Map();R.sample(ids,ids.length).forEach(id=>{const t=LESSONS[id].topic.id;if(!byTopic.has(t))byTopic.set(t,[]);byTopic.get(t).push(id)});
   const deck=[];const lists=R.sample([...byTopic.values()],byTopic.size);let more=true;
   for(let i=0;more;i++){more=false;lists.forEach(L=>{if(i<L.length){deck.push(L[i]);more=true}})}
   const out=[],seen=new Set();let total=0,misses=0,pos=0;
   while(total<target&&misses<deck.length*4){const id=deck[pos%deck.length];pos++;const L=LESSONS[id];
-   let Q,tries=0;do{Q=L.gen(R);tries++}while(seen.has(Q.q)&&tries<30);
+   let Q,tries=0;do{Q=drawQuestion(L,R,mode,seen);tries++}while(seen.has(Q.q)&&tries<30);
    const mk=Q.marks||L.marks||2;
    if(seen.has(Q.q)||total+mk>target){misses++;continue}
    seen.add(Q.q);out.push({...Q,marks:mk,lesson:L});total+=mk;misses=0}
@@ -218,7 +236,8 @@ document.addEventListener('DOMContentLoaded',()=>{
  // display maths sits left-aligned in the flow of a question, so show it as inline maths in display style
  const inl=s=>String(s).replace(/\$\$([\s\S]+?)\$\$/g,(m,x)=>`<div>$\\displaystyle ${x}$</div>`);
  const qHTML=(Q,i,space)=>`<div class="pq"><div class="n">${i+1}</div><div class="p">${inl(Q.q).replace(/\\frac/g,'\\dfrac')}</div><div class="mk">${Q.marks} mark${Q.marks>1?'s':''}</div>${space==null?'':`<div class="space" style="height:${space}px"></div>`}</div>`;
- const aHTML=(Q,i)=>`<div class="pq"><div class="n">${i+1}</div><div class="steps">${Q.sol.map(s=>`<div>${inl(s)}</div>`).join('')}<div class="final">Answer: ${inl(Q.ans)}</div></div><div class="mk">${Q.marks} mark${Q.marks>1?'s':''}</div></div>`;
+ const aHTML=(Q,i)=>`<div class="pq"><div class="n">${i+1}</div><div class="steps">${Q.sol.map(s=>`<div>${inl(s)}</div>`).join('')}<div class="final">Answer: ${inl(Q.ans)}</div><div class="src">${srcLine(Q)}</div></div><div class="mk">${Q.marks} mark${Q.marks>1?'s':''}</div></div>`;
+ const srcLine=Q=>(Q.kind==='twin'?`<b>Twin of homework ${PART(Q.part)}</b> · `:Q.kind==='review'?'<b>Review</b> · ':'')+`${esc(Q.lesson.topic.name)} · ${esc(Q.lesson.name)}`+(Q.hsc?` · <b>${esc(hscLabel(Q))}</b>`:'');
  const foot=(info,p,n,label)=>`<div class="pfoot"><span>${esc(info.title)}${info.cls?' · '+esc(info.cls):''}${label?' · '+label:''}</span>${info.code?`<span class="code">${esc(info.code)}</span>`:''}<span>Page ${p} of ${n}</span></div>`;
 
  // measure each block at page width
@@ -251,30 +270,47 @@ document.addEventListener('DOMContentLoaded',()=>{
   hs.forEach((h,i)=>{if(cur.length&&used+h>avail){pages.push(cur);cur=[];used=0}cur.push(i);used+=h+4});if(cur.length)pages.push(cur);return pages}
 
  let current=null;
- // a sheet code from a printed sheet (seed.mins.marks.lessons) rebuilds that exact sheet
- function applyCode(){const v=$('seed').value.trim();if(!v.includes('.'))return;const c=readSheetCode(v,2);if(!c)return;
+ // a sheet code from a printed quiz rebuilds that exact quiz (seed.mins.marks.hsc.lessons, or homework~seed.… when linked)
+ function applyCode(){const v=$('seed').value.trim();if(!v.includes('.'))return;const c=readLsqCode(v);if(!c)return;
   document.querySelectorAll('.lsel').forEach(x=>x.checked=c.ids.includes(x.value));
   document.querySelectorAll('details[data-topic]').forEach(det=>{syncTopic(det);det.open=!!det.querySelector('.lsel:checked')});
-  $('mins').value=c.nums[0];$('marks').value=c.nums[1];$('seed').value=c.seed;$('topics').dispatchEvent(new Event('change',{bubbles:true}))}
+  $('mins').value=c.mins||20;$('marks').value=c.marks||c.mins||20;$('hsc').value=c.mode;$('seed').value=c.seed;
+  $('hw').value=c.hw||'';$('nrev').value=c.nrev;marksTouched=c.hw?c.marks>0:true;showLink()}
+ const say=t=>{$('out').innerHTML=`<div class="empty">${t}</div>`;$('meta').textContent='';$('tabs').hidden=true;$('pdfQ').disabled=$('pdfA').disabled=true};
  function generate(){applyCode();
-  const ids=selected();const seed=$('seed').value.trim()||newSeed();$('seed').value=seed;
-  const mins=Math.max(5,Math.min(60,+$('mins').value||20)),target=Math.max(3,Math.min(40,+$('marks').value||Math.round(mins/MIN_PER_MARK)));
-  if(!ids.length){$('out').innerHTML='<div class="empty">Tick at least one lesson, then press Generate.</div>';$('meta').textContent='';$('tabs').hidden=true;$('pdfQ').disabled=$('pdfA').disabled=true;return}
-  const p=new URLSearchParams({seed,t:mins,m:target,l:ids.join(',')});if($('cls').value.trim())p.set('c',$('cls').value.trim());
+  const ticked=selected(),seed=cleanSeed($('seed').value.trim()||newSeed()),mode=$('hsc').value,hwText=$('hw').value.trim(),linked=!!hwText;$('seed').value=seed;
+  const H=linked?readHwCode(hwText):null;
+  if(linked&&!H)return say('That homework code was not recognised. Type the faint code printed at the bottom of the homework pages.');
+  if(!linked&&!ticked.length)return say('Tick at least one lesson, then press Generate.');
+  const auto=linked&&!marksTouched;
+  const mins=Math.max(5,Math.min(60,+$('mins').value||20)),target=auto?0:Math.max(3,Math.min(40,+$('marks').value||Math.round(mins/MIN_PER_MARK)));
+  const nrev=linked?Math.max(0,Math.min(6,Math.round(+$('nrev').value)||0)):0;
+  let set,review=[];
+  try{
+   if(linked){const hwSet=buildHomeworkSet(H.ids,H.marks,H.seed,H.mode).filter(Q=>H.used.includes(Q.lesson.id));
+    review=ticked.filter(id=>!H.used.includes(id));set=buildLinkedQuiz(hwSet,review,nrev,target,seed,mode)}
+   else set=buildQuiz(ticked,target,seed,mode)
+  }catch(e){return say(`Generator error: ${esc(e.message)}`)}
+  const p=new URLSearchParams({seed,t:mins,m:target,hs:mode,l:ticked.join(',')});if($('cls').value.trim())p.set('c',$('cls').value.trim());
+  if(linked){p.set('hw',hwText);p.set('nr',nrev)}
   if($('title').value.trim()&&$('title').value.trim()!=='Low Stakes Quiz')p.set('ti',$('title').value.trim());history.replaceState(null,'','#'+p);
-  let set;try{set=buildQuiz(ids,target,seed)}catch(e){$('out').innerHTML=`<div class="empty">Generator error: ${esc(e.message)}</div>`;return}
   const topicNames=()=>[...new Set(set.map(Q=>Q.lesson.topic.name))].join(' · ');
-  const info={code:sheetCode(seed,[mins,target],ids),title:$('title').value.trim()||'Low Stakes Quiz',cls:$('cls').value.trim(),date:$('date').value,mins};
-  info.total=set.reduce((s,Q)=>s+Q.marks,0);info.topics=topicNames();
+  const info={title:$('title').value.trim()||'Low Stakes Quiz',cls:$('cls').value.trim(),date:$('date').value,mins};
+  const sync=()=>{info.total=set.reduce((s,Q)=>s+Q.marks,0);info.topics=topicNames();if(auto)info.mins=info.total};   // a mark a minute
+  sync();
   let {pages,set:fit}=quizPages(set,info);
-  if(fit.length<set.length){set=fit;info.total=set.reduce((s,Q)=>s+Q.marks,0);info.topics=topicNames();({pages,set:fit}=quizPages(set,info))}
+  if(fit.length<set.length){set=fit;sync();({pages,set:fit}=quizPages(set,info))}
+  info.code=linked?linkedLsqCode(hwText,seed,auto?0:mins,target,mode,nrev,review):lsqCode(seed,mins,target,mode,ticked);
+  if(auto){$('marks').value=info.total;$('mins').value=Math.max(5,Math.min(60,info.mins))}
   const n=pages.length;
   $('out').innerHTML=`<div class="pages">${pages.map((pg,pi)=>`<div class="pagebox"><div class="page qpage">${pi===0?headHTML(info):`<div class="cont"><span>${esc(info.title)} (continued)</span><span>Name: ______________________</span></div>`}${pg.map(({i,space})=>qHTML(set[i],i,space)).join('')}${foot(info,pi+1,n)}</div></div>`).join('')}</div>`;
   const ap=answerPages(set,info);
   $('ans').innerHTML=`<div class="pages">${ap.map((pg,pi)=>`<div class="pagebox"><div class="page apage akey"><div class="phead"><div><h2>${esc(info.title)}: answers</h2><div class="sub">${esc(info.topics)}</div></div><div class="right">${info.cls?esc(info.cls)+'<br>':''}${esc(fmtDate(info.date))}<br>Total: ${info.total} marks</div></div>${pg.map(i=>aHTML(set[i],i)).join('')}${foot(info,pi+1,ap.length,'Answers')}</div></div>`).join('')}</div>`;
   render($('out'));render($('ans'));
-  const short=info.total<target?` (${target} asked: the closest fit on two pages)`:'';
-  $('meta').textContent=`${set.length} questions · ${info.total} marks${short} · ${mins} minutes · ${n} page${n>1?'s':''} · sheet code ${info.code}`;
+  const short=!auto&&info.total<target?` (${target} asked: the closest fit on two pages)`:'';
+  const tw=set.filter(Q=>Q.kind==='twin').length,rv=set.filter(Q=>Q.kind==='review').length,nh=set.filter(Q=>Q.hsc).length;
+  const parts=linked?`${tw} twins of the homework${rv?` + ${rv} review`:''}`:`${set.length} questions`;
+  $('meta').textContent=`${parts} · ${info.total} marks${short}${nh?` · ${nh} from HSC papers`:''} · ${info.mins} minutes · ${n} page${n>1?'s':''} · sheet code ${info.code}`;
   $('tabs').hidden=false;show('q');$('pdfQ').disabled=$('pdfA').disabled=false;current={info,seed};
  }
 
@@ -296,7 +332,7 @@ document.addEventListener('DOMContentLoaded',()=>{
  $('pdfQ').onclick=()=>toPDF('#out .page','LSQ-'+fname('quiz').replace(/^LSQ_/,''));
  $('pdfA').onclick=()=>toPDF('#ans .page','LSQ-'+fname('answers').replace(/^LSQ_/,''));
 
- if(fromLink.length)generate();
+ if(fromLink.length||h.get('hw'))generate();
 });
 </script>
 <script src="picker.js?v=dev"></script>

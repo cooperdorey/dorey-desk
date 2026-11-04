@@ -34,5 +34,11 @@ We Do levels) live in the Lesson Creator project; this file covers the repo form
   in engine.js (never reorder): the faint sheet code printed on LSQ and homework pages records the ticked
   lessons as bits in that order, and the build fails if a lesson is missing. The All / Yr 11 / Yr 12 / Clear buttons above each topic list come from
   `generators/picker.js` (load it after the page's own script); a topic's year is read from its `course`. They use the site's vendored KaTeX (MathML output), no CDNs.
+  `generators/hsc-bank.js` (past HSC questions tagged to lessons; each entry has the paper wording and an
+  optional `gen(R)` with new numbers) and `generators/week.js` (HSC draw modes, homework set builder, linked LSQ,
+  sheet codes) load after engine.js on both pages. Run `node scripts/check_generators.js --all` before committing.
+  Sheet codes: the homework code also records the lessons that ended up on the sheet; a linked LSQ's code is
+  `homeworkCode~…`. Codes are read back in the on-screen lesson order, so keep engine.js lesson order stable.
+  Question text from HSC papers is cited by year and question number; omit questions that need a diagram.
   In the question generator, test every generator function on many seeds before committing
   (all maths must parse in KaTeX; no `NaN`, `undefined`, `+ -` or `1x`).

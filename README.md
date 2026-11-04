@@ -80,9 +80,23 @@ There are three generators, all drawing on the same question bank (`generators/e
   a mark. Parts never split across the two sides. It downloads as a PDF, with a separate sample-answers PDF. The class, week, due date and
   seed all go in the link, so a saved link rebuilds the same sheet.
 
-Every LSQ and homework page has a faint **sheet code** centred under the footer (seed, marks
-and ticked lessons). Type it into the Seed box and press Generate to rebuild that exact sheet
-and its answers.
+Every LSQ and homework page has a faint **sheet code** centred under the footer (seed, marks,
+HSC setting and ticked lessons). Type it into the Seed box and press Generate to rebuild that exact
+sheet and its answers.
+
+**HSC questions.** `generators/hsc-bank.js` holds past HSC questions (2020 to 2026), each tagged to
+a lesson, with its paper year and question number. Both the homework and LSQ generators have an
+"HSC questions" setting: as set, the same question with new numbers, a mix of both, or generated
+questions only. The answer key names the paper and question. Only questions that read without a
+diagram are included; where one was shortened the citation says so. To add a question, append a
+`hsc(...)` entry (see the comments at the top of the file), then run
+`node scripts/check_generators.js` (add `--all` to test every lesson generator too).
+
+**Homework to LSQ.** After generating a homework, "Make this week's LSQ" opens the LSQ generator
+linked to it. The quiz has one *twin* of each homework part (same skill, new numbers, never the
+same question) plus a few review questions from the lessons ticked on the LSQ page. The linked
+LSQ's sheet code starts with the homework's code, so either sheet's code rebuilds both. Shared
+logic (drawing questions, building a homework set, sheet codes) is in `generators/week.js`.
 
 The question generator's topics and lessons are the `TOPICS` list near the bottom of its
 `<script id="engine">`. Each lesson points at a generator function that returns the question,
