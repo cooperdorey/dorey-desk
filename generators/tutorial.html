@@ -109,6 +109,42 @@ table.tv th,table.tv td{border:1px solid var(--sol-line);padding:4px 12px;text-a
 .pt>span{min-width:1.9em;font-weight:700;color:var(--muted)}
 .pt>div{flex:1;min-width:0}
 .set-total{font-size:13px;color:var(--muted);margin:0 0 12px}
+.full{grid-column:1/-1}
+select{width:100%;padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink);font:inherit}
+.tabs{display:flex;gap:6px;margin-bottom:12px}
+.tabs button[aria-pressed=true]{background:var(--brand);color:var(--brand-ink)}
+.btnrow button:disabled{opacity:.45;cursor:default}
+
+/* ---------- A4 pages (794 x 1123 px = 210 x 297 mm at 96 dpi) ---------- */
+.pages{display:flex;flex-direction:column;align-items:center;gap:18px}
+.pagebox{width:calc(794px * var(--z,1));height:calc(1123px * var(--z,1));flex:none}
+.page{width:794px;height:1123px;background:#fff;color:#111;box-shadow:0 1px 3px rgba(0,0,0,.18),0 8px 24px rgba(0,0,0,.08);
+ transform:scale(var(--z,1));transform-origin:top left;padding:52px 60px 44px;position:relative;overflow:hidden;
+ font-family:var(--card);font-size:15.5px;line-height:1.55;color-scheme:light}
+.page math{font-family:"Cambria Math","STIX Two Math","Latin Modern Math",math,serif;font-size:1.08em}
+.page math[display="block"]{margin:.3em 0;text-align:left}
+.phead{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #1F3A68;padding-bottom:8px;margin-bottom:6px}
+.phead h2{margin:0;font-size:26px;line-height:1.1;color:#1F3A68}
+.phead .sub{font-family:var(--ui);font-size:12px;color:#444;margin-top:4px}
+.phead .right{text-align:right;font-family:var(--ui);font-size:12.5px;color:#222;line-height:1.6;white-space:nowrap;padding-left:16px}
+.details{display:grid;grid-template-columns:1.6fr 1fr 1fr;gap:18px;font-family:var(--ui);font-size:12.5px;margin:10px 0 4px}
+.details div{border-bottom:1px solid #999;padding-bottom:2px;white-space:nowrap}
+.inst{font-family:var(--ui);font-size:11.5px;color:#444;margin:6px 0 4px}
+.cont{font-family:var(--ui);font-size:11.5px;color:#555;border-bottom:1px solid #bbb;padding-bottom:4px;margin-bottom:4px;display:flex;justify-content:space-between}
+.tq{display:grid;grid-template-columns:30px minmax(0,1fr) 56px;column-gap:6px;border-top:1px solid #d5d5d5;padding-top:9px;margin-top:10px}
+.tq.top{border-top:none;margin-top:0}
+.tq .n{font-weight:700;font-size:17px;color:#1F3A68}
+.tq .mk{font-family:var(--ui);font-size:11.5px;color:#333;text-align:right;padding-top:3px;white-space:nowrap}
+.tq .space{grid-column:1/-1}
+.pfoot{position:absolute;left:60px;right:60px;bottom:22px;display:flex;justify-content:space-between;font-family:var(--ui);font-size:10.5px;color:#666}
+.akey .qt{font-size:14px;color:#444;margin-bottom:4px}
+.akey .steps{font-size:14px;color:#14532D}
+.akey .steps>div{margin:2px 0}
+.akey .src{font-family:var(--ui);font-size:10.5px;color:#6b7280;margin-top:3px}
+.akey .final{font-weight:700;border-top:1px dashed #9cc29f;margin-top:4px;padding-top:4px;color:#111}
+.mi{display:flow-root}
+.measure{position:absolute;left:-10000px;top:0;visibility:hidden}
+.busy{position:fixed;inset:0;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;z-index:9;color:#fff;font-size:16px}
 
 @media print{
  .timer,.hint,.qbtns{display:none!important}
@@ -143,14 +179,18 @@ table.tv th,table.tv td{border:1px solid var(--sol-line);padding:4px 12px;text-a
   <p class="fieldlabel">Topics</p>
   <div id="topics"></div>
   <div class="ctl">
-   <div style="grid-column:1/-1"><label for="seed">Seed</label><div class="seedrow"><input id="seed" type="text"><button id="dice" type="button" title="New seed" aria-label="New seed">🎲</button></div></div>
+   <div class="full"><label for="title">Title</label><input id="title" type="text" value="Tutorial"></div>
+   <div><label for="cls">Class</label><input id="cls" type="text" placeholder="e.g. 12ADV"></div>
+   <div><label for="date">Date</label><input id="date" type="date"></div>
+   <div class="full"><label for="space">Working space on the sheet</label><select id="space"><option value="30">Standard</option><option value="46" selected>Roomy</option><option value="64">Extra roomy</option></select></div>
+   <div class="full"><label for="seed">Seed</label><div class="seedrow"><input id="seed" type="text"><button id="dice" type="button" title="New seed" aria-label="New seed">🎲</button></div></div>
   </div>
-  <label class="check"><input type="checkbox" id="printkey" checked> Print answer key on last page</label>
   <button class="primary" id="go">Generate tutorial</button>
   <div class="btnrow">
    <button id="toggleAll">Show all solutions</button>
-   <button id="print">Print</button>
    <button id="copy">Copy link</button>
+   <button id="pdfQ" disabled>Download sheet PDF</button>
+   <button id="pdfA" disabled>Download answers PDF</button>
   </div>
  </aside>
  <main>
@@ -160,15 +200,21 @@ table.tv th,table.tv td{border:1px solid var(--sol-line);padding:4px 12px;text-a
    <button id="tReset" type="button">Reset</button>
    <span class="sum" id="meta"></span>
   </div>
+  <div class="tabs" id="tabs" hidden><button id="tC" type="button" aria-pressed="true">Class view</button><button id="tS" type="button" aria-pressed="false">Student sheet</button><button id="tA" type="button" aria-pressed="false">Answers</button></div>
   <div id="out"><div class="empty">Choose the length and topics, then press Generate.</div></div>
+  <div id="sheet" hidden></div>
+  <div id="ans" hidden></div>
   <section class="key" id="key"></section>
  </main>
 </div>
 
+<div class="busy" id="busy" hidden>Making the PDF…</div>
 <!-- KaTeX from the site’s own copy, rendered as MathML like the lesson cards -->
 <script src="../assets/vendor/katex.min.js"></script>
 <script src="../assets/vendor/auto-render.min.js"></script>
 
+<script src="../assets/vendor/html-to-image.js"></script>
+<script src="../assets/vendor/jspdf.umd.min.js"></script>
 <script src="engine.js?v=dev"></script>
 <script src="tutorial-bank.js?v=dev"></script>
 
@@ -199,6 +245,10 @@ document.addEventListener('DOMContentLoaded',()=>{
  // ---- state from link ----
  const h=new URLSearchParams(location.hash.slice(1));
  $('seed').value=h.get('seed')||newSeed();
+ $('date').value=h.get('d')||new Date().toLocaleDateString('en-CA');
+ if(h.get('c'))$('cls').value=h.get('c');
+ if(h.get('ti'))$('title').value=h.get('ti');
+ if(h.get('sp'))$('space').value=h.get('sp');
  if(h.get('len'))setRadio('len',h.get('len'));
  if(h.get('lv'))setRadio('lv',h.get('lv'));
  const fromLink=(h.get('l')||'').split(',').filter(id=>TUT_BY_ID[id]);
@@ -207,7 +257,6 @@ document.addEventListener('DOMContentLoaded',()=>{
 
  $('dice').onclick=()=>{$('seed').value=newSeed();generate()};
  $('go').onclick=generate;
- $('print').onclick=()=>{document.body.classList.toggle('print-key',$('printkey').checked);window.print()};
  $('copy').onclick=async()=>{try{await navigator.clipboard.writeText(location.href);$('copy').textContent='Copied!'}catch(e){$('copy').textContent='Copy failed'}setTimeout(()=>$('copy').textContent='Copy link',1500)};
  let allShown=false;
  $('toggleAll').onclick=()=>{allShown=!allShown;document.querySelectorAll('#out .sol').forEach(s=>s.hidden=!allShown);
@@ -243,10 +292,11 @@ document.addEventListener('DOMContentLoaded',()=>{
 
  function generate(){
   const ids=selected(),len=+radio('len'),lv=+radio('lv'),seed=$('seed').value.trim()||newSeed();$('seed').value=seed;
-  if(!ids.length){$('out').innerHTML='<div class="empty">Tick at least one question type, then press Generate.</div>';$('timer').hidden=true;$('key').innerHTML='';return}
-  const p=new URLSearchParams({seed,len,lv});if(ids.length<TUT.length)p.set('l',ids.join(','));history.replaceState(null,'','#'+p);
-  let set;try{set=buildTutorial(ids,len,lv,seed)}catch(e){$('out').innerHTML=`<div class="empty">Generator error: ${esc(e.message)}</div>`;$('timer').hidden=true;return}
-  if(!set.length){$('out').innerHTML='<div class="empty">No questions match those ticks and that difficulty. Tick more question types or choose Mixed.</div>';$('timer').hidden=true;$('key').innerHTML='';return}
+  if(!ids.length){$('out').innerHTML='<div class="empty">Tick at least one question type, then press Generate.</div>';$('timer').hidden=true;$('tabs').hidden=true;$('pdfQ').disabled=$('pdfA').disabled=true;$('sheet').hidden=true;$('ans').hidden=true;$('out').hidden=false;$('key').innerHTML='';return}
+  const p=new URLSearchParams({seed,len,lv,sp:$('space').value});if(ids.length<TUT.length)p.set('l',ids.join(','));
+  if($('cls').value.trim())p.set('c',$('cls').value.trim());if($('title').value.trim()&&$('title').value.trim()!=='Tutorial')p.set('ti',$('title').value.trim());history.replaceState(null,'','#'+p);
+  let set;try{set=buildTutorial(ids,len,lv,seed)}catch(e){$('out').innerHTML=`<div class="empty">Generator error: ${esc(e.message)}</div>`;$('timer').hidden=true;$('tabs').hidden=true;$('pdfQ').disabled=$('pdfA').disabled=true;$('sheet').hidden=true;$('ans').hidden=true;$('out').hidden=false;return}
+  if(!set.length){$('out').innerHTML='<div class="empty">No questions match those ticks and that difficulty. Tick more question types or choose Mixed.</div>';$('timer').hidden=true;$('tabs').hidden=true;$('pdfQ').disabled=$('pdfA').disabled=true;$('sheet').hidden=true;$('ans').hidden=true;$('out').hidden=false;$('key').innerHTML='';return}
   const total=set.reduce((a,Q)=>a+Q.mins,0);
   $('meta').textContent=`${set.length} questions · about ${total} min · seed ${seed}`;
   $('timer').hidden=false;resetTimer();
@@ -259,7 +309,66 @@ document.addEventListener('DOMContentLoaded',()=>{
   document.querySelectorAll('#out .hintbtn').forEach(b=>b.onclick=()=>{const s=b.closest('.q').querySelector('.hint');s.hidden=!s.hidden;b.textContent=s.hidden?'Hint':'Hide hint'});
   allShown=false;$('toggleAll').textContent='Show all solutions';
   render($('out'));render($('key'));
+  const info={title:$('title').value.trim()||'Tutorial',cls:$('cls').value.trim(),date:$('date').value,total,topics:[...new Set(set.map(Q=>Q.t.topicName))].join(' · '),seed};
+  buildSheets(set,info);
+  $('tabs').hidden=false;$('pdfQ').disabled=$('pdfA').disabled=false;current={info,seed};show('c');
  }
+
+ // ---------- A4 sheets ----------
+ const PAGE_H=1123,PAD_TOP=52,PAD_BOT=44,FOOT=30;
+ let current=null;
+ function show(w){$('out').hidden=w!=='c';$('sheet').hidden=w!=='s';$('ans').hidden=w!=='a';
+  $('timer').hidden=w!=='c'||!current;
+  [['tC','c'],['tS','s'],['tA','a']].forEach(([id,k])=>$(id).setAttribute('aria-pressed',w===k));fitZoom()}
+ $('tC').onclick=()=>show('c');$('tS').onclick=()=>show('s');$('tA').onclick=()=>show('a');
+ function fitZoom(){const box=$('sheet').hidden?$('ans'):$('sheet'),w=box.clientWidth||$('out').clientWidth;const z=Math.min(1,(w||794)/794);document.querySelectorAll('.pages').forEach(el=>el.style.setProperty('--z',z))}
+ new ResizeObserver(fitZoom).observe(document.querySelector('main'));
+
+ // heights of html snippets at page width, measured off screen
+ function measure(htmls){const box=document.createElement('div');box.className='measure';const pg=document.createElement('div');pg.className='page';
+  pg.style.cssText='height:auto;padding:0;width:674px;overflow:visible;box-shadow:none';
+  pg.innerHTML=htmls.map(x=>`<div class="mi">${x}</div>`).join('');box.append(pg);document.body.append(box);render(pg);
+  const hs=[...pg.querySelectorAll('.mi')].map(e=>e.getBoundingClientRect().height);box.remove();return hs}
+ const headHTML=info=>`<div class="phead"><div><h2>${esc(info.title)}</h2><div class="sub">${esc(info.topics)}</div></div><div class="right">${info.cls?esc(info.cls)+'<br>':''}${info.date?new Date(info.date+'T00:00').toLocaleDateString('en-AU',{day:'numeric',month:'long',year:'numeric'})+'<br>':''}about ${info.total} minutes</div></div>
+  <div class="details"><div>Name:</div><div>${info.cls?'Class: '+esc(info.cls):'Class:'}</div><div>Date:</div></div>
+  <div class="inst">Work in pairs and show all working. You are not expected to finish every question: these are hard on purpose.</div>`;
+ const qBlock=(Q,i,space,top)=>`<div class="tq${top?' top':''}"><div class="n">${i+1}</div><div class="qt">${Q.q}</div><div class="mk">${Q.mins} min</div>${space==null?'':`<div class="space" style="height:${space}px"></div>`}</div>`;
+ const aBlock=(Q,i)=>`<div class="tq akey"><div class="n">${i+1}</div><div><div class="qt">${Q.q}</div><div class="steps">${Q.sol.map(x=>`<div>${x}</div>`).join('')}<div class="final">Answer: ${Q.ans}</div></div><div class="src">Hint: ${esc(Q.t.hint)}</div></div><div class="mk"></div></div>`;
+ const foot=(info,pi,n,what)=>`<div class="pfoot"><span>Dorey Desk · ${what} · seed ${esc(info.seed)}</span><span>Page ${pi+1} of ${n}</span></div>`;
+
+ // questions go in order, a question never splits across pages, and each page's spare height is shared out by minutes
+ function questionPages(set,info){
+  const per=+$('space').value,hs=measure(set.map((Q,i)=>qBlock(Q,i,null,false))),mn=set.map(Q=>Q.mins*per);
+  const headH=measure([headHTML(info)])[0],contH=34,avail=PAGE_H-PAD_TOP-PAD_BOT-FOOT,GAP=10;
+  const capOf=pi=>avail-(pi===0?headH:contH);
+  const pages=[];let cur=[],used=0;
+  set.forEach((Q,i)=>{const need=hs[i]+mn[i]+GAP;if(cur.length&&used+need>capOf(pages.length)){pages.push(cur);cur=[];used=0}cur.push(i);used+=need});
+  if(cur.length)pages.push(cur);
+  return pages.map((idx,pi)=>{const spare=capOf(pi)-idx.reduce((a,i)=>a+hs[i]+mn[i]+GAP,0)-4,wt=idx.reduce((a,i)=>a+set[i].mins,0);
+   return idx.map(i=>({i,space:Math.floor(mn[i]+Math.min(Math.max(spare,0)*set[i].mins/wt,mn[i]))}))})}
+ function answerPages(set){const hs=measure(set.map(aBlock)),avail=PAGE_H-PAD_TOP-PAD_BOT-FOOT-60;const pages=[];let cur=[],used=0;
+  hs.forEach((x,i)=>{if(cur.length&&used+x>avail){pages.push(cur);cur=[];used=0}cur.push(i);used+=x+10});if(cur.length)pages.push(cur);return pages}
+ function buildSheets(set,info){
+  const qp=questionPages(set,info),n=qp.length;
+  $('sheet').innerHTML=`<div class="pages">${qp.map((pg,pi)=>`<div class="pagebox"><div class="page">${pi===0?headHTML(info):`<div class="cont"><span>${esc(info.title)} (continued)</span><span>Name: ______________________</span></div>`}${pg.map(({i,space},j)=>qBlock(set[i],i,space,j===0)).join('')}${foot(info,pi,n,'Tutorial')}</div></div>`).join('')}</div>`;
+  const ap=answerPages(set),m=ap.length;
+  $('ans').innerHTML=`<div class="pages">${ap.map((pg,pi)=>`<div class="pagebox"><div class="page akey"><div class="phead"><div><h2>${esc(info.title)}: answers</h2><div class="sub">${esc(info.topics)}</div></div><div class="right">${info.cls?esc(info.cls)+'<br>':''}teacher copy</div></div>${pg.map(i=>aBlock(set[i],i)).join('')}${foot(info,pi,m,'Answers')}</div></div>`).join('')}</div>`;
+  render($('sheet'));render($('ans'));
+  $('meta').textContent=`${set.length} questions · about ${info.total} min · ${n} page${n>1?'s':''} · seed ${info.seed}`}
+
+ // ---------- PDF ----------
+ async function toPDF(box,name){const pages=[...$(box).querySelectorAll('.page')];if(!pages.length)return;$('busy').hidden=false;
+  const hid={s:$('sheet').hidden,a:$('ans').hidden,o:$('out').hidden};$('sheet').hidden=false;$('ans').hidden=false;
+  document.querySelectorAll('.pages').forEach(el=>el.style.setProperty('--z',1));
+  try{const {jsPDF}=window.jspdf;const pdf=new jsPDF({orientation:'p',unit:'mm',format:'a4',compress:true});
+   for(let i=0;i<pages.length;i++){const url=await htmlToImage.toJpeg(pages[i],{pixelRatio:2.5,quality:.92,backgroundColor:'#ffffff',width:794,height:1123,style:{transform:'none'}});
+    if(i)pdf.addPage();pdf.addImage(url,'JPEG',0,0,210,297,undefined,'FAST')}
+   pdf.save(name)}
+  catch(e){alert('Could not make the PDF: '+e.message)}
+  finally{$('sheet').hidden=hid.s;$('ans').hidden=hid.a;fitZoom();$('busy').hidden=true}}
+ const fname=k=>{const c=current||{info:{}};return ['Tutorial',k,c.info.cls,c.info.date,c.seed].filter(Boolean).join('_').replace(/[^\w.-]+/g,'-')+'.pdf'};
+ $('pdfQ').onclick=()=>toPDF('sheet',fname('sheet'));
+ $('pdfA').onclick=()=>toPDF('ans',fname('answers'));
  if(location.hash.length>1)generate();
 });
 </script>

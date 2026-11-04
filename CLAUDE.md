@@ -46,3 +46,5 @@ We Do levels) live in the Lesson Creator project; this file covers the repo form
   `generators/tutorial-bank.js` (loads after engine.js; independent of lesson ids and `CODE_ORDER`). Each template has a topic id
   from `TOPICS`, minutes, level (2 Hard, 3 Very hard), a hint and `gen(R)`, which must return a `chk()` that tests the printed
   answer numerically. `buildTutorial` fills the time target within 2 minutes. Run `node scripts/check_tutorial.js` before committing.
+  The page also builds A4 pages (student sheet with working space sized by minutes and a Working space setting; teacher answers with hints)
+  and downloads them as PDFs with the vendored jsPDF + html-to-image, as the LSQ does.
