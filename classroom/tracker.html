@@ -49,12 +49,16 @@ label.f{display:flex;flex-direction:column;gap:3px;font-size:12.5px;color:var(--
 .row{display:flex;flex-wrap:wrap;gap:10px 12px;align-items:flex-end;margin:0 0 12px}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin:0 0 14px}
 .note{font-size:12.5px;color:var(--muted);margin:8px 0 0;max-width:85ch}
-.seats{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px;margin:6px 0 14px}
-.seat{display:flex;flex-direction:column;align-items:flex-start;gap:1px;min-height:54px;padding:8px 12px;text-align:left;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:10px}
-.seat:hover:not(:disabled){background:var(--tint)}
-.seat small{font-size:12px;color:var(--muted)}
-.seat.away{border-color:var(--bad);background:var(--badbg);color:var(--bad);font-weight:600}
-.seat.away small{color:var(--bad)}
+.roll{border:1px solid var(--line);border-radius:10px;overflow:hidden;margin:6px 0 0}
+.rrow{display:flex;align-items:center;gap:10px;padding:8px 12px;border-top:1px solid var(--line)}
+.rrow:first-child{border-top:0}
+.rrow .nm{flex:1 1 auto;min-width:0}
+.rrow .num{flex:none;width:26px;color:var(--muted);font-size:12.5px;text-align:right}
+.rrow select{flex:none;width:170px}
+.rrow.away{background:var(--badbg)}
+.rrow.away .nm{color:var(--bad);font-weight:600}
+.tally{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:12px;margin-top:0;border:1px solid var(--line);border-top:0;border-radius:0 0 10px 10px;background:var(--panel)}
+.tally b{font-size:22px;font-family:var(--card)}
 table{width:100%;border-collapse:collapse;font-size:14px}
 th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
 th{font-size:12.5px;color:var(--muted);font-weight:600}
@@ -118,15 +122,17 @@ dialog .row{margin-top:12px}
       <label class="f">Period<select id="ePeriod"></select></label>
       <label class="f">Class<select id="eClass"></select></label>
       <label class="f">Lesson missed<input type="text" id="eLesson" placeholder="2.08" size="7"></label>
-      <label class="f">Reason for the next student you tap<select id="eReason"></select></label>
     </div>
-    <div id="seats" class="seats"></div>
-    <div class="row">
+    <div id="roll" class="roll"></div>
+    <div class="tally" id="tally">
+      <span><b id="awayCount">0</b> away</span>
+      <span class="note" style="margin:0" id="presentCount"></span>
+      <span style="flex:1"></span>
+      <button class="quiet" id="eClear">All present</button>
       <button class="solid" id="eSave">Save absences</button>
-      <button class="quiet" id="eNext">Save and go to next period</button>
-      <button class="quiet" id="eClear">Everyone present</button>
-      <span id="eMsg" class="note" style="margin:0"></span>
+      <button class="quiet" id="eNext">Save, next period</button>
     </div>
+    <p class="note" id="eMsg"></p>
     <details class="card"><summary>Reasons list</summary>
       <p class="note">One reason per line. End a reason with * if the student doesn't owe catch-up work (for example Late*). Reasons are saved in this browser only; they contain no student information.</p>
       <textarea id="reasonText"></textarea>
@@ -339,14 +345,12 @@ function fillSelect(sel,vals,keep,labeler){
   if(cur&&vals.includes(cur))sel.value=cur;
 }
 function refreshReasons(){
-  const names=getReasons().map(rName);
-  fillSelect($('eReason'),names);
   $('reasonText').value=getReasons().join('\n');
 }
 $('reasonSave').onclick=()=>{
   const a=$('reasonText').value.split('\n').map(s=>s.trim()).filter(Boolean);
   if(a.length)setReasons(a);
-  refreshReasons();
+  refreshReasons();drawRoll();
 };
 
 /* ---------- quick entry ---------- */
@@ -356,24 +360,33 @@ function loadMarks(){
   S.abs.filter(r=>r.date===k.date&&r.period===k.period&&r.class===k.cls).forEach(r=>E.marks[r.id]=r.reason);
   const first=S.abs.find(r=>r.date===k.date&&r.period===k.period&&r.class===k.cls&&r.lesson);
   if(first)$('eLesson').value=first.lesson;
-  drawSeats();
+  drawRoll();
 }
-function drawSeats(){
-  const k=entryKey(),box=$('seats');
-  if(!S.loaded){box.innerHTML='<p class="empty">Open your folder or files to begin.</p>';return}
-  if(!k.cls){box.innerHTML='<p class="empty">No classes on this date. Add students on the Classes tab.</p>';return}
+function emptyRoll(msg){$('roll').innerHTML='<p class="empty" style="padding:10px 12px;margin:0">'+msg+'</p>';updateTally(0,0)}
+function drawRoll(){
+  const k=entryKey();
+  if(!S.loaded)return emptyRoll('Open your folder or files to begin.');
+  if(!k.cls)return emptyRoll('No classes on this date. Add students on the Classes tab.');
   const list=studentsIn(k.cls,k.date);
-  box.innerHTML=list.map(s=>{
-    const r=E.marks[s.id];
-    return '<button type="button" class="seat'+(r?' away':'')+'" data-id="'+esc(s.id)+'" aria-pressed="'+(!!r)+'"><span>'+esc(s.name)+'</span><small>'+(r?esc(r):'Present')+'</small></button>';
-  }).join('')||'<p class="empty">Nobody is enrolled in this class on this date.</p>';
-  $('eMsg').textContent=Object.keys(E.marks).length+' away';
+  if(!list.length)return emptyRoll('Nobody is enrolled in this class on this date.');
+  const names=getReasons().map(rName);
+  $('roll').innerHTML=list.map((s,i)=>{
+    const r=E.marks[s.id]||'';
+    let opts='<option value="">Present</option>'+names.map(n=>'<option'+(n===r?' selected':'')+'>'+esc(n)+'</option>').join('');
+    if(r&&!names.includes(r))opts+='<option selected>'+esc(r)+'</option>';
+    return '<div class="rrow'+(r?' away':'')+'"><span class="num">'+(i+1)+'</span><span class="nm">'+esc(s.name)+'</span><select data-id="'+esc(s.id)+'" aria-label="Reason for '+esc(s.name)+'">'+opts+'</select></div>';
+  }).join('');
+  updateTally(list.filter(s=>E.marks[s.id]).length,list.length);
 }
-$('seats').onclick=ev=>{
-  const b=ev.target.closest('.seat');if(!b)return;
-  const id=b.dataset.id;
-  if(E.marks[id])delete E.marks[id];else E.marks[id]=$('eReason').value;
-  drawSeats();
+function updateTally(away,total){
+  $('awayCount').textContent=away;
+  $('presentCount').textContent=total?((total-away)+' of '+total+' present'):'';
+}
+$('roll').onchange=ev=>{
+  const sel=ev.target.closest('select[data-id]');if(!sel)return;
+  const id=sel.dataset.id;
+  if(sel.value)E.marks[id]=sel.value;else delete E.marks[id];
+  drawRoll();
 };
 async function saveEntry(){
   const k=entryKey();
@@ -401,7 +414,7 @@ $('eNext').onclick=async()=>{
   $('eLesson').value='';
   loadMarks();
 };
-$('eClear').onclick=()=>{E.marks={};drawSeats()};
+$('eClear').onclick=()=>{E.marks={};drawRoll()};
 ['eDate','ePeriod','eClass'].forEach(id=>$(id).onchange=()=>{
   if(id==='eDate'){fillSelect($('eClass'),classesOn($('eDate').value))}
   $('eLesson').value=id==='eClass'?'':$('eLesson').value;
@@ -572,7 +585,7 @@ function refreshAll(){
   $('classCodes').innerHTML=all.map(c=>'<option value="'+esc(c)+'">').join('');
   if(!$('aStart').value)$('aStart').value=todayISO();
   if(!$('sTo').value){$('sTo').value=todayISO();$('sFrom').value=addDays(todayISO(),-13)}
-  if(S.loaded)loadMarks();else drawSeats();
+  if(S.loaded)loadMarks();else drawRoll();
   drawCatch();drawSummary();drawClasses();
 }
 $('eDate').value=todayISO();
