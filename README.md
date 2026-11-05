@@ -11,7 +11,7 @@ Open a lesson, copy cards as images into OneNote, and toggle the worked solution
 ```
 index.html                 the app
 assets/app.css, app.js     styles and behaviour
-classroom/                 classroom tools (seating chart), listed in classroom.json
+classroom/                 classroom tools (seating chart, attendance tracker), listed in classroom.json
 scripts/build_manifest.py  builds manifest.json (the lesson list) and checks lessons
 lessons/
   year-12/                 _meta.json → {"name": "Year 12"}

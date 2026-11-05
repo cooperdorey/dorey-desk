@@ -3,5 +3,10 @@
   "file": "seating.html",
   "name": "Seating chart",
   "desc": "Upload a class list (.xlsx or .csv), seat each name on a desk of the classroom plan, save the plan for next time, and download it as an A4 PDF. Names stay in your browser."
+ },
+ {
+  "file": "tracker.html",
+  "name": "Attendance and catch-up tracker",
+  "desc": "Open your school folder of classes.csv and absences.csv, tap who was away period by period, print catch-up slips and summarise attendance by reason. Names stay on your computer."
  }
 ]
