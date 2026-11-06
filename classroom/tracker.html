@@ -107,6 +107,7 @@ dialog .row{margin-top:12px}
   #printArea .sumPrint td.n{text-align:center;width:22mm;vertical-align:middle}
   #printArea .sumPrint td.nm{width:48mm;vertical-align:middle}
   #printArea .sumPrint th.cmt,#printArea .sumPrint td.cmt{width:auto}
+  #printArea .sumPrint .pct{display:inline-block;min-width:15mm;padding:1mm 2mm;border-radius:3mm;color:#fff;font-weight:bold;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 }
 </style>
 </head>
@@ -187,7 +188,8 @@ dialog .row{margin-top:12px}
       <label class="f">From<input type="date" id="sFrom"></label>
       <label class="f">To<input type="date" id="sTo"></label>
       <label class="f">Lessons in this range<input type="number" id="sN" min="1" value="10" style="width:90px"></label>
-      <label class="f">Print title<input type="text" id="sTitle" placeholder="e.g. Term 4 attendance" style="flex:1 1 180px;max-width:260px"></label>
+      <label class="f">Term<select id="sTerm"><option>1</option><option>2</option><option>3</option><option>4</option></select></label>
+      <label class="f">Week<select id="sWeek"><option>5</option><option>9</option></select></label>
       <button class="quiet" id="sPrint">Print</button>
       <button class="quiet" id="sCsv">Download as CSV</button>
     </div>
@@ -566,8 +568,8 @@ function drawSummary(){
 ['sClass','sFrom','sTo','sN'].forEach(id=>$(id).oninput=()=>{SUMN={};drawSummary()});
 $('sTable').addEventListener('change',ev=>{const i=ev.target.closest('.snrow');if(!i)return;const v=parseInt(i.value,10);if(v>=1)SUMN[i.dataset.id]=v;else delete SUMN[i.dataset.id];drawSummary()});
 $('sPrint').onclick=()=>{
-  const d=summaryData(),title=$('sTitle').value.trim();
-  const body=d.rows.map(r=>'<tr><td class="nm">'+esc(r.name)+'</td><td class="n">'+r.lessons+'</td><td class="n">'+r.pct+'%</td><td class="cmt"></td></tr>').join('');
+  const d=summaryData(),title='Term '+$('sTerm').value+' Week '+$('sWeek').value;
+  const body=d.rows.map(r=>'<tr><td class="nm">'+esc(r.name)+'</td><td class="n">'+r.lessons+'</td><td class="n"><span class="pct" style="background:'+attColour(r.pct)+'">'+r.pct+'%</span></td><td class="cmt"></td></tr>').join('');
   $('printArea').innerHTML='<div class="sumPrint"><p class="cls">'+esc(d.cls)+'</p><div class="ptitle">'+esc(title)+'</div>'+
     '<table><thead><tr><th class="nm">Name</th><th class="n">Lessons</th><th class="n">Attendance</th><th class="cmt">Comment</th></tr></thead><tbody>'+
     (body||'<tr><td colspan="4">No students.</td></tr>')+'</tbody></table></div>';
