@@ -49,13 +49,20 @@ label.f{display:flex;flex-direction:column;gap:3px;font-size:12.5px;color:var(--
 .row{display:flex;flex-wrap:wrap;gap:10px 12px;align-items:flex-end;margin:0 0 12px}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin:0 0 14px}
 .note{font-size:12.5px;color:var(--muted);margin:8px 0 0;max-width:85ch}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{padding:5px 12px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font-size:13.5px;cursor:pointer;line-height:1.2}
+.chip:hover{background:var(--tint)}
+.chip.on{border-color:var(--brand);background:var(--tint);box-shadow:0 0 0 2px var(--brand);font-weight:600}
 .roll{border:1px solid var(--line);border-radius:10px;overflow:hidden;margin:6px 0 0}
-.rrow{display:flex;align-items:center;gap:10px;padding:8px 12px;border-top:1px solid var(--line)}
+.rrow{display:flex;align-items:center;gap:10px;padding:10px 12px;border-top:1px solid var(--line);cursor:pointer;user-select:none}
 .rrow:first-child{border-top:0}
+.rrow:hover{background:var(--tint)}
 .rrow .nm{flex:1 1 auto;min-width:0}
 .rrow .num{flex:none;width:26px;color:var(--muted);font-size:12.5px;text-align:right}
-.rrow select{flex:none;width:170px}
+.rrow select{flex:none;width:150px;cursor:pointer}
+.rrow .pres{flex:none;color:var(--muted);font-size:13px}
 .rrow.away{background:var(--badbg)}
+.rrow.away:hover{background:var(--badbg)}
 .rrow.away .nm{color:var(--bad);font-weight:600}
 .tally{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:12px;margin-top:0;border:1px solid var(--line);border-top:0;border-radius:0 0 10px 10px;background:var(--panel)}
 .tally b{font-size:22px;font-family:var(--card)}
@@ -133,6 +140,10 @@ dialog .row{margin-top:12px}
       <label class="f">Period<select id="ePeriod"></select></label>
       <label class="f">Class<select id="eClass"></select></label>
       <label class="f">Lesson missed<input type="text" id="eLesson" placeholder="2.08" size="7"></label>
+    </div>
+    <div class="row" style="align-items:center;gap:10px;margin:0 0 6px">
+      <span class="note" style="margin:0">Tap a student to mark away as:</span>
+      <div class="chips" id="reasonChips"></div>
     </div>
     <div id="roll" class="roll"></div>
     <div class="tally" id="tally">
@@ -227,7 +238,7 @@ const AC=['date','period','class','id','reason','lesson','status','notes'];
 const BC=['id','lesson','done'];
 const DEFAULT_REASONS=['Sick','Approved leave','Appointment','School activity','Unexplained','Late*'];
 const S={classes:[],abs:[],book:new Map(),dir:null,handles:{},loaded:false,dirty:false};
-const E={marks:{}};
+const E={marks:{},reason:''};
 const TOPICS=[];
 const COURSES=[];
 const LESSON_TITLE=new Map();
@@ -401,7 +412,21 @@ function fillSelect(sel,vals,keep,labeler){
 }
 function refreshReasons(){
   $('reasonText').value=getReasons().join('\n');
+  drawChips();
 }
+function drawChips(){
+  const names=getReasons().map(rName);
+  if(!E.reason||!names.includes(E.reason)){
+    let saved='';try{saved=localStorage.getItem('dd-tap-reason')||''}catch(e){}
+    E.reason=names.includes(saved)?saved:names[0];
+  }
+  $('reasonChips').innerHTML=names.map(n=>'<button type="button" class="chip'+(n===E.reason?' on':'')+'" data-r="'+esc(n)+'">'+esc(n)+'</button>').join('');
+}
+$('reasonChips').onclick=ev=>{
+  const b=ev.target.closest('.chip');if(!b)return;
+  E.reason=b.dataset.r;try{localStorage.setItem('dd-tap-reason',E.reason)}catch(e){}
+  drawChips();
+};
 $('reasonSave').onclick=()=>{
   const a=$('reasonText').value.split('\n').map(s=>s.trim()).filter(Boolean);
   if(a.length)setReasons(a);
@@ -426,10 +451,14 @@ function drawRoll(){
   if(!list.length)return emptyRoll('Nobody in this class. Add students on the Classes tab.');
   const names=getReasons().map(rName);
   $('roll').innerHTML=list.map((s,i)=>{
-    const r=E.marks[s.id]||'';
-    let opts='<option value="">Present</option>'+names.map(n=>'<option'+(n===r?' selected':'')+'>'+esc(n)+'</option>').join('');
-    if(r&&!names.includes(r))opts+='<option selected>'+esc(r)+'</option>';
-    const nm=fullName(s);return '<div class="rrow'+(r?' away':'')+'"><span class="num">'+(i+1)+'</span><span class="nm">'+esc(nm)+'</span><select data-id="'+esc(s.id)+'" aria-label="Reason for '+esc(nm)+'">'+opts+'</select></div>';
+    const r=E.marks[s.id]||'',nm=fullName(s);
+    let right;
+    if(r){
+      let opts=names.map(n=>'<option'+(n===r?' selected':'')+'>'+esc(n)+'</option>').join('');
+      if(!names.includes(r))opts+='<option selected>'+esc(r)+'</option>';
+      right='<select class="rsel" data-id="'+esc(s.id)+'" aria-label="Reason for '+esc(nm)+'">'+opts+'</select>';
+    }else right='<span class="pres">Present</span>';
+    return '<div class="rrow'+(r?' away':'')+'" data-id="'+esc(s.id)+'"><span class="num">'+(i+1)+'</span><span class="nm">'+esc(nm)+'</span>'+right+'</div>';
   }).join('');
   updateTally(list.filter(s=>E.marks[s.id]).length,list.length);
 }
@@ -437,10 +466,16 @@ function updateTally(away,total){
   $('awayCount').textContent=away;
   $('presentCount').textContent=total?((total-away)+' of '+total+' present'):'';
 }
+$('roll').onclick=ev=>{
+  if(ev.target.closest('.rsel'))return;
+  const row=ev.target.closest('.rrow');if(!row)return;
+  const id=row.dataset.id;
+  if(E.marks[id])delete E.marks[id];else E.marks[id]=E.reason||getReasons().map(rName)[0];
+  drawRoll();
+};
 $('roll').onchange=ev=>{
-  const sel=ev.target.closest('select[data-id]');if(!sel)return;
-  const id=sel.dataset.id;
-  if(sel.value)E.marks[id]=sel.value;else delete E.marks[id];
+  const sel=ev.target.closest('.rsel');if(!sel)return;
+  E.marks[sel.dataset.id]=sel.value;
   drawRoll();
 };
 async function saveEntry(){

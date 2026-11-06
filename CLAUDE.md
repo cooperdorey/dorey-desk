@@ -25,7 +25,7 @@ We Do levels) live in the Lesson Creator project; this file covers the repo form
   never test with real names.
   The attendance tracker (`classroom/tracker.html`) reads `classes.csv` (id, last, first, class, course, left; has names — one old `name` column is split on load), `absences.csv`
   (date, period, class, id, reason, lesson, status, notes; no names) and `bookwork.csv` (id, lesson, done; no names) from a folder the user opens with the File System Access API,
-  joins them in memory only, and stores nothing about students in the browser (only the reasons list in `localStorage`). Student IDs
+  joins them in memory only, and stores nothing about students in the browser (only the reasons list and the last tap-reason in `localStorage`). Quick entry: pick a reason chip, then one tap on a student marks them away with it (tap again to clear); an away row shows a dropdown to override that student's reason. Student IDs
   are permanent (`<class>-<NN>`, never reused); removing a student sets `left` (any non-blank, e.g. yes) so they drop off the
   roll and summary but keep their name on past records. Everyone is sorted by surname then first name throughout. Catch-up slips: tick students and print (no status workflow); a slip
   lists each missed lesson's code and title (title from manifest), a OneNote/Google Classroom note and an optional deadline.
