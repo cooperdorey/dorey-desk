@@ -256,6 +256,13 @@ function toCSV(cols,rows){
 
 /* ---------- dates ---------- */
 const pad=n=>String(n).padStart(2,'0');
+function isoDate(s){
+  s=String(s||'').trim();
+  if(/^\d{4}-\d{1,2}-\d{1,2}$/.test(s)){const p=s.split('-');return p[0]+'-'+pad(+p[1])+'-'+pad(+p[2])}
+  let m=s.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{2,4})$/); // d/m/y (AU) from Excel
+  if(m){let y=+m[3];if(y<100)y+=2000;return y+'-'+pad(+m[2])+'-'+pad(+m[1])}
+  return s;
+}
 function todayISO(){const d=new Date();return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())}
 function addDays(iso,n){const d=new Date(iso+'T12:00:00');d.setDate(d.getDate()+n);return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())}
 function showDate(iso){if(!iso)return '';const d=new Date(iso+'T12:00:00');return isNaN(d)?iso:d.toLocaleDateString('en-AU',{weekday:'short',day:'numeric',month:'short'})}
@@ -321,7 +328,7 @@ function loadFromText(ct,at,bt){
     if(!o.first&&!o.last&&r.name){const s=splitName(r.name);o.last=s.last;o.first=s.first}
     return o;
   });
-  S.abs=a.rows.filter(r=>r.date&&r.id).map(r=>{const o={};AC.forEach(k=>o[k]=r[k]||'');return o});
+  S.abs=a.rows.filter(r=>r.date&&r.id).map(r=>{const o={};AC.forEach(k=>o[k]=r[k]||'');o.date=isoDate(o.date);return o});
   S.book=new Map();
   b.rows.filter(r=>r.id&&r.lesson).forEach(r=>S.book.set(bKey(r.id,r.lesson),r.done||'yes'));
   S.loaded=true;S.dirty=false;
