@@ -495,11 +495,14 @@ $('cPrint').onclick=()=>{
   const ids=ticked();
   if(!ids.length){alert('Tick the students whose slips you want to print.');return}
   const g=missedGroups().filter(x=>ids.includes(x.id));
-  const dl=$('cDeadline').value;
+  const dl=$('cDeadline').value,CAP=12;
   const slips=g.map(x=>{
     const cls=x.rows[0].class;
+    const rows=x.rows.slice().sort((a,b)=>a.date.localeCompare(b.date)||a.lesson.localeCompare(b.lesson,undefined,{numeric:true}));
+    const shown=rows.slice(0,CAP),extra=rows.length-shown.length;
     return '<div class="slip"><h3>'+esc(x.name)+'</h3><p class="cls">'+esc(cls)+'</p><strong>You missed:</strong><ul>'+
-      x.rows.map(r=>{const t=lessonTitle(cls,r.lesson);return '<li><span class="box"></span><strong>'+esc(r.lesson)+'</strong>'+(t?' '+esc(t):'')+' <span style="color:#444">('+esc(showDate(r.date))+')</span></li>'}).join('')+
+      shown.map(r=>{const t=lessonTitle(cls,r.lesson);return '<li><span class="box"></span><strong>'+esc(r.lesson)+'</strong>'+(t?' '+esc(t):'')+' <span style="color:#444">('+esc(showDate(r.date))+')</span></li>'}).join('')+
+      (extra>0?'<li style="list-style:none;color:#444">+ '+extra+' more — see your teacher</li>':'')+
       '</ul><div class="todo">These lessons can be found on OneNote or Google Classroom. Work through them and show your teacher when you are done.</div>'+
       '<div class="hand">Hand in by: '+(dl?esc(showDate(dl)):'____________')+'</div></div>';
   });
