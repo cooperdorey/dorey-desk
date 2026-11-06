@@ -49,21 +49,22 @@ label.f{display:flex;flex-direction:column;gap:3px;font-size:12.5px;color:var(--
 .row{display:flex;flex-wrap:wrap;gap:10px 12px;align-items:flex-end;margin:0 0 12px}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin:0 0 14px}
 .note{font-size:12.5px;color:var(--muted);margin:8px 0 0;max-width:85ch}
-.chips{display:flex;flex-wrap:wrap;gap:6px}
-.chip{padding:5px 12px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font-size:13.5px;cursor:pointer;line-height:1.2}
-.chip:hover{background:var(--tint)}
-.chip.on{border-color:var(--brand);background:var(--tint);box-shadow:0 0 0 2px var(--brand);font-weight:600}
-.roll{border:1px solid var(--line);border-radius:10px;overflow:hidden;margin:6px 0 0}
-.rrow{display:flex;align-items:center;gap:10px;padding:10px 12px;border-top:1px solid var(--line);cursor:pointer;user-select:none}
-.rrow:first-child{border-top:0}
-.rrow:hover{background:var(--tint)}
-.rrow .nm{flex:1 1 auto;min-width:0}
-.rrow .num{flex:none;width:26px;color:var(--muted);font-size:12.5px;text-align:right}
-.rrow select{flex:none;width:150px;cursor:pointer}
-.rrow .pres{flex:none;color:var(--muted);font-size:13px}
-.rrow.away{background:var(--badbg)}
-.rrow.away:hover{background:var(--badbg)}
-.rrow.away .nm{color:var(--bad);font-weight:600}
+.roll{border:1px solid var(--line);border-radius:10px;overflow:auto;max-height:68vh;margin:6px 0 0}
+.atable{border-collapse:collapse;font-size:13px;width:100%}
+.atable th,.atable td{border:1px solid var(--line);text-align:center;padding:0}
+.atable thead th{position:sticky;top:0;background:var(--tint);font-weight:600;font-size:12px;padding:7px 6px;vertical-align:bottom;min-width:62px;z-index:1}
+.atable th.st,.atable td.st{position:sticky;left:0;background:var(--panel);text-align:left;white-space:nowrap;min-width:150px;z-index:2}
+.atable thead th.st{z-index:3;background:var(--tint)}
+.atable td.st{padding:8px 10px}
+.atable td.num{min-width:30px;color:var(--muted);font-size:12px}
+.acell{display:block;padding:10px 6px;cursor:pointer;user-select:none;color:var(--muted)}
+.acell:hover{background:var(--tint)}
+.atable td.sel .acell{font-weight:600}
+.atable td.sel.pres{background:var(--tint)}
+.atable td.sel.pres .acell{color:var(--brand)}
+.atable td.sel.away{background:var(--badbg)}
+.atable td.sel.away .acell{color:var(--bad)}
+.atable tbody tr:hover td.st{background:var(--tint)}
 .tally{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:12px;margin-top:0;border:1px solid var(--line);border-top:0;border-radius:0 0 10px 10px;background:var(--panel)}
 .tally b{font-size:22px;font-family:var(--card)}
 table{width:100%;border-collapse:collapse;font-size:14px}
@@ -140,10 +141,6 @@ dialog .row{margin-top:12px}
       <label class="f">Period<select id="ePeriod"></select></label>
       <label class="f">Class<select id="eClass"></select></label>
       <label class="f">Lesson missed<input type="text" id="eLesson" placeholder="2.08" size="7"></label>
-    </div>
-    <div class="row" style="align-items:center;gap:10px;margin:0 0 6px">
-      <span class="note" style="margin:0">Tap a student to mark away as:</span>
-      <div class="chips" id="reasonChips"></div>
     </div>
     <div id="roll" class="roll"></div>
     <div class="tally" id="tally">
@@ -412,21 +409,7 @@ function fillSelect(sel,vals,keep,labeler){
 }
 function refreshReasons(){
   $('reasonText').value=getReasons().join('\n');
-  drawChips();
 }
-function drawChips(){
-  const names=getReasons().map(rName);
-  if(!E.reason||!names.includes(E.reason)){
-    let saved='';try{saved=localStorage.getItem('dd-tap-reason')||''}catch(e){}
-    E.reason=names.includes(saved)?saved:names[0];
-  }
-  $('reasonChips').innerHTML=names.map(n=>'<button type="button" class="chip'+(n===E.reason?' on':'')+'" data-r="'+esc(n)+'">'+esc(n)+'</button>').join('');
-}
-$('reasonChips').onclick=ev=>{
-  const b=ev.target.closest('.chip');if(!b)return;
-  E.reason=b.dataset.r;try{localStorage.setItem('dd-tap-reason',E.reason)}catch(e){}
-  drawChips();
-};
 $('reasonSave').onclick=()=>{
   const a=$('reasonText').value.split('\n').map(s=>s.trim()).filter(Boolean);
   if(a.length)setReasons(a);
@@ -450,16 +433,14 @@ function drawRoll(){
   const list=studentsIn(k.cls);
   if(!list.length)return emptyRoll('Nobody in this class. Add students on the Classes tab.');
   const names=getReasons().map(rName);
-  $('roll').innerHTML=list.map((s,i)=>{
-    const r=E.marks[s.id]||'',nm=fullName(s);
-    let right;
-    if(r){
-      let opts=names.map(n=>'<option'+(n===r?' selected':'')+'>'+esc(n)+'</option>').join('');
-      if(!names.includes(r))opts+='<option selected>'+esc(r)+'</option>';
-      right='<select class="rsel" data-id="'+esc(s.id)+'" aria-label="Reason for '+esc(nm)+'">'+opts+'</select>';
-    }else right='<span class="pres">Present</span>';
-    return '<div class="rrow'+(r?' away':'')+'" data-id="'+esc(s.id)+'"><span class="num">'+(i+1)+'</span><span class="nm">'+esc(nm)+'</span>'+right+'</div>';
+  const extra=[...new Set(list.map(s=>E.marks[s.id]).filter(r=>r&&!names.includes(r)))];
+  const header='<tr><th class="st">Student</th><th class="num">#</th><th>Present</th>'+names.map(r=>'<th>'+esc(r)+'</th>').join('')+extra.map(r=>'<th>'+esc(r)+'</th>').join('')+'</tr>';
+  const body=list.map((s,i)=>{
+    const cur=E.marks[s.id]||'',nm=fullName(s);
+    const cell=(r)=>{const on=cur===r;return '<td class="'+(on?'sel '+(r?'away':'pres'):'')+'" data-id="'+esc(s.id)+'" data-r="'+esc(r)+'"><span class="acell">'+(on?'✓':'')+'</span></td>'};
+    return '<tr><td class="st">'+esc(nm)+'</td><td class="num">'+(i+1)+'</td>'+cell('')+names.map(cell).join('')+extra.map(cell).join('')+'</tr>';
   }).join('');
+  $('roll').innerHTML='<table class="atable"><thead>'+header+'</thead><tbody>'+body+'</tbody></table>';
   updateTally(list.filter(s=>E.marks[s.id]).length,list.length);
 }
 function updateTally(away,total){
@@ -467,15 +448,9 @@ function updateTally(away,total){
   $('presentCount').textContent=total?((total-away)+' of '+total+' present'):'';
 }
 $('roll').onclick=ev=>{
-  if(ev.target.closest('.rsel'))return;
-  const row=ev.target.closest('.rrow');if(!row)return;
-  const id=row.dataset.id;
-  if(E.marks[id])delete E.marks[id];else E.marks[id]=E.reason||getReasons().map(rName)[0];
-  drawRoll();
-};
-$('roll').onchange=ev=>{
-  const sel=ev.target.closest('.rsel');if(!sel)return;
-  E.marks[sel.dataset.id]=sel.value;
+  const td=ev.target.closest('td[data-id]');if(!td)return;
+  const id=td.dataset.id,r=td.dataset.r;
+  if(r)E.marks[id]=r;else delete E.marks[id];
   drawRoll();
 };
 async function saveEntry(){
