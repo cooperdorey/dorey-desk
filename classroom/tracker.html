@@ -129,7 +129,6 @@ dialog .row{margin-top:12px}
   <section id="t-entry">
     <div class="row">
       <label class="f">Date<input type="date" id="eDate"></label>
-      <label class="f">Period<select id="ePeriod"></select></label>
       <label class="f">Class<select id="eClass"></select></label>
       <label class="f">Lesson missed<input type="text" id="eLesson" placeholder="2.08" size="7"></label>
     </div>
@@ -140,7 +139,6 @@ dialog .row{margin-top:12px}
       <span style="flex:1"></span>
       <button class="quiet" id="eClear">All present</button>
       <button class="solid" id="eSave">Save absences</button>
-      <button class="quiet" id="eNext">Save, next period</button>
     </div>
     <p class="note" id="eMsg"></p>
     <details class="card"><summary>Reasons</summary>
@@ -405,11 +403,11 @@ function refreshReasons(){
 }
 
 /* ---------- quick entry ---------- */
-function entryKey(){return {date:$('eDate').value,period:$('ePeriod').value,cls:$('eClass').value}}
+function entryKey(){return {date:$('eDate').value,cls:$('eClass').value}}
 function loadMarks(){
   const k=entryKey();E.marks={};
-  S.abs.filter(r=>r.date===k.date&&r.period===k.period&&r.class===k.cls).forEach(r=>E.marks[r.id]=r.reason);
-  const first=S.abs.find(r=>r.date===k.date&&r.period===k.period&&r.class===k.cls&&r.lesson);
+  S.abs.filter(r=>r.date===k.date&&r.class===k.cls).forEach(r=>E.marks[r.id]=r.reason);
+  const first=S.abs.find(r=>r.date===k.date&&r.class===k.cls&&r.lesson);
   if(first)$('eLesson').value=first.lesson;
   drawRoll();
 }
@@ -448,29 +446,20 @@ async function saveEntry(){
   if(!k.cls||!S.loaded)return false;
   const lesson=$('eLesson').value.trim();
   const old={};
-  S.abs.filter(r=>r.date===k.date&&r.period===k.period&&r.class===k.cls).forEach(r=>old[r.id]=r);
-  S.abs=S.abs.filter(r=>!(r.date===k.date&&r.period===k.period&&r.class===k.cls));
+  S.abs.filter(r=>r.date===k.date&&r.class===k.cls).forEach(r=>old[r.id]=r);
+  S.abs=S.abs.filter(r=>!(r.date===k.date&&r.class===k.cls));
   Object.keys(E.marks).forEach(id=>{
     const prev=old[id],reason=E.marks[id];
-    let status=prev&&prev.status?prev.status:(reasonNoCatch(reason)?'None':'Owed');
-    if(prev&&prev.reason!==reason&&prev.status==='Owed'&&reasonNoCatch(reason))status='None';
-    S.abs.push({date:k.date,period:k.period,class:k.cls,id,reason,lesson,status,notes:prev?prev.notes:''});
+    S.abs.push({date:k.date,period:prev?prev.period:'',class:k.cls,id,reason,lesson,status:prev?prev.status:'',notes:prev?prev.notes:''});
   });
-  S.abs.sort((a,b)=>a.date.localeCompare(b.date)||a.period.localeCompare(b.period,undefined,{numeric:true})||a.class.localeCompare(b.class)||a.id.localeCompare(b.id));
+  S.abs.sort((a,b)=>a.date.localeCompare(b.date)||a.class.localeCompare(b.class)||a.id.localeCompare(b.id));
   await persist();
   $('eMsg').textContent=Object.keys(E.marks).length+' away saved'+(S.dir?' to your folder':' (download to keep)');
   return true;
 }
 $('eSave').onclick=saveEntry;
-$('eNext').onclick=async()=>{
-  if(!(await saveEntry()))return;
-  const p=$('ePeriod');
-  if(p.selectedIndex<p.options.length-1)p.selectedIndex++;
-  $('eLesson').value='';
-  loadMarks();
-};
 $('eClear').onclick=()=>{E.marks={};drawRoll()};
-['eDate','ePeriod','eClass'].forEach(id=>$(id).onchange=()=>{
+['eDate','eClass'].forEach(id=>$(id).onchange=()=>{
   $('eLesson').value=id==='eClass'?'':$('eLesson').value;
   loadMarks();
 });
@@ -723,7 +712,6 @@ function refreshAll(){
   const d=$('eDate').value||todayISO();
   if(!$('eDate').value)$('eDate').value=d;
   fillSelect($('eClass'),activeClasses());
-  if(!$('ePeriod').options.length)fillSelect($('ePeriod'),['1','2','3','4','5','6'],false);
   const active=activeClasses(),any=allClassesAny();
   fillSelect($('cClass'),['all'].concat(active),true,v=>v==='all'?'All classes':v);
   fillSelect($('sClass'),active);
@@ -736,7 +724,6 @@ function refreshAll(){
   drawCatch();drawSummary();fillBookTopics();drawClasses();
 }
 $('eDate').value=todayISO();
-fillSelect($('ePeriod'),['1','2','3','4','5','6'],false);
 refreshAll();
 loadReasons();
 loadTopics();
