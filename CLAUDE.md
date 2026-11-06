@@ -27,7 +27,9 @@ We Do levels) live in the Lesson Creator project; this file covers the repo form
   (date, period, class, id, reason, lesson, status, notes; no names) and `bookwork.csv` (id, lesson, done; no names) from a folder the user opens with the File System Access API,
   joins them in memory only, and stores nothing about students in the browser (only the reasons list in `localStorage`). Student IDs
   are permanent (`<class>-<NN>`, never reused); removing a student sets `left` (any non-blank, e.g. yes) so they drop off the
-  roll and summary but keep their name on past records. The Book work tab builds a student×lesson tick grid for a topic, with
+  roll and summary but keep their name on past records. Catch-up slips: tick students and print (no status workflow); a slip
+  lists each missed lesson's code and title (title from manifest), a OneNote/Google Classroom note and an optional deadline.
+  Which lessons count as missed is reason-based (a reason ending in * owes no catch-up); the absences `status` column is now unused. The Book work tab builds a student×lesson tick grid for a topic, with
   the topic and lesson list read from the site's `manifest.json` (fetched at `../manifest.json`); a day+lesson bar prefills a
   lesson column from attendance (present ticked, absent unticked) for manual adjustment. `course` links a class to a
   manifest course (key `<year-id>/<course-id>`, e.g. year-12/maths-advanced), so the Book work topic list filters to that course. Test with made-up names only.

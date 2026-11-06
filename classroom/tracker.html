@@ -154,13 +154,11 @@ dialog .row{margin-top:12px}
   <section id="t-catch" hidden>
     <div class="row">
       <label class="f">Class<select id="cClass"></select></label>
-      <label class="f">Show<select id="cStatus"><option value="Owed">Owed</option><option value="Given">Given (slip printed)</option><option value="Done">Done</option><option value="all">All</option></select></label>
+      <label class="f">Hand in by<input type="date" id="cDeadline"></label>
       <button class="solid" id="cPrint">Print slips for ticked students</button>
-      <button class="quiet" id="cGiven">Mark ticked as Given</button>
-      <button class="quiet" id="cDone">Mark ticked as Done</button>
     </div>
     <div class="card" style="padding:6px 10px"><div id="cList"></div></div>
-    <p class="note">Slips print four to an A4 page, with the student's name already on them. Choose "Save as PDF" or a printer in the print window, and turn off headers and footers.</p>
+    <p class="note">Tick the students you want slips for and print. Each slip shows the lessons they missed with codes and titles; four print to an A4 page. Choose "Save as PDF" or a printer in the print window, and turn off headers and footers.</p>
   </section>
 
   <section id="t-book" hidden>
@@ -232,6 +230,7 @@ const S={classes:[],abs:[],book:new Map(),dir:null,handles:{},loaded:false,dirty
 const E={marks:{}};
 const TOPICS=[];
 const COURSES=[];
+const LESSON_TITLE=new Map();
 const bKey=(id,lesson)=>id+'|'+lesson;
 
 /* ---------- CSV ---------- */
@@ -460,15 +459,14 @@ $('eClear').onclick=()=>{E.marks={};drawRoll()};
 });
 
 /* ---------- catch-up ---------- */
-function owedGroups(){
-  const cls=$('cClass').value,st=$('cStatus').value;
+function lessonTitle(cls,code){const t=LESSON_TITLE.get(classCourse(cls)+'|'+code);return t||''}
+function missedGroups(){
+  const cls=$('cClass').value;
   const m=new Map();
   S.abs.forEach(r=>{
     if(cls!=='all'&&r.class!==cls)return;
-    const s=r.status||'Owed';
-    if(s==='None')return;
-    if(st!=='all'&&s!==st)return;
     if(!r.lesson)return;
+    if(reasonNoCatch(r.reason))return;
     if(!m.has(r.id))m.set(r.id,[]);
     m.get(r.id).push(r);
   });
@@ -477,30 +475,26 @@ function owedGroups(){
 function drawCatch(){
   const box=$('cList');
   if(!S.loaded){box.innerHTML='<p class="empty">Open your folder or files first.</p>';return}
-  const g=owedGroups();
-  if(!g.length){box.innerHTML='<p class="empty">Nothing to show for this selection.</p>';return}
+  const g=missedGroups();
+  if(!g.length){box.innerHTML='<p class="empty">No missed lessons for this class.</p>';return}
   box.innerHTML='<table><thead><tr><th style="width:34px"><input type="checkbox" id="cAll" aria-label="Tick all"></th><th>Student</th><th>Missed lessons</th></tr></thead><tbody>'+
     g.map(x=>'<tr><td><input type="checkbox" class="cTick" data-id="'+esc(x.id)+'" aria-label="Tick '+esc(x.name)+'"></td><td>'+esc(x.name)+'<br><span class="note" style="margin:0">'+esc(x.rows[0].class)+'</span></td><td>'+
-      x.rows.map(r=>'<span class="tag'+((r.status||'Owed')==='Owed'?' owed':'')+'" title="'+esc(showDate(r.date)+' · period '+r.period+' · '+r.reason+' · '+(r.status||'Owed'))+'">'+esc(r.lesson)+' · '+esc(showShort(r.date))+'</span>').join('')+'</td></tr>').join('')+'</tbody></table>';
+      x.rows.map(r=>'<span class="tag" title="'+esc(showDate(r.date)+' · period '+r.period+' · '+r.reason)+'">'+esc(r.lesson)+' · '+esc(showShort(r.date))+'</span>').join('')+'</td></tr>').join('')+'</tbody></table>';
   $('cAll').onchange=e=>document.querySelectorAll('.cTick').forEach(c=>c.checked=e.target.checked);
 }
 function ticked(){return [...document.querySelectorAll('.cTick:checked')].map(c=>c.dataset.id)}
-['cClass','cStatus'].forEach(id=>$(id).onchange=drawCatch);
-function setStatus(ids,status){
-  const st=$('cStatus').value;
-  S.abs.forEach(r=>{ if(ids.includes(r.id)&&(r.status||'Owed')!=='None'&&r.lesson&&($('cClass').value==='all'||r.class===$('cClass').value)&&(st==='all'||(r.status||'Owed')===st))r.status=status });
-}
-$('cGiven').onclick=async()=>{const ids=ticked();if(!ids.length)return;setStatus(ids,'Given');await persist();drawCatch()};
-$('cDone').onclick=async()=>{const ids=ticked();if(!ids.length)return;setStatus(ids,'Done');await persist();drawCatch()};
+$('cClass').onchange=drawCatch;
 $('cPrint').onclick=()=>{
   const ids=ticked();
   if(!ids.length){alert('Tick the students whose slips you want to print.');return}
-  const g=owedGroups().filter(x=>ids.includes(x.id));
+  const g=missedGroups().filter(x=>ids.includes(x.id));
+  const dl=$('cDeadline').value;
   const slips=g.map(x=>{
     const cls=x.rows[0].class;
     return '<div class="slip"><h3>'+esc(x.name)+'</h3><p class="cls">'+esc(cls)+'</p><strong>You missed:</strong><ul>'+
-      x.rows.map(r=>'<li><span class="box"></span>Lesson '+esc(r.lesson)+' <span style="color:#444">('+esc(showDate(r.date))+')</span></li>').join('')+
-      '</ul><div class="todo">Find each lesson on Dorey Desk, read the lesson cards and complete the questions. Show your teacher when you are done.</div><div class="hand">Hand in by: ____________</div></div>';
+      x.rows.map(r=>{const t=lessonTitle(cls,r.lesson);return '<li><span class="box"></span><strong>'+esc(r.lesson)+'</strong>'+(t?' '+esc(t):'')+' <span style="color:#444">('+esc(showDate(r.date))+')</span></li>'}).join('')+
+      '</ul><div class="todo">These lessons can be found on OneNote or Google Classroom. Work through them and show your teacher when you are done.</div>'+
+      '<div class="hand">Hand in by: '+(dl?esc(showDate(dl)):'____________')+'</div></div>';
   });
   let html='';
   for(let i=0;i<slips.length;i+=4)html+='<div class="slipPage">'+slips.slice(i,i+4).join('')+'</div>';
@@ -619,13 +613,14 @@ $('kCourse').onchange=async()=>{
 
 /* ---------- book work ---------- */
 function buildTopics(data){
-  TOPICS.length=0;COURSES.length=0;
+  TOPICS.length=0;COURSES.length=0;LESSON_TITLE.clear();
   (data.years||[]).forEach(y=>(y.courses||[]).forEach(c=>{
     const key=(y.id||'')+'/'+(c.id||'');
     const label=c.short||((y.name?y.name+' ':'')+c.name);
     let any=false;
     (c.topics||[]).forEach(t=>{
       const lessons=(t.lessons||[]).map(l=>({code:l.code,title:l.title}));
+      lessons.forEach(l=>LESSON_TITLE.set(key+'|'+l.code,l.title));
       if(lessons.length){TOPICS.push({label:(t.num?t.num+' ':'')+t.name,course:key,lessons});any=true}
     });
     if(any&&!COURSES.some(x=>x.key===key))COURSES.push({key,label});
