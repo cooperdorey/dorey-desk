@@ -28,7 +28,8 @@ We Do levels) live in the Lesson Creator project; this file covers the repo form
   joins them in memory only, and stores nothing about students in the browser (only the reasons list in `localStorage`). Student IDs
   are permanent (`<class>-<NN>`, never reused); removing a student sets `left` (any non-blank, e.g. yes) so they drop off the
   roll and summary but keep their name on past records. The Book work tab builds a student×lesson tick grid for a topic, with
-  the topic and lesson list read from the site's `manifest.json` (fetched at `../manifest.json`). `course` links a class to a
+  the topic and lesson list read from the site's `manifest.json` (fetched at `../manifest.json`); a day+lesson bar prefills a
+  lesson column from attendance (present ticked, absent unticked) for manual adjustment. `course` links a class to a
   manifest course (key `<year-id>/<course-id>`, e.g. year-12/maths-advanced), so the Book work topic list filters to that course. Test with made-up names only.
   New top-level site folders must also be added to the `cp -r` line in `.github/workflows/pages.yml`.
 - Generators: one page per generator in `generators/`, registered in

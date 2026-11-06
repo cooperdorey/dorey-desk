@@ -169,6 +169,12 @@ dialog .row{margin-top:12px}
       <label class="f">Topic<select id="bTopic"></select></label>
       <span id="bMsg" class="note" style="margin:0"></span>
     </div>
+    <div class="row" style="padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--panel)">
+      <label class="f">Day<input type="date" id="bDate"></label>
+      <label class="f">Lesson taught<select id="bLesson"></select></label>
+      <button class="solid" id="bApply">Tick present, untick absent</button>
+      <span id="bApplyMsg" class="note" style="margin:0"></span>
+    </div>
     <div class="card" style="padding:0;overflow:auto;max-height:70vh"><div id="bGrid"></div></div>
     <p class="note">Tick a cell when a student has completed that lesson's book work. Click a lesson heading to tick or clear the whole column. Saved in bookwork.csv, which holds only IDs and lesson codes, no names.</p>
   </section>
@@ -655,8 +661,19 @@ function drawBook(){
     return '<td class="'+(on?'done':'')+'"><input type="checkbox"'+(on?' checked':'')+' data-id="'+esc(s.id)+'" data-lesson="'+esc(l.code)+'" aria-label="'+esc(s.name)+' lesson '+esc(l.code)+'"></td>';
   }).join('')+'</tr>').join('');
   box.innerHTML='<table class="bgrid"><thead>'+head+'</thead><tbody>'+body+'</tbody></table>';
+  fillSelect($('bLesson'),topic.lessons.map(l=>l.code),true,c=>{const l=topic.lessons.find(x=>x.code===c);return c+(l?' '+l.title:'')});
   $('bMsg').textContent=classCourse(cls)?students.length+' students · '+topic.lessons.length+' lessons':'This class has no course set — showing all topics. Set its course on the Classes tab.';
 }
+function presentOn(cls,date,id){return !S.abs.some(r=>r.class===cls&&r.id===id&&r.date===date)}
+$('bApply').onclick=async()=>{
+  const cls=$('bClass').value,date=$('bDate').value,lesson=$('bLesson').value;
+  if(!cls||!lesson){$('bApplyMsg').textContent='Choose a class, topic and lesson first.';return}
+  if(!date){$('bApplyMsg').textContent='Choose a day.';return}
+  const students=studentsIn(cls);let present=0,absent=0;
+  students.forEach(s=>{const p=presentOn(cls,date,s.id);setBook(s.id,lesson,p);p?present++:absent++});
+  drawBook();await persist();
+  $('bApplyMsg').textContent=present+' ticked present, '+absent+' unticked absent for '+lesson+' on '+showShort(date)+'. Untick anyone who didn’t finish.';
+};
 function setBook(id,lesson,on){
   const k=bKey(id,lesson);
   if(on)S.book.set(k,todayISO());else S.book.delete(k);
@@ -690,6 +707,7 @@ function refreshAll(){
   fillSelect($('kClass'),any);
   $('classCodes').innerHTML=any.map(c=>'<option value="'+esc(c)+'">').join('');
   if(!$('sTo').value){$('sTo').value=todayISO();$('sFrom').value=addDays(todayISO(),-13)}
+  if(!$('bDate').value)$('bDate').value=todayISO();
   if(S.loaded)loadMarks();else drawRoll();
   drawCatch();drawSummary();fillBookTopics();drawClasses();
 }
