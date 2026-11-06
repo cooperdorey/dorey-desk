@@ -98,6 +98,15 @@ dialog .row{margin-top:12px}
   #printArea .sumTable{font-family:Arial,Helvetica,sans-serif;color:#000}
   #printArea .sumTable table{font-size:10pt}
   #printArea .sumTable th,#printArea .sumTable td{border-bottom:1px solid #999;color:#000}
+  #printArea .sumPrint{font-family:Arial,Helvetica,sans-serif;color:#000}
+  #printArea .sumPrint .cls{font-size:12pt;font-weight:bold;margin:0 0 2mm}
+  #printArea .sumPrint .ptitle{font-size:15pt;min-height:9mm;border-bottom:1px solid #000;margin:0 0 5mm;padding-bottom:1mm}
+  #printArea .sumPrint table{width:100%;border-collapse:collapse;font-size:10.5pt}
+  #printArea .sumPrint th{text-align:left;border-bottom:1.5px solid #000;padding:2mm 2mm}
+  #printArea .sumPrint td{border-bottom:1px solid #000;padding:0 2mm;height:15mm;vertical-align:top}
+  #printArea .sumPrint td.n{text-align:center;width:22mm;vertical-align:middle}
+  #printArea .sumPrint td.nm{width:48mm;vertical-align:middle}
+  #printArea .sumPrint th.cmt,#printArea .sumPrint td.cmt{width:auto}
 }
 </style>
 </head>
@@ -179,6 +188,7 @@ dialog .row{margin-top:12px}
       <label class="f">From<input type="date" id="sFrom"></label>
       <label class="f">To<input type="date" id="sTo"></label>
       <label class="f">Lessons in this range<input type="number" id="sN" min="1" value="10" style="width:90px"></label>
+      <label class="f">Print title<input type="text" id="sTitle" placeholder="e.g. Term 4 attendance" style="flex:1 1 180px;max-width:260px"></label>
       <button class="quiet" id="sPrint">Print</button>
       <button class="quiet" id="sCsv">Download as CSV</button>
     </div>
@@ -554,8 +564,11 @@ function drawSummary(){
 ['sClass','sFrom','sTo','sN'].forEach(id=>$(id).oninput=()=>{SUMN={};drawSummary()});
 $('sTable').addEventListener('change',ev=>{const i=ev.target.closest('.snrow');if(!i)return;const v=parseInt(i.value,10);if(v>=1)SUMN[i.dataset.id]=v;else delete SUMN[i.dataset.id];drawSummary()});
 $('sPrint').onclick=()=>{
-  const d=summaryData();
-  $('printArea').innerHTML='<div class="sumTable"><h2>Attendance summary · '+esc(d.cls)+'</h2><p>'+esc(showShort(d.from))+' to '+esc(showShort(d.to))+' · '+d.n+' lessons</p>'+summaryHTML(d)+'</div>';
+  const d=summaryData(),title=$('sTitle').value.trim();
+  const body=d.rows.map(r=>'<tr><td class="nm">'+esc(r.name)+'</td><td class="n">'+r.lessons+'</td><td class="n">'+r.pct+'%</td><td class="cmt"></td></tr>').join('');
+  $('printArea').innerHTML='<div class="sumPrint"><p class="cls">'+esc(d.cls)+'</p><div class="ptitle">'+esc(title)+'</div>'+
+    '<table><thead><tr><th class="nm">Name</th><th class="n">Lessons</th><th class="n">Attendance</th><th class="cmt">Comment</th></tr></thead><tbody>'+
+    (body||'<tr><td colspan="4">No students.</td></tr>')+'</tbody></table></div>';
   window.print();
 };
 $('sCsv').onclick=()=>{
