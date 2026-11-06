@@ -173,8 +173,7 @@ dialog .row{margin-top:12px}
       <span id="bMsg" class="note" style="margin:0"></span>
     </div>
     <div class="row" style="padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--panel)">
-      <label class="f">Day<input type="date" id="bDate"></label>
-      <label class="f">Lesson taught<select id="bLesson"></select></label>
+      <label class="f">Lesson<select id="bLesson"></select></label>
       <button class="solid" id="bApply">Tick present, untick absent</button>
       <span id="bApplyMsg" class="note" style="margin:0"></span>
     </div>
@@ -701,15 +700,20 @@ function drawBook(){
   fillSelect($('bLesson'),topic.lessons.map(l=>l.code),true,c=>{const l=topic.lessons.find(x=>x.code===c);return c+(l?' '+l.title:'')});
   $('bMsg').textContent=classCourse(cls)?students.length+' students · '+topic.lessons.length+' lessons':'This class has no course set — showing all topics. Set its course on the Classes tab.';
 }
-function presentOn(cls,date,id){return !S.abs.some(r=>r.class===cls&&r.id===id&&r.date===date)}
+function taughtDates(cls,lesson){return [...new Set(S.abs.filter(r=>r.class===cls&&r.lesson===lesson&&r.date).map(r=>r.date))].sort()}
 $('bApply').onclick=async()=>{
-  const cls=$('bClass').value,date=$('bDate').value,lesson=$('bLesson').value;
+  const cls=$('bClass').value,lesson=$('bLesson').value;
   if(!cls||!lesson){$('bApplyMsg').textContent='Choose a class, topic and lesson first.';return}
-  if(!date){$('bApplyMsg').textContent='Choose a day.';return}
+  const dates=taughtDates(cls,lesson);
   const students=studentsIn(cls);let present=0,absent=0;
-  students.forEach(s=>{const p=presentOn(cls,date,s.id);setBook(s.id,lesson,p);p?present++:absent++});
+  students.forEach(s=>{
+    const away=dates.length>0&&S.abs.some(r=>r.class===cls&&r.id===s.id&&dates.includes(r.date));
+    setBook(s.id,lesson,!away);away?absent++:present++;
+  });
   drawBook();await persist();
-  $('bApplyMsg').textContent=present+' ticked present, '+absent+' unticked absent for '+lesson+' on '+showShort(date)+'. Untick anyone who didn’t finish.';
+  $('bApplyMsg').textContent=dates.length
+    ? 'Lesson '+lesson+' taught '+dates.map(showShort).join(', ')+': '+present+' ticked, '+absent+' unticked (away). Untick anyone present who didn’t finish.'
+    : 'No absences are recorded against lesson '+lesson+' for this class, so everyone was ticked. Record that day’s attendance first if someone was away.';
 };
 function setBook(id,lesson,on){
   const k=bKey(id,lesson);
@@ -743,7 +747,6 @@ function refreshAll(){
   fillSelect($('kClass'),any);
   $('classCodes').innerHTML=any.map(c=>'<option value="'+esc(c)+'">').join('');
   if(!$('sTo').value){$('sTo').value=todayISO();$('sFrom').value=addDays(todayISO(),-13)}
-  if(!$('bDate').value)$('bDate').value=todayISO();
   if(S.loaded)loadMarks();else drawRoll();
   drawCatch();drawSummary();fillBookTopics();drawClasses();
 }

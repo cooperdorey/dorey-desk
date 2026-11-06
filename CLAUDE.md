@@ -30,8 +30,7 @@ We Do levels) live in the Lesson Creator project; this file covers the repo form
   roll and summary but keep their name on past records. Everyone is sorted by surname then first name throughout. Catch-up slips: tick students and print (no status workflow); a slip
   lists each missed lesson's code and title (title from manifest), a OneNote/Google Classroom note and an optional deadline.
   Which lessons count as missed is reason-based (a reason ending in * owes no catch-up); the absences `status` column is now unused. The Book work tab builds a student×lesson tick grid for a topic, with
-  the topic and lesson list read from the site's `manifest.json` (fetched at `../manifest.json`); a day+lesson bar prefills a
-  lesson column from attendance (present ticked, absent unticked) for manual adjustment. `course` links a class to a
+  the topic and lesson list read from the site's `manifest.json` (fetched at `../manifest.json`); a lesson bar reads the taught date(s) for a lesson from the absences (the dates that lesson is recorded against) and ticks present / unticks absent for that column. `course` links a class to a
   manifest course (key `<year-id>/<course-id>`, e.g. year-12/maths-advanced), so the Book work topic list filters to that course. Test with made-up names only.
   New top-level site folders must also be added to the `cp -r` line in `.github/workflows/pages.yml`.
 - Generators: one page per generator in `generators/`, registered in
