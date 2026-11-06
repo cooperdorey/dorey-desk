@@ -163,7 +163,7 @@ dialog .row{margin-top:12px}
       <button class="solid" id="cPrint">Print slips for ticked students</button>
     </div>
     <div class="card" style="padding:6px 10px"><div id="cList"></div></div>
-    <p class="note">Tick the students you want slips for and print. Each slip shows the lessons they missed with codes and titles; four print to an A4 page. Choose "Save as PDF" or a printer in the print window, and turn off headers and footers.</p>
+    <p class="note">Owed book work comes from the Book work tab: a student is listed for any lesson the class has started ticking that they haven't completed. Tick the students you want slips for and print — four to an A4 page. Choose "Save as PDF" or a printer in the print window, and turn off headers and footers.</p>
   </section>
 
   <section id="t-book" hidden>
@@ -488,26 +488,30 @@ function lessonTitle(cls,code){
   if(!LESSON_AMBIG.has(code))return LESSON_ANY.get(code)||'';
   return '';
 }
-function missedGroups(){
-  const cls=$('cClass').value;
-  const m=new Map();
-  S.abs.forEach(r=>{
-    if(cls!=='all'&&r.class!==cls)return;
-    if(!r.lesson)return;
-    if(reasonNoCatch(r.reason))return;
-    if(!m.has(r.id))m.set(r.id,[]);
-    m.get(r.id).push(r);
+function catchupGroups(){
+  const sel=$('cClass').value;
+  const classes=sel==='all'?activeClasses():[sel];
+  const out=[];
+  classes.forEach(cls=>{
+    const students=studentsIn(cls),idset=new Set(students.map(s=>s.id));
+    const activeLessons=new Set();
+    S.book.forEach((v,k)=>{const i=k.indexOf('|');if(idset.has(k.slice(0,i)))activeLessons.add(k.slice(i+1))});
+    const lessons=[...activeLessons].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));
+    students.forEach(s=>{
+      const owed=lessons.filter(l=>!S.book.has(bKey(s.id,l)));
+      if(owed.length)out.push({id:s.id,name:fullName(s),cls,lessons:owed});
+    });
   });
-  return [...m.entries()].map(([id,rows])=>({id,name:nameOf(id),rows})).sort((a,b)=>cmpId(a.id,b.id));
+  return out.sort((a,b)=>cmpId(a.id,b.id));
 }
 function drawCatch(){
   const box=$('cList');
   if(!S.loaded){box.innerHTML='<p class="empty">Open your folder or files first.</p>';return}
-  const g=missedGroups();
-  if(!g.length){box.innerHTML='<p class="empty">No missed lessons for this class.</p>';return}
-  box.innerHTML='<table><thead><tr><th style="width:34px"><input type="checkbox" id="cAll" aria-label="Tick all"></th><th>Student</th><th>Missed lessons</th></tr></thead><tbody>'+
-    g.map(x=>'<tr><td><input type="checkbox" class="cTick" data-id="'+esc(x.id)+'" aria-label="Tick '+esc(x.name)+'"></td><td>'+esc(x.name)+'<br><span class="note" style="margin:0">'+esc(x.rows[0].class)+'</span></td><td>'+
-      x.rows.map(r=>'<span class="tag" title="'+esc(showDate(r.date)+' · period '+r.period+' · '+r.reason)+'">'+esc(r.lesson)+' · '+esc(showShort(r.date))+'</span>').join('')+'</td></tr>').join('')+'</tbody></table>';
+  const g=catchupGroups();
+  if(!g.length){box.innerHTML='<p class="empty">No outstanding book work for this class. (Lessons appear here once they are ticked on the Book work tab.)</p>';return}
+  box.innerHTML='<table><thead><tr><th style="width:34px"><input type="checkbox" id="cAll" aria-label="Tick all"></th><th>Student</th><th>Book work owed</th></tr></thead><tbody>'+
+    g.map(x=>'<tr><td><input type="checkbox" class="cTick" data-id="'+esc(x.id)+'" aria-label="Tick '+esc(x.name)+'"></td><td>'+esc(x.name)+'<br><span class="note" style="margin:0">'+esc(x.cls)+'</span></td><td>'+
+      x.lessons.map(l=>{const t=lessonTitle(x.cls,l);return '<span class="tag" title="'+esc(t)+'">'+esc(l)+'</span>'}).join('')+'</td></tr>').join('')+'</tbody></table>';
   $('cAll').onchange=e=>document.querySelectorAll('.cTick').forEach(c=>c.checked=e.target.checked);
 }
 function ticked(){return [...document.querySelectorAll('.cTick:checked')].map(c=>c.dataset.id)}
@@ -515,14 +519,13 @@ $('cClass').onchange=drawCatch;
 $('cPrint').onclick=()=>{
   const ids=ticked();
   if(!ids.length){alert('Tick the students whose slips you want to print.');return}
-  const g=missedGroups().filter(x=>ids.includes(x.id));
+  const g=catchupGroups().filter(x=>ids.includes(x.id));
   const dl=$('cDeadline').value,CAP=12;
   const slips=g.map(x=>{
-    const cls=x.rows[0].class;
-    const rows=x.rows.slice().sort((a,b)=>a.date.localeCompare(b.date)||a.lesson.localeCompare(b.lesson,undefined,{numeric:true}));
-    const shown=rows.slice(0,CAP),extra=rows.length-shown.length;
-    return '<div class="slip"><h3>'+esc(x.name)+'</h3><p class="cls">'+esc(cls)+'</p><strong>You missed:</strong><ul>'+
-      shown.map(r=>{const t=lessonTitle(cls,r.lesson);return '<li><span class="box"></span><strong>'+esc(r.lesson)+'</strong>'+(t?' '+esc(t):'')+' <span style="color:#444">('+esc(showDate(r.date))+')</span></li>'}).join('')+
+    const cls=x.cls;
+    const shown=x.lessons.slice(0,CAP),extra=x.lessons.length-shown.length;
+    return '<div class="slip"><h3>'+esc(x.name)+'</h3><p class="cls">'+esc(cls)+'</p><strong>Book work to catch up:</strong><ul>'+
+      shown.map(l=>{const t=lessonTitle(cls,l);return '<li><span class="box"></span><strong>'+esc(l)+'</strong>'+(t?' '+esc(t):'')+'</li>'}).join('')+
       (extra>0?'<li style="list-style:none;color:#444">+ '+extra+' more — see your teacher</li>':'')+
       '</ul><div class="todo">These lessons can be found on OneNote or Google Classroom. Work through them and show your teacher when you are done.</div>'+
       '<div class="hand">Hand in by: '+(dl?esc(showDate(dl)):'____________')+'</div></div>';
