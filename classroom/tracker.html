@@ -189,6 +189,7 @@ dialog .row{margin-top:12px}
   <section id="t-cls" hidden>
     <div class="row">
       <label class="f">Class<select id="kClass"></select></label>
+      <label class="f">Course<select id="kCourse"></select></label>
       <label class="f" style="flex-direction:row;align-items:center;gap:6px;margin-bottom:8px"><input type="checkbox" id="kLeft"> Show removed students</label>
     </div>
     <div class="card" style="padding:6px 10px"><div id="kList"></div></div>
@@ -196,6 +197,7 @@ dialog .row{margin-top:12px}
       <h2>Add students</h2>
       <div class="row">
         <label class="f">Class code<input type="text" id="aClass" list="classCodes" placeholder="12MS16B" size="12"></label>
+        <label class="f">Course<select id="aCourse"></select></label>
       </div>
       <label class="f">Names, one per line
         <textarea id="aNames" placeholder="One student per line"></textarea>
@@ -216,13 +218,14 @@ dialog .row{margin-top:12px}
 'use strict';
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const CC=['id','name','class','left'];
+const CC=['id','name','class','course','left'];
 const AC=['date','period','class','id','reason','lesson','status','notes'];
 const BC=['id','lesson','done'];
 const DEFAULT_REASONS=['Sick','Approved leave','Appointment','School activity','Unexplained','Late*'];
 const S={classes:[],abs:[],book:new Map(),dir:null,handles:{},loaded:false,dirty:false};
 const E={marks:{}};
 const TOPICS=[];
+const COURSES=[];
 const bKey=(id,lesson)=>id+'|'+lesson;
 
 /* ---------- CSV ---------- */
@@ -271,6 +274,7 @@ function activeClasses(){return [...new Set(S.classes.filter(r=>!isGone(r)).map(
 function allClassesAny(){return [...new Set(S.classes.map(r=>r.class))].sort()}
 function studentsIn(cls){return S.classes.filter(r=>r.class===cls&&!isGone(r)).sort((a,b)=>a.name.localeCompare(b.name))}
 function nameOf(id){const r=S.classes.find(x=>x.id===id);return r?r.name:id}
+function classCourse(cls){const r=S.classes.find(x=>x.class===cls&&x.course);return r?r.course:''}
 function nextId(cls){
   let max=0;const re=new RegExp('^'+cls.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'-(\\d+)$');
   S.classes.forEach(r=>{const m=re.exec(r.id);if(m)max=Math.max(max,+m[1])});
@@ -541,6 +545,7 @@ function drawClasses(){
   const box=$('kList');
   if(!S.loaded){box.innerHTML='<p class="empty">Open your folder or files first.</p>';return}
   const cls=$('kClass').value,showGone=$('kLeft').checked;
+  if($('kCourse').options.length)$('kCourse').value=classCourse(cls)||'';
   const rows=S.classes.filter(r=>r.class===cls&&(showGone||!isGone(r))).sort((a,b)=>a.name.localeCompare(b.name));
   if(!rows.length){box.innerHTML='<p class="empty">No students in this class yet.</p>';return}
   box.innerHTML='<table><thead><tr><th>Name</th><th>ID</th><th></th></tr></thead><tbody>'+rows.map(r=>{
@@ -583,8 +588,8 @@ $('kList').onclick=async ev=>{
   }else if(a==='move'){
     const v=await ask('Move to another class',[{key:'c',label:'New class code',list:'classCodes'}],v=>!v.c?'Enter the new class code.':v.c===cls?'That is the same class.':'');
     if(!v)return;
-    const code=v.c.replace(/\s+/g,'');
-    S.classes.forEach(r=>{if(r.id===id&&r.class===cls)r.class=code});await persist();refreshAll();$('kClass').value=code;drawClasses();
+    const code=v.c.replace(/\s+/g,''),newCourse=classCourse(code);
+    S.classes.forEach(r=>{if(r.id===id&&r.class===cls){r.class=code;if(newCourse)r.course=newCourse}});await persist();refreshAll();$('kClass').value=code;drawClasses();
   }
 };
 $('kClass').onchange=drawClasses;$('kLeft').onchange=drawClasses;
@@ -594,19 +599,39 @@ $('aAdd').onclick=async()=>{
   if(!S.loaded){$('aMsg').textContent='Open your folder or files first.';return}
   if(!cls){$('aMsg').textContent='Enter a class code.';return}
   if(!names.length){$('aMsg').textContent='Enter at least one name.';return}
-  names.forEach(n=>S.classes.push({id:nextId(cls),name:n,class:cls,left:''}));
-  $('aNames').value='';$('aMsg').textContent=names.length+' added to '+cls+'.';
+  const course=classCourse(cls)||$('aCourse').value;
+  names.forEach(n=>S.classes.push({id:nextId(cls),name:n,class:cls,course,left:''}));
+  $('aNames').value='';$('aMsg').textContent=names.length+' added to '+cls+(course?'':' (no course set)')+'.';
   await persist();refreshAll();$('kClass').value=cls;drawClasses();
+};
+$('kCourse').onchange=async()=>{
+  const cls=$('kClass').value,course=$('kCourse').value;
+  if(!cls)return;
+  S.classes.forEach(r=>{if(r.class===cls)r.course=course});
+  await persist();fillBookTopics();
 };
 
 /* ---------- book work ---------- */
 function buildTopics(data){
-  TOPICS.length=0;
-  (data.years||[]).forEach(y=>(y.courses||[]).forEach(c=>(c.topics||[]).forEach(t=>{
-    const lessons=(t.lessons||[]).map(l=>({code:l.code,title:l.title}));
-    if(lessons.length)TOPICS.push({label:(c.short||c.name)+' · '+(t.num?t.num+' ':'')+t.name,lessons});
-  })));
-  fillSelect($('bTopic'),TOPICS.map((t,i)=>String(i)),false,v=>TOPICS[+v].label);
+  TOPICS.length=0;COURSES.length=0;
+  (data.years||[]).forEach(y=>(y.courses||[]).forEach(c=>{
+    const key=(y.id||'')+'/'+(c.id||'');
+    const label=c.short||((y.name?y.name+' ':'')+c.name);
+    let any=false;
+    (c.topics||[]).forEach(t=>{
+      const lessons=(t.lessons||[]).map(l=>({code:l.code,title:l.title}));
+      if(lessons.length){TOPICS.push({label:(t.num?t.num+' ':'')+t.name,course:key,lessons});any=true}
+    });
+    if(any&&!COURSES.some(x=>x.key===key))COURSES.push({key,label});
+  }));
+  fillSelect($('aCourse'),[''].concat(COURSES.map(c=>c.key)),false,v=>v?(COURSES.find(c=>c.key===v)||{}).label:'— choose —');
+  fillSelect($('kCourse'),[''].concat(COURSES.map(c=>c.key)),true,v=>v?(COURSES.find(c=>c.key===v)||{}).label:'— not set —');
+  fillBookTopics();
+}
+function fillBookTopics(){
+  const cc=classCourse($('bClass').value);
+  const idxs=TOPICS.map((t,i)=>i).filter(i=>!cc||TOPICS[i].course===cc);
+  fillSelect($('bTopic'),idxs.map(String),true,v=>TOPICS[+v].label);
   drawBook();
 }
 async function loadTopics(){
@@ -630,7 +655,7 @@ function drawBook(){
     return '<td class="'+(on?'done':'')+'"><input type="checkbox"'+(on?' checked':'')+' data-id="'+esc(s.id)+'" data-lesson="'+esc(l.code)+'" aria-label="'+esc(s.name)+' lesson '+esc(l.code)+'"></td>';
   }).join('')+'</tr>').join('');
   box.innerHTML='<table class="bgrid"><thead>'+head+'</thead><tbody>'+body+'</tbody></table>';
-  $('bMsg').textContent=students.length+' students · '+topic.lessons.length+' lessons';
+  $('bMsg').textContent=classCourse(cls)?students.length+' students · '+topic.lessons.length+' lessons':'This class has no course set — showing all topics. Set its course on the Classes tab.';
 }
 function setBook(id,lesson,on){
   const k=bKey(id,lesson);
@@ -649,7 +674,7 @@ $('bGrid').onclick=async ev=>{
   students.forEach(s=>setBook(s.id,lesson,!allOn));
   drawBook();await persist();
 };
-$('bClass').onchange=drawBook;$('bTopic').onchange=drawBook;
+$('bClass').onchange=fillBookTopics;$('bTopic').onchange=drawBook;
 
 /* ---------- refresh ---------- */
 function refreshAll(){
@@ -666,7 +691,7 @@ function refreshAll(){
   $('classCodes').innerHTML=any.map(c=>'<option value="'+esc(c)+'">').join('');
   if(!$('sTo').value){$('sTo').value=todayISO();$('sFrom').value=addDays(todayISO(),-13)}
   if(S.loaded)loadMarks();else drawRoll();
-  drawCatch();drawSummary();drawBook();drawClasses();
+  drawCatch();drawSummary();fillBookTopics();drawClasses();
 }
 $('eDate').value=todayISO();
 fillSelect($('ePeriod'),['1','2','3','4','5','6'],false);
