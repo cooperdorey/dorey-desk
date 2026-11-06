@@ -162,20 +162,19 @@ dialog .row{margin-top:12px}
       <button class="quiet" id="sCsv">Download as CSV</button>
     </div>
     <div class="card" style="padding:6px 10px"><div id="sTable"></div></div>
-    <p class="note">Attendance is the share of the lessons you entered that the student was not away for. A student who joined or left part-way through the range is marked and should be read with care.</p>
+    <p class="note">Attendance is the share of the lessons you entered that the student was not away for. Removed students are left out.</p>
   </section>
 
   <section id="t-cls" hidden>
     <div class="row">
       <label class="f">Class<select id="kClass"></select></label>
-      <label class="f" style="flex-direction:row;align-items:center;gap:6px;margin-bottom:8px"><input type="checkbox" id="kLeft"> Show students who have left</label>
+      <label class="f" style="flex-direction:row;align-items:center;gap:6px;margin-bottom:8px"><input type="checkbox" id="kLeft"> Show removed students</label>
     </div>
     <div class="card" style="padding:6px 10px"><div id="kList"></div></div>
     <div class="card">
       <h2>Add students</h2>
       <div class="row">
         <label class="f">Class code<input type="text" id="aClass" list="classCodes" placeholder="12MS16B" size="12"></label>
-        <label class="f">Start date<input type="date" id="aStart"></label>
       </div>
       <label class="f">Names, one per line
         <textarea id="aNames" placeholder="One student per line"></textarea>
@@ -196,7 +195,7 @@ dialog .row{margin-top:12px}
 'use strict';
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const CC=['id','name','class','start','end'];
+const CC=['id','name','class','left'];
 const AC=['date','period','class','id','reason','lesson','status','notes'];
 const DEFAULT_REASONS=['Sick','Approved leave','Appointment','School activity','Unexplained','Late*'];
 const S={classes:[],abs:[],dir:null,handles:{},loaded:false,dirty:false};
@@ -243,10 +242,10 @@ const noCatch=r=>/\*$/.test(r.trim());
 function reasonNoCatch(name){return getReasons().some(r=>rName(r)===name&&noCatch(r))}
 
 /* ---------- model helpers ---------- */
-const activeOn=(r,d)=>r.start<=d&&(!r.end||r.end>=d);
-function allClasses(){return [...new Set(S.classes.map(r=>r.class))].sort()}
-function classesOn(d){return [...new Set(S.classes.filter(r=>activeOn(r,d)).map(r=>r.class))].sort()}
-function studentsIn(cls,d){return S.classes.filter(r=>r.class===cls&&activeOn(r,d)).sort((a,b)=>a.name.localeCompare(b.name))}
+const isGone=r=>!!(r.left&&r.left.trim()&&r.left.trim().toLowerCase()!=='no');
+function activeClasses(){return [...new Set(S.classes.filter(r=>!isGone(r)).map(r=>r.class))].sort()}
+function allClassesAny(){return [...new Set(S.classes.map(r=>r.class))].sort()}
+function studentsIn(cls){return S.classes.filter(r=>r.class===cls&&!isGone(r)).sort((a,b)=>a.name.localeCompare(b.name))}
 function nameOf(id){const r=S.classes.find(x=>x.id===id);return r?r.name:id}
 function nextId(cls){
   let max=0;const re=new RegExp('^'+cls.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'-(\\d+)$');
@@ -366,9 +365,9 @@ function emptyRoll(msg){$('roll').innerHTML='<p class="empty" style="padding:10p
 function drawRoll(){
   const k=entryKey();
   if(!S.loaded)return emptyRoll('Open your folder or files to begin.');
-  if(!k.cls)return emptyRoll('No classes on this date. Add students on the Classes tab.');
-  const list=studentsIn(k.cls,k.date);
-  if(!list.length)return emptyRoll('Nobody is enrolled in this class on this date.');
+  if(!k.cls)return emptyRoll('No classes yet. Add students on the Classes tab.');
+  const list=studentsIn(k.cls);
+  if(!list.length)return emptyRoll('Nobody in this class. Add students on the Classes tab.');
   const names=getReasons().map(rName);
   $('roll').innerHTML=list.map((s,i)=>{
     const r=E.marks[s.id]||'';
@@ -416,7 +415,6 @@ $('eNext').onclick=async()=>{
 };
 $('eClear').onclick=()=>{E.marks={};drawRoll()};
 ['eDate','ePeriod','eClass'].forEach(id=>$(id).onchange=()=>{
-  if(id==='eDate'){fillSelect($('eClass'),classesOn($('eDate').value))}
   $('eLesson').value=id==='eClass'?'':$('eLesson').value;
   loadMarks();
 });
@@ -474,15 +472,12 @@ $('cPrint').onclick=()=>{
 function summaryData(){
   const cls=$('sClass').value,from=$('sFrom').value,to=$('sTo').value,n=Math.max(1,+$('sN').value||1);
   const reasons=getReasons().map(rName);
-  const enrol=S.classes.filter(r=>r.class===cls&&r.start<=(to||'9999')&&(!r.end||r.end>=(from||'0000')));
-  const ids=[...new Set(enrol.map(r=>r.id))];
+  const ids=[...new Set(S.classes.filter(r=>r.class===cls&&!isGone(r)).map(r=>r.id))];
   const rows=ids.map(id=>{
-    const e=enrol.filter(r=>r.id===id);
-    const part=e.some(r=>(from&&r.start>from)||(to&&r.end&&r.end<to));
     const abs=S.abs.filter(r=>r.id===id&&r.class===cls&&(!from||r.date>=from)&&(!to||r.date<=to));
     const keys=new Set(abs.map(r=>r.date+'|'+r.period));
     const by={};abs.forEach(r=>{const k=reasons.includes(r.reason)?r.reason:'Other';by[k]=(by[k]||0)+1});
-    return {id,name:nameOf(id),away:keys.size,pct:Math.max(0,Math.round((1-keys.size/n)*100)),by,part};
+    return {id,name:nameOf(id),away:keys.size,pct:Math.max(0,Math.round((1-keys.size/n)*100)),by};
   }).sort((a,b)=>a.name.localeCompare(b.name));
   const cols=reasons.slice();
   if(rows.some(r=>r.by.Other))cols.push('Other');
@@ -492,7 +487,7 @@ function summaryHTML(d){
   if(!d.rows.length)return '<p class="empty">No students found for that class and date range.</p>';
   const used=d.cols.filter(c=>d.rows.some(r=>r.by[c]));
   return '<table><thead><tr><th>Student</th><th class="n">Away</th><th class="n">Attendance</th>'+used.map(c=>'<th class="n">'+esc(c)+'</th>').join('')+'</tr></thead><tbody>'+
-    d.rows.map(r=>'<tr><td>'+esc(r.name)+(r.part?' <span class="tag" title="Enrolled for only part of this range">part range</span>':'')+'</td><td class="n">'+r.away+'</td><td class="n">'+r.pct+'%</td>'+used.map(c=>'<td class="n">'+(r.by[c]||'')+'</td>').join('')+'</tr>').join('')+'</tbody></table>';
+    d.rows.map(r=>'<tr><td>'+esc(r.name)+'</td><td class="n">'+r.away+'</td><td class="n">'+r.pct+'%</td>'+used.map(c=>'<td class="n">'+(r.by[c]||'')+'</td>').join('')+'</tr>').join('')+'</tbody></table>';
 }
 function drawSummary(){
   if(!S.loaded){$('sTable').innerHTML='<p class="empty">Open your folder or files first.</p>';return}
@@ -515,13 +510,17 @@ $('sCsv').onclick=()=>{
 function drawClasses(){
   const box=$('kList');
   if(!S.loaded){box.innerHTML='<p class="empty">Open your folder or files first.</p>';return}
-  const cls=$('kClass').value,t=todayISO(),left=$('kLeft').checked;
-  const rows=S.classes.filter(r=>r.class===cls&&(left||!r.end||r.end>=t)).sort((a,b)=>a.name.localeCompare(b.name)||a.start.localeCompare(b.start));
+  const cls=$('kClass').value,showGone=$('kLeft').checked;
+  const rows=S.classes.filter(r=>r.class===cls&&(showGone||!isGone(r))).sort((a,b)=>a.name.localeCompare(b.name));
   if(!rows.length){box.innerHTML='<p class="empty">No students in this class yet.</p>';return}
-  box.innerHTML='<table><thead><tr><th>Name</th><th>ID</th><th>From</th><th>To</th><th></th></tr></thead><tbody>'+rows.map((r,i)=>
-    '<tr><td>'+esc(r.name)+'</td><td>'+esc(r.id)+'</td><td>'+esc(showShort(r.start))+'</td><td>'+(r.end?esc(showShort(r.end)):'')+'</td><td style="text-align:right;white-space:nowrap">'+
-    '<button class="sm quiet" data-a="edit" data-id="'+esc(r.id)+'">Rename</button> '+
-    (r.end&&r.end<t?'':'<button class="sm quiet" data-a="move" data-id="'+esc(r.id)+'" data-cls="'+esc(r.class)+'">Move</button> <button class="sm quiet" data-a="left" data-id="'+esc(r.id)+'" data-cls="'+esc(r.class)+'">Left</button>')+'</td></tr>').join('')+'</tbody></table>';
+  box.innerHTML='<table><thead><tr><th>Name</th><th>ID</th><th></th></tr></thead><tbody>'+rows.map(r=>{
+    const gone=isGone(r);
+    return '<tr'+(gone?' style="opacity:.55"':'')+'><td>'+esc(r.name)+(gone?' <span class="tag">removed</span>':'')+'</td><td>'+esc(r.id)+'</td><td style="text-align:right;white-space:nowrap">'+
+      '<button class="sm quiet" data-a="edit" data-id="'+esc(r.id)+'">Rename</button> '+
+      (gone?'<button class="sm quiet" data-a="restore" data-id="'+esc(r.id)+'">Restore</button>'
+           :'<button class="sm quiet" data-a="move" data-id="'+esc(r.id)+'" data-cls="'+esc(r.class)+'">Move</button> <button class="sm quiet" data-a="remove" data-id="'+esc(r.id)+'" data-cls="'+esc(r.class)+'">Remove</button>')+
+      '</td></tr>';
+  }).join('')+'</tbody></table>';
 }
 function ask(title,fields,validate){
   return new Promise(res=>{
@@ -543,30 +542,29 @@ function ask(title,fields,validate){
 $('kList').onclick=async ev=>{
   const b=ev.target.closest('button[data-a]');if(!b)return;
   const id=b.dataset.id,a=b.dataset.a,cls=b.dataset.cls;
-  const cur=S.classes.filter(r=>r.id===id).sort((x,y)=>y.start.localeCompare(x.start))[0];
+  const cur=S.classes.find(r=>r.id===id);
   if(a==='edit'){
     const v=await ask('Rename student',[{key:'n',label:'Name',value:cur.name}],v=>v.n?'':'Enter a name.');
     if(!v)return;S.classes.forEach(r=>{if(r.id===id)r.name=v.n});await persist();refreshAll();
-  }else if(a==='left'){
-    const v=await ask('Student has left '+cls,[{key:'d',label:'Last day in this class',type:'date',value:todayISO()}],v=>v.d?'':'Choose a date.');
-    if(!v)return;
-    S.classes.forEach(r=>{if(r.id===id&&r.class===cls&&!r.end)r.end=v.d});await persist();refreshAll();
+  }else if(a==='remove'){
+    S.classes.forEach(r=>{if(r.id===id&&r.class===cls)r.left='yes'});await persist();refreshAll();
+  }else if(a==='restore'){
+    S.classes.forEach(r=>{if(r.id===id)r.left=''});await persist();refreshAll();
   }else if(a==='move'){
-    const v=await ask('Move to another class',[{key:'c',label:'New class code',list:'classCodes'},{key:'d',label:'First day in the new class',type:'date',value:todayISO()}],v=>!v.c?'Enter the new class code.':v.c===cls?'That is the same class.':!v.d?'Choose a date.':'');
+    const v=await ask('Move to another class',[{key:'c',label:'New class code',list:'classCodes'}],v=>!v.c?'Enter the new class code.':v.c===cls?'That is the same class.':'');
     if(!v)return;
-    S.classes.forEach(r=>{if(r.id===id&&r.class===cls&&!r.end)r.end=addDays(v.d,-1)});
-    S.classes.push({id,name:cur.name,class:v.c,start:v.d,end:''});
-    await persist();refreshAll();
+    const code=v.c.replace(/\s+/g,'');
+    S.classes.forEach(r=>{if(r.id===id&&r.class===cls)r.class=code});await persist();refreshAll();$('kClass').value=code;drawClasses();
   }
 };
 $('kClass').onchange=drawClasses;$('kLeft').onchange=drawClasses;
 $('aAdd').onclick=async()=>{
-  const cls=$('aClass').value.trim().replace(/\s+/g,''),start=$('aStart').value||todayISO();
+  const cls=$('aClass').value.trim().replace(/\s+/g,'');
   const names=$('aNames').value.split('\n').map(s=>s.trim()).filter(Boolean);
   if(!S.loaded){$('aMsg').textContent='Open your folder or files first.';return}
   if(!cls){$('aMsg').textContent='Enter a class code.';return}
   if(!names.length){$('aMsg').textContent='Enter at least one name.';return}
-  names.forEach(n=>S.classes.push({id:nextId(cls),name:n,class:cls,start,end:''}));
+  names.forEach(n=>S.classes.push({id:nextId(cls),name:n,class:cls,left:''}));
   $('aNames').value='';$('aMsg').textContent=names.length+' added to '+cls+'.';
   await persist();refreshAll();$('kClass').value=cls;drawClasses();
 };
@@ -576,14 +574,13 @@ function refreshAll(){
   refreshReasons();
   const d=$('eDate').value||todayISO();
   if(!$('eDate').value)$('eDate').value=d;
-  fillSelect($('eClass'),classesOn(d));
+  fillSelect($('eClass'),activeClasses());
   if(!$('ePeriod').options.length)fillSelect($('ePeriod'),['1','2','3','4','5','6'],false);
-  const all=allClasses();
-  fillSelect($('cClass'),['all'].concat(all),true,v=>v==='all'?'All classes':v);
-  fillSelect($('sClass'),all);
-  fillSelect($('kClass'),all);
-  $('classCodes').innerHTML=all.map(c=>'<option value="'+esc(c)+'">').join('');
-  if(!$('aStart').value)$('aStart').value=todayISO();
+  const active=activeClasses(),any=allClassesAny();
+  fillSelect($('cClass'),['all'].concat(active),true,v=>v==='all'?'All classes':v);
+  fillSelect($('sClass'),active);
+  fillSelect($('kClass'),any);
+  $('classCodes').innerHTML=any.map(c=>'<option value="'+esc(c)+'">').join('');
   if(!$('sTo').value){$('sTo').value=todayISO();$('sFrom').value=addDays(todayISO(),-13)}
   if(S.loaded)loadMarks();else drawRoll();
   drawCatch();drawSummary();drawClasses();
