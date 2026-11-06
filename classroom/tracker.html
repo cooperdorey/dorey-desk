@@ -538,11 +538,12 @@ function summaryData(){
   if(rows.some(r=>r.by.Other))cols.push('Other');
   return {rows,cols,cls,from,to,n};
 }
+function attColour(p){return p>95?'#15803D':p>90?'#4FA45E':p>=80?'#D9850A':'#C0392B'}
 function summaryHTML(d){
   if(!d.rows.length)return '<p class="empty">No students found for that class and date range.</p>';
   const used=d.cols.filter(c=>d.rows.some(r=>r.by[c]));
   return '<table><thead><tr><th>Student</th><th class="n">Away</th><th class="n">Attendance</th>'+used.map(c=>'<th class="n">'+esc(c)+'</th>').join('')+'</tr></thead><tbody>'+
-    d.rows.map(r=>'<tr><td>'+esc(r.name)+'</td><td class="n">'+r.away+'</td><td class="n">'+r.pct+'%</td>'+used.map(c=>'<td class="n">'+(r.by[c]||'')+'</td>').join('')+'</tr>').join('')+'</tbody></table>';
+    d.rows.map(r=>{const c=attColour(r.pct);return '<tr><td>'+esc(r.name)+'</td><td class="n">'+r.away+'</td><td class="n"><span style="display:inline-block;min-width:46px;padding:2px 8px;border-radius:999px;background:'+c+';color:#fff;font-weight:600">'+r.pct+'%</span></td>'+used.map(k=>'<td class="n">'+(r.by[k]||'')+'</td>').join('')+'</tr>'}).join('')+'</tbody></table>';
 }
 function drawSummary(){
   if(!S.loaded){$('sTable').innerHTML='<p class="empty">Open your folder or files first.</p>';return}
