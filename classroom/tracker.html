@@ -143,10 +143,9 @@ dialog .row{margin-top:12px}
       <button class="quiet" id="eNext">Save, next period</button>
     </div>
     <p class="note" id="eMsg"></p>
-    <details class="card"><summary>Reasons list</summary>
-      <p class="note">One reason per line. End a reason with * if the student doesn't owe catch-up work (for example Late*). Reasons are saved in this browser only; they contain no student information.</p>
-      <textarea id="reasonText"></textarea>
-      <div class="row" style="margin-top:8px"><button class="sm" id="reasonSave">Update reasons</button></div>
+    <details class="card"><summary>Reasons</summary>
+      <p class="note">Reasons come from <code>classroom/reasons.json</code> in the repo, so they're the same on every device. Edit that file to change them. A reason ending in <code>*</code> owes no catch-up (for example <code>Tafe*</code>).</p>
+      <div id="reasonList" class="note" style="margin:6px 0 0"></div>
     </details>
   </section>
 
@@ -265,11 +264,14 @@ function showDate(iso){if(!iso)return '';const d=new Date(iso+'T12:00:00');retur
 function showShort(iso){if(!iso)return '';const d=new Date(iso+'T12:00:00');return isNaN(d)?iso:d.toLocaleDateString('en-AU',{day:'numeric',month:'short'})}
 
 /* ---------- reasons ---------- */
-function getReasons(){
-  let r=null;try{r=JSON.parse(localStorage.getItem('dd-tracker-reasons')||'null')}catch(e){}
-  return Array.isArray(r)&&r.length?r:DEFAULT_REASONS.slice();
+let REASONS=DEFAULT_REASONS.slice();
+function getReasons(){return REASONS.length?REASONS:DEFAULT_REASONS.slice()}
+function setReasons(a){REASONS=a.slice()}
+async function loadReasons(){
+  try{const r=await fetch('./reasons.json',{cache:'no-store'});
+    if(r.ok){const j=await r.json();if(Array.isArray(j)&&j.length)REASONS=j.map(String)}}catch(e){}
+  refreshReasons();if(S.loaded)drawRoll();
 }
-function setReasons(a){try{localStorage.setItem('dd-tracker-reasons',JSON.stringify(a))}catch(e){}}
 const rName=r=>r.replace(/\*+$/,'').trim();
 const noCatch=r=>/\*$/.test(r.trim());
 function reasonNoCatch(name){return getReasons().some(r=>rName(r)===name&&noCatch(r))}
@@ -399,13 +401,8 @@ function fillSelect(sel,vals,keep,labeler){
   if(cur&&vals.includes(cur))sel.value=cur;
 }
 function refreshReasons(){
-  $('reasonText').value=getReasons().join('\n');
+  const el=$('reasonList');if(el)el.textContent=getReasons().join(' · ');
 }
-$('reasonSave').onclick=()=>{
-  const a=$('reasonText').value.split('\n').map(s=>s.trim()).filter(Boolean);
-  if(a.length)setReasons(a);
-  refreshReasons();drawRoll();
-};
 
 /* ---------- quick entry ---------- */
 function entryKey(){return {date:$('eDate').value,period:$('ePeriod').value,cls:$('eClass').value}}
@@ -741,6 +738,7 @@ function refreshAll(){
 $('eDate').value=todayISO();
 fillSelect($('ePeriod'),['1','2','3','4','5','6'],false);
 refreshAll();
+loadReasons();
 loadTopics();
 if(!FSA)setMsg('This browser can’t open folders, so use Open files… and download your changes. (Chrome or Edge can open a folder and save straight back.)');
 </script>
