@@ -64,6 +64,16 @@ th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);vertic
 th{font-size:12.5px;color:var(--muted);font-weight:600}
 td.n,th.n{text-align:right}
 .tag{display:inline-block;padding:1px 8px;border-radius:999px;background:var(--tint);color:var(--ink);font-size:12.5px;margin:1px 3px 1px 0;border:1px solid var(--line)}
+.bgrid{border-collapse:collapse;font-size:13px}
+.bgrid th,.bgrid td{border:1px solid var(--line);padding:5px 4px;text-align:center}
+.bgrid td.st,.bgrid th.st{position:sticky;left:0;z-index:1;background:var(--panel);text-align:left;white-space:nowrap;min-width:150px}
+.bgrid thead th{background:var(--tint);cursor:pointer;font-size:12px;min-width:48px;line-height:1.2}
+.bgrid thead th.st{z-index:2;cursor:default;background:var(--tint)}
+.bgrid thead th small{display:block;color:var(--muted);font-weight:400;font-size:10.5px}
+.bgrid tbody tr:hover td{background:var(--tint)}
+.bgrid tbody tr:hover td.st{background:var(--tint)}
+.bgrid input{width:17px;height:17px;margin:0;cursor:pointer;accent-color:var(--brand)}
+.bgrid .done{background:var(--tint)}
 .tag.owed{background:var(--warnbg);color:var(--warn);border-color:transparent}
 .empty{color:var(--muted);padding:10px 0}
 dialog{border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--ink);padding:18px 20px;max-width:420px;width:92vw}
@@ -112,6 +122,7 @@ dialog .row{margin-top:12px}
   <div class="tabs" role="tablist" id="tabs">
     <button role="tab" aria-selected="true" data-t="entry">Quick entry</button>
     <button role="tab" aria-selected="false" data-t="catch">Catch-up slips</button>
+    <button role="tab" aria-selected="false" data-t="book">Book work</button>
     <button role="tab" aria-selected="false" data-t="sum">Attendance summary</button>
     <button role="tab" aria-selected="false" data-t="cls">Classes</button>
   </div>
@@ -150,6 +161,16 @@ dialog .row{margin-top:12px}
     </div>
     <div class="card" style="padding:6px 10px"><div id="cList"></div></div>
     <p class="note">Slips print four to an A4 page, with the student's name already on them. Choose "Save as PDF" or a printer in the print window, and turn off headers and footers.</p>
+  </section>
+
+  <section id="t-book" hidden>
+    <div class="row">
+      <label class="f">Class<select id="bClass"></select></label>
+      <label class="f">Topic<select id="bTopic"></select></label>
+      <span id="bMsg" class="note" style="margin:0"></span>
+    </div>
+    <div class="card" style="padding:0;overflow:auto;max-height:70vh"><div id="bGrid"></div></div>
+    <p class="note">Tick a cell when a student has completed that lesson's book work. Click a lesson heading to tick or clear the whole column. Saved in bookwork.csv, which holds only IDs and lesson codes, no names.</p>
   </section>
 
   <section id="t-sum" hidden>
@@ -197,9 +218,12 @@ const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const CC=['id','name','class','left'];
 const AC=['date','period','class','id','reason','lesson','status','notes'];
+const BC=['id','lesson','done'];
 const DEFAULT_REASONS=['Sick','Approved leave','Appointment','School activity','Unexplained','Late*'];
-const S={classes:[],abs:[],dir:null,handles:{},loaded:false,dirty:false};
+const S={classes:[],abs:[],book:new Map(),dir:null,handles:{},loaded:false,dirty:false};
 const E={marks:{}};
+const TOPICS=[];
+const bKey=(id,lesson)=>id+'|'+lesson;
 
 /* ---------- CSV ---------- */
 function parseCSV(t){
@@ -269,13 +293,16 @@ function updateBar(){
     setMsg(S.dirty?where+' · unsaved changes':where+' · '+S.classes.length+' enrolments, '+S.abs.length+' absence rows');
   }
 }
-function loadFromText(ct,at){
-  const c=parseCSV(ct),a=parseCSV(at);
+function loadFromText(ct,at,bt){
+  const c=parseCSV(ct),a=parseCSV(at),b=parseCSV(bt);
   S.classes=c.rows.filter(r=>r.id&&r.class).map(r=>{const o={};CC.forEach(k=>o[k]=r[k]||'');return o});
   S.abs=a.rows.filter(r=>r.date&&r.id).map(r=>{const o={};AC.forEach(k=>o[k]=r[k]||'');return o});
+  S.book=new Map();
+  b.rows.filter(r=>r.id&&r.lesson).forEach(r=>S.book.set(bKey(r.id,r.lesson),r.done||'yes'));
   S.loaded=true;S.dirty=false;
   refreshAll();updateBar();
 }
+function bookRows(){return [...S.book].map(([k,done])=>{const i=k.indexOf('|');return {id:k.slice(0,i),lesson:k.slice(i+1),done}})}
 async function readHandle(dir,name){
   try{const h=await dir.getFileHandle(name);S.handles[name]=h;return await (await h.getFile()).text()}
   catch(e){ if(e&&e.name==='NotFoundError'){S.handles[name]=null;return ''} throw e }
@@ -285,8 +312,8 @@ $('openDir').onclick=async()=>{
   try{
     const dir=await window.showDirectoryPicker({mode:'readwrite'});
     S.dir=dir;S.handles={};
-    const ct=await readHandle(dir,'classes.csv'),at=await readHandle(dir,'absences.csv');
-    loadFromText(ct,at);
+    const ct=await readHandle(dir,'classes.csv'),at=await readHandle(dir,'absences.csv'),bt=await readHandle(dir,'bookwork.csv');
+    loadFromText(ct,at,bt);
     if(!ct&&!at){S.dirty=true;updateBar();setMsg('Folder open: '+dir.name+' · no files found yet, starting empty. Add a class on the Classes tab.')}
   }catch(e){ if(!e||e.name!=='AbortError') setMsg('Couldn’t open that folder. '+(e&&e.message?e.message:'')) }
 };
@@ -294,14 +321,15 @@ $('openFiles').onclick=()=>$('fileIn').click();
 $('fileIn').onchange=async ev=>{
   const files=[...ev.target.files];ev.target.value='';
   if(!files.length)return;
-  let ct='',at='';
+  let ct='',at='',bt='';
   for(const f of files){
     const t=await f.text(),p=parseCSV(t);
-    if(p.head.includes('name')||/class/i.test(f.name)&&!p.head.includes('date')) ct=t;
+    if(/book/i.test(f.name)||(p.head.includes('lesson')&&p.head.includes('done'))) bt=t;
     else if(p.head.includes('date')||/absen/i.test(f.name)) at=t;
+    else if(p.head.includes('name')||/class/i.test(f.name)) ct=t;
   }
   S.dir=null;S.handles={};
-  loadFromText(ct,at);
+  loadFromText(ct,at,bt);
   setMsg('Files loaded'+(ct?'':' (no classes file chosen)')+(at?'':' (no absences file chosen)')+'. Save by downloading the files back over the originals.');
 };
 async function writeFile(name,text){
@@ -314,6 +342,7 @@ async function saveAll(){
   try{
     await writeFile('classes.csv',toCSV(CC,S.classes));
     await writeFile('absences.csv',toCSV(AC,S.abs));
+    await writeFile('bookwork.csv',toCSV(BC,bookRows()));
     S.dirty=false;updateBar();return true;
   }catch(e){setMsg('Couldn’t save to the folder: '+(e&&e.message?e.message:e)+'. Use Download both instead.');return false}
 }
@@ -325,6 +354,7 @@ function download(name,text){
 $('dlAll').onclick=()=>{
   download('classes.csv',toCSV(CC,S.classes));
   setTimeout(()=>download('absences.csv',toCSV(AC,S.abs)),300);
+  setTimeout(()=>download('bookwork.csv',toCSV(BC,bookRows())),600);
   S.dirty=false;updateBar();
 };
 window.addEventListener('beforeunload',e=>{if(S.dirty){e.preventDefault();e.returnValue=''}});
@@ -333,7 +363,7 @@ async function persist(){markDirty();if(S.dir)await saveAll()}
 /* ---------- tabs ---------- */
 document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('#tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));
-  ['entry','catch','sum','cls'].forEach(t=>$('t-'+t).hidden=(t!==b.dataset.t));
+  ['entry','catch','book','sum','cls'].forEach(t=>$('t-'+t).hidden=(t!==b.dataset.t));
   refreshAll();
 });
 
@@ -569,6 +599,58 @@ $('aAdd').onclick=async()=>{
   await persist();refreshAll();$('kClass').value=cls;drawClasses();
 };
 
+/* ---------- book work ---------- */
+function buildTopics(data){
+  TOPICS.length=0;
+  (data.years||[]).forEach(y=>(y.courses||[]).forEach(c=>(c.topics||[]).forEach(t=>{
+    const lessons=(t.lessons||[]).map(l=>({code:l.code,title:l.title}));
+    if(lessons.length)TOPICS.push({label:(c.short||c.name)+' · '+(t.num?t.num+' ':'')+t.name,lessons});
+  })));
+  fillSelect($('bTopic'),TOPICS.map((t,i)=>String(i)),false,v=>TOPICS[+v].label);
+  drawBook();
+}
+async function loadTopics(){
+  try{
+    const r=await fetch('../manifest.json',{cache:'no-store'});
+    if(r.ok)buildTopics(await r.json());
+    else $('bMsg').textContent='Couldn’t load the lesson list.';
+  }catch(e){$('bMsg').textContent='Couldn’t load the lesson list.'}
+}
+function drawBook(){
+  const box=$('bGrid');
+  if(!S.loaded){box.innerHTML='<p class="empty" style="padding:10px 12px;margin:0">Open your folder or files first.</p>';return}
+  if(!TOPICS.length){box.innerHTML='<p class="empty" style="padding:10px 12px;margin:0">Lesson list not loaded yet.</p>';return}
+  const cls=$('bClass').value,topic=TOPICS[+$('bTopic').value];
+  if(!cls||!topic){box.innerHTML='<p class="empty" style="padding:10px 12px;margin:0">Choose a class and topic.</p>';return}
+  const students=studentsIn(cls);
+  if(!students.length){box.innerHTML='<p class="empty" style="padding:10px 12px;margin:0">No students in this class.</p>';return}
+  const head='<tr><th class="st">Student</th>'+topic.lessons.map(l=>'<th data-lesson="'+esc(l.code)+'" title="'+esc(l.title)+'">'+esc(l.code)+'<small>'+esc(l.title.length>14?l.title.slice(0,13)+'…':l.title)+'</small></th>').join('')+'</tr>';
+  const body=students.map(s=>'<tr><td class="st">'+esc(s.name)+'</td>'+topic.lessons.map(l=>{
+    const on=S.book.has(bKey(s.id,l.code));
+    return '<td class="'+(on?'done':'')+'"><input type="checkbox"'+(on?' checked':'')+' data-id="'+esc(s.id)+'" data-lesson="'+esc(l.code)+'" aria-label="'+esc(s.name)+' lesson '+esc(l.code)+'"></td>';
+  }).join('')+'</tr>').join('');
+  box.innerHTML='<table class="bgrid"><thead>'+head+'</thead><tbody>'+body+'</tbody></table>';
+  $('bMsg').textContent=students.length+' students · '+topic.lessons.length+' lessons';
+}
+function setBook(id,lesson,on){
+  const k=bKey(id,lesson);
+  if(on)S.book.set(k,todayISO());else S.book.delete(k);
+}
+$('bGrid').onchange=async ev=>{
+  const c=ev.target.closest('input[data-id]');if(!c)return;
+  setBook(c.dataset.id,c.dataset.lesson,c.checked);
+  c.closest('td').classList.toggle('done',c.checked);
+  await persist();
+};
+$('bGrid').onclick=async ev=>{
+  const th=ev.target.closest('th[data-lesson]');if(!th)return;
+  const lesson=th.dataset.lesson,cls=$('bClass').value,students=studentsIn(cls);
+  const allOn=students.every(s=>S.book.has(bKey(s.id,lesson)));
+  students.forEach(s=>setBook(s.id,lesson,!allOn));
+  drawBook();await persist();
+};
+$('bClass').onchange=drawBook;$('bTopic').onchange=drawBook;
+
 /* ---------- refresh ---------- */
 function refreshAll(){
   refreshReasons();
@@ -579,15 +661,17 @@ function refreshAll(){
   const active=activeClasses(),any=allClassesAny();
   fillSelect($('cClass'),['all'].concat(active),true,v=>v==='all'?'All classes':v);
   fillSelect($('sClass'),active);
+  fillSelect($('bClass'),active);
   fillSelect($('kClass'),any);
   $('classCodes').innerHTML=any.map(c=>'<option value="'+esc(c)+'">').join('');
   if(!$('sTo').value){$('sTo').value=todayISO();$('sFrom').value=addDays(todayISO(),-13)}
   if(S.loaded)loadMarks();else drawRoll();
-  drawCatch();drawSummary();drawClasses();
+  drawCatch();drawSummary();drawBook();drawClasses();
 }
 $('eDate').value=todayISO();
 fillSelect($('ePeriod'),['1','2','3','4','5','6'],false);
 refreshAll();
+loadTopics();
 if(!FSA)setMsg('This browser can’t open folders, so use Open files… and download your changes. (Chrome or Edge can open a folder and save straight back.)');
 </script>
 </body>

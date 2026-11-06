@@ -23,11 +23,12 @@ We Do levels) live in the Lesson Creator project; this file covers the repo form
   `classroom/classroom.json`. The seating chart is an SVG room plan (29 desks) where an uploaded .xlsx/.csv class list is placed onto desks and
   exported as an A4 PDF; uploaded files are read locally, and saved plans live in the browser's `localStorage` only (listed in a left side panel), never sent anywhere. Never put student names, rosters or exported seating files in this public repo, and
   never test with real names.
-  The attendance tracker (`classroom/tracker.html`) reads `classes.csv` (id, name, class, left; has names) and `absences.csv`
-  (date, period, class, id, reason, lesson, status, notes; no names) from a folder the user opens with the File System Access API,
+  The attendance tracker (`classroom/tracker.html`) reads `classes.csv` (id, name, class, left; has names), `absences.csv`
+  (date, period, class, id, reason, lesson, status, notes; no names) and `bookwork.csv` (id, lesson, done; no names) from a folder the user opens with the File System Access API,
   joins them in memory only, and stores nothing about students in the browser (only the reasons list in `localStorage`). Student IDs
   are permanent (`<class>-<NN>`, never reused); removing a student sets `left` (any non-blank, e.g. yes) so they drop off the
-  roll and summary but keep their name on past records. Test with made-up names only.
+  roll and summary but keep their name on past records. The Book work tab builds a student×lesson tick grid for a topic, with
+  the topic and lesson list read from the site's `manifest.json` (fetched at `../manifest.json`). Test with made-up names only.
   New top-level site folders must also be added to the `cp -r` line in `.github/workflows/pages.yml`.
 - Generators: one page per generator in `generators/`, registered in
   `generators/generators.json`. The question bank (`gen` functions, topics, lessons and each
