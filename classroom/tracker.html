@@ -203,8 +203,8 @@ dialog .row{margin-top:12px}
         <label class="f">Class code<input type="text" id="aClass" list="classCodes" placeholder="12MS16B" size="12"></label>
         <label class="f">Course<select id="aCourse"></select></label>
       </div>
-      <label class="f">Names, one per line
-        <textarea id="aNames" placeholder="One student per line"></textarea>
+      <label class="f">Names, one per line as "Surname, First"
+        <textarea id="aNames" placeholder="Mitchell, Ava&#10;Bennett, Noah"></textarea>
       </label>
       <div class="row" style="margin-top:8px"><button class="solid" id="aAdd">Add to class</button><span id="aMsg" class="note" style="margin:0"></span></div>
       <datalist id="classCodes"></datalist>
@@ -222,7 +222,7 @@ dialog .row{margin-top:12px}
 'use strict';
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const CC=['id','name','class','course','left'];
+const CC=['id','last','first','class','course','left'];
 const AC=['date','period','class','id','reason','lesson','status','notes'];
 const BC=['id','lesson','done'];
 const DEFAULT_REASONS=['Sick','Approved leave','Appointment','School activity','Unexplained','Late*'];
@@ -279,8 +279,19 @@ function reasonNoCatch(name){return getReasons().some(r=>rName(r)===name&&noCatc
 const isGone=r=>!!(r.left&&r.left.trim()&&r.left.trim().toLowerCase()!=='no');
 function activeClasses(){return [...new Set(S.classes.filter(r=>!isGone(r)).map(r=>r.class))].sort()}
 function allClassesAny(){return [...new Set(S.classes.map(r=>r.class))].sort()}
-function studentsIn(cls){return S.classes.filter(r=>r.class===cls&&!isGone(r)).sort((a,b)=>a.name.localeCompare(b.name))}
-function nameOf(id){const r=S.classes.find(x=>x.id===id);return r?r.name:id}
+function splitName(name){
+  name=String(name||'').trim();
+  if(name.includes(',')){const p=name.split(',');return {last:p[0].trim(),first:p.slice(1).join(',').trim()}}
+  const t=name.split(/\s+/);
+  if(t.length<2)return {last:name,first:''};
+  return {last:t.pop(),first:t.join(' ')};
+}
+function fullName(r){return r?(((r.first||'')+' '+(r.last||'')).trim()||r.name||''):''}
+function cmpRow(a,b){return (a.last||'').localeCompare(b.last||'')||(a.first||'').localeCompare(b.first||'')||(a.name||'').localeCompare(b.name||'')}
+function rowOf(id){return S.classes.find(x=>x.id===id)}
+function cmpId(ida,idb){return cmpRow(rowOf(ida)||{},rowOf(idb)||{})}
+function studentsIn(cls){return S.classes.filter(r=>r.class===cls&&!isGone(r)).sort(cmpRow)}
+function nameOf(id){const r=rowOf(id);return r?fullName(r):id}
 function classCourse(cls){const r=S.classes.find(x=>x.class===cls&&x.course);return r?r.course:''}
 function nextId(cls){
   let max=0;const re=new RegExp('^'+cls.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'-(\\d+)$');
@@ -306,7 +317,11 @@ function updateBar(){
 }
 function loadFromText(ct,at,bt){
   const c=parseCSV(ct),a=parseCSV(at),b=parseCSV(bt);
-  S.classes=c.rows.filter(r=>r.id&&r.class).map(r=>{const o={};CC.forEach(k=>o[k]=r[k]||'');return o});
+  S.classes=c.rows.filter(r=>r.id&&r.class).map(r=>{
+    const o={};CC.forEach(k=>o[k]=r[k]||'');
+    if(!o.first&&!o.last&&r.name){const s=splitName(r.name);o.last=s.last;o.first=s.first}
+    return o;
+  });
   S.abs=a.rows.filter(r=>r.date&&r.id).map(r=>{const o={};AC.forEach(k=>o[k]=r[k]||'');return o});
   S.book=new Map();
   b.rows.filter(r=>r.id&&r.lesson).forEach(r=>S.book.set(bKey(r.id,r.lesson),r.done||'yes'));
@@ -337,7 +352,7 @@ $('fileIn').onchange=async ev=>{
     const t=await f.text(),p=parseCSV(t);
     if(/book/i.test(f.name)||(p.head.includes('lesson')&&p.head.includes('done'))) bt=t;
     else if(p.head.includes('date')||/absen/i.test(f.name)) at=t;
-    else if(p.head.includes('name')||/class/i.test(f.name)) ct=t;
+    else if(p.head.includes('last')||p.head.includes('name')||/class/i.test(f.name)) ct=t;
   }
   S.dir=null;S.handles={};
   loadFromText(ct,at,bt);
@@ -414,7 +429,7 @@ function drawRoll(){
     const r=E.marks[s.id]||'';
     let opts='<option value="">Present</option>'+names.map(n=>'<option'+(n===r?' selected':'')+'>'+esc(n)+'</option>').join('');
     if(r&&!names.includes(r))opts+='<option selected>'+esc(r)+'</option>';
-    return '<div class="rrow'+(r?' away':'')+'"><span class="num">'+(i+1)+'</span><span class="nm">'+esc(s.name)+'</span><select data-id="'+esc(s.id)+'" aria-label="Reason for '+esc(s.name)+'">'+opts+'</select></div>';
+    const nm=fullName(s);return '<div class="rrow'+(r?' away':'')+'"><span class="num">'+(i+1)+'</span><span class="nm">'+esc(nm)+'</span><select data-id="'+esc(s.id)+'" aria-label="Reason for '+esc(nm)+'">'+opts+'</select></div>';
   }).join('');
   updateTally(list.filter(s=>E.marks[s.id]).length,list.length);
 }
@@ -477,7 +492,7 @@ function missedGroups(){
     if(!m.has(r.id))m.set(r.id,[]);
     m.get(r.id).push(r);
   });
-  return [...m.entries()].map(([id,rows])=>({id,name:nameOf(id),rows})).sort((a,b)=>a.name.localeCompare(b.name));
+  return [...m.entries()].map(([id,rows])=>({id,name:nameOf(id),rows})).sort((a,b)=>cmpId(a.id,b.id));
 }
 function drawCatch(){
   const box=$('cList');
@@ -522,7 +537,7 @@ function summaryData(){
     const keys=new Set(abs.map(r=>r.date+'|'+r.period));
     const by={};abs.forEach(r=>{const k=reasons.includes(r.reason)?r.reason:'Other';by[k]=(by[k]||0)+1});
     return {id,name:nameOf(id),away:keys.size,pct:Math.max(0,Math.round((1-keys.size/n)*100)),by};
-  }).sort((a,b)=>a.name.localeCompare(b.name));
+  }).sort((a,b)=>cmpId(a.id,b.id));
   const cols=reasons.slice();
   if(rows.some(r=>r.by.Other))cols.push('Other');
   return {rows,cols,cls,from,to,n};
@@ -556,11 +571,11 @@ function drawClasses(){
   if(!S.loaded){box.innerHTML='<p class="empty">Open your folder or files first.</p>';return}
   const cls=$('kClass').value,showGone=$('kLeft').checked;
   if($('kCourse').options.length)$('kCourse').value=classCourse(cls)||'';
-  const rows=S.classes.filter(r=>r.class===cls&&(showGone||!isGone(r))).sort((a,b)=>a.name.localeCompare(b.name));
+  const rows=S.classes.filter(r=>r.class===cls&&(showGone||!isGone(r))).sort(cmpRow);
   if(!rows.length){box.innerHTML='<p class="empty">No students in this class yet.</p>';return}
-  box.innerHTML='<table><thead><tr><th>Name</th><th>ID</th><th></th></tr></thead><tbody>'+rows.map(r=>{
+  box.innerHTML='<table><thead><tr><th>Surname</th><th>First name</th><th>ID</th><th></th></tr></thead><tbody>'+rows.map(r=>{
     const gone=isGone(r);
-    return '<tr'+(gone?' style="opacity:.55"':'')+'><td>'+esc(r.name)+(gone?' <span class="tag">removed</span>':'')+'</td><td>'+esc(r.id)+'</td><td style="text-align:right;white-space:nowrap">'+
+    return '<tr'+(gone?' style="opacity:.55"':'')+'><td>'+esc(r.last||'')+(gone?' <span class="tag">removed</span>':'')+'</td><td>'+esc(r.first||'')+'</td><td>'+esc(r.id)+'</td><td style="text-align:right;white-space:nowrap">'+
       '<button class="sm quiet" data-a="edit" data-id="'+esc(r.id)+'">Rename</button> '+
       (gone?'<button class="sm quiet" data-a="restore" data-id="'+esc(r.id)+'">Restore</button>'
            :'<button class="sm quiet" data-a="move" data-id="'+esc(r.id)+'" data-cls="'+esc(r.class)+'">Move</button> <button class="sm quiet" data-a="remove" data-id="'+esc(r.id)+'" data-cls="'+esc(r.class)+'">Remove</button>')+
@@ -589,8 +604,8 @@ $('kList').onclick=async ev=>{
   const id=b.dataset.id,a=b.dataset.a,cls=b.dataset.cls;
   const cur=S.classes.find(r=>r.id===id);
   if(a==='edit'){
-    const v=await ask('Rename student',[{key:'n',label:'Name',value:cur.name}],v=>v.n?'':'Enter a name.');
-    if(!v)return;S.classes.forEach(r=>{if(r.id===id)r.name=v.n});await persist();refreshAll();
+    const v=await ask('Rename student',[{key:'last',label:'Surname',value:cur.last||''},{key:'first',label:'First name',value:cur.first||''}],v=>(v.last||v.first)?'':'Enter a name.');
+    if(!v)return;S.classes.forEach(r=>{if(r.id===id){r.last=v.last;r.first=v.first;r.name=''}});await persist();refreshAll();
   }else if(a==='remove'){
     S.classes.forEach(r=>{if(r.id===id&&r.class===cls)r.left='yes'});await persist();refreshAll();
   }else if(a==='restore'){
@@ -610,7 +625,7 @@ $('aAdd').onclick=async()=>{
   if(!cls){$('aMsg').textContent='Enter a class code.';return}
   if(!names.length){$('aMsg').textContent='Enter at least one name.';return}
   const course=classCourse(cls)||$('aCourse').value;
-  names.forEach(n=>S.classes.push({id:nextId(cls),name:n,class:cls,course,left:''}));
+  names.forEach(n=>{const s=splitName(n);S.classes.push({id:nextId(cls),last:s.last,first:s.first,class:cls,course,left:''})});
   $('aNames').value='';$('aMsg').textContent=names.length+' added to '+cls+(course?'':' (no course set)')+'.';
   await persist();refreshAll();$('kClass').value=cls;drawClasses();
 };
@@ -665,9 +680,9 @@ function drawBook(){
   const students=studentsIn(cls);
   if(!students.length){box.innerHTML='<p class="empty" style="padding:10px 12px;margin:0">No students in this class.</p>';return}
   const head='<tr><th class="st">Student</th>'+topic.lessons.map(l=>'<th data-lesson="'+esc(l.code)+'" title="'+esc(l.title)+'">'+esc(l.code)+'<small>'+esc(l.title.length>14?l.title.slice(0,13)+'…':l.title)+'</small></th>').join('')+'</tr>';
-  const body=students.map(s=>'<tr><td class="st">'+esc(s.name)+'</td>'+topic.lessons.map(l=>{
+  const body=students.map(s=>'<tr><td class="st">'+esc(fullName(s))+'</td>'+topic.lessons.map(l=>{
     const on=S.book.has(bKey(s.id,l.code));
-    return '<td class="'+(on?'done':'')+'"><input type="checkbox"'+(on?' checked':'')+' data-id="'+esc(s.id)+'" data-lesson="'+esc(l.code)+'" aria-label="'+esc(s.name)+' lesson '+esc(l.code)+'"></td>';
+    return '<td class="'+(on?'done':'')+'"><input type="checkbox"'+(on?' checked':'')+' data-id="'+esc(s.id)+'" data-lesson="'+esc(l.code)+'" aria-label="'+esc(fullName(s))+' lesson '+esc(l.code)+'"></td>';
   }).join('')+'</tr>').join('');
   box.innerHTML='<table class="bgrid"><thead>'+head+'</thead><tbody>'+body+'</tbody></table>';
   fillSelect($('bLesson'),topic.lessons.map(l=>l.code),true,c=>{const l=topic.lessons.find(x=>x.code===c);return c+(l?' '+l.title:'')});

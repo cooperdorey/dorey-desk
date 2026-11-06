@@ -23,11 +23,11 @@ We Do levels) live in the Lesson Creator project; this file covers the repo form
   `classroom/classroom.json`. The seating chart is an SVG room plan (29 desks) where an uploaded .xlsx/.csv class list is placed onto desks and
   exported as an A4 PDF; uploaded files are read locally, and saved plans live in the browser's `localStorage` only (listed in a left side panel), never sent anywhere. Never put student names, rosters or exported seating files in this public repo, and
   never test with real names.
-  The attendance tracker (`classroom/tracker.html`) reads `classes.csv` (id, name, class, course, left; has names), `absences.csv`
+  The attendance tracker (`classroom/tracker.html`) reads `classes.csv` (id, last, first, class, course, left; has names — one old `name` column is split on load), `absences.csv`
   (date, period, class, id, reason, lesson, status, notes; no names) and `bookwork.csv` (id, lesson, done; no names) from a folder the user opens with the File System Access API,
   joins them in memory only, and stores nothing about students in the browser (only the reasons list in `localStorage`). Student IDs
   are permanent (`<class>-<NN>`, never reused); removing a student sets `left` (any non-blank, e.g. yes) so they drop off the
-  roll and summary but keep their name on past records. Catch-up slips: tick students and print (no status workflow); a slip
+  roll and summary but keep their name on past records. Everyone is sorted by surname then first name throughout. Catch-up slips: tick students and print (no status workflow); a slip
   lists each missed lesson's code and title (title from manifest), a OneNote/Google Classroom note and an optional deadline.
   Which lessons count as missed is reason-based (a reason ending in * owes no catch-up); the absences `status` column is now unused. The Book work tab builds a student×lesson tick grid for a topic, with
   the topic and lesson list read from the site's `manifest.json` (fetched at `../manifest.json`); a day+lesson bar prefills a
