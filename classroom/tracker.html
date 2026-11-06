@@ -231,6 +231,8 @@ const E={marks:{}};
 const TOPICS=[];
 const COURSES=[];
 const LESSON_TITLE=new Map();
+const LESSON_ANY=new Map();
+const LESSON_AMBIG=new Set();
 const bKey=(id,lesson)=>id+'|'+lesson;
 
 /* ---------- CSV ---------- */
@@ -459,7 +461,12 @@ $('eClear').onclick=()=>{E.marks={};drawRoll()};
 });
 
 /* ---------- catch-up ---------- */
-function lessonTitle(cls,code){const t=LESSON_TITLE.get(classCourse(cls)+'|'+code);return t||''}
+function lessonTitle(cls,code){
+  const t=LESSON_TITLE.get(classCourse(cls)+'|'+code);
+  if(t)return t;
+  if(!LESSON_AMBIG.has(code))return LESSON_ANY.get(code)||'';
+  return '';
+}
 function missedGroups(){
   const cls=$('cClass').value;
   const m=new Map();
@@ -613,14 +620,18 @@ $('kCourse').onchange=async()=>{
 
 /* ---------- book work ---------- */
 function buildTopics(data){
-  TOPICS.length=0;COURSES.length=0;LESSON_TITLE.clear();
+  TOPICS.length=0;COURSES.length=0;LESSON_TITLE.clear();LESSON_ANY.clear();LESSON_AMBIG.clear();
   (data.years||[]).forEach(y=>(y.courses||[]).forEach(c=>{
     const key=(y.id||'')+'/'+(c.id||'');
     const label=c.short||((y.name?y.name+' ':'')+c.name);
     let any=false;
     (c.topics||[]).forEach(t=>{
       const lessons=(t.lessons||[]).map(l=>({code:l.code,title:l.title}));
-      lessons.forEach(l=>LESSON_TITLE.set(key+'|'+l.code,l.title));
+      lessons.forEach(l=>{
+        LESSON_TITLE.set(key+'|'+l.code,l.title);
+        if(LESSON_ANY.has(l.code)){if(LESSON_ANY.get(l.code)!==l.title)LESSON_AMBIG.add(l.code)}
+        else LESSON_ANY.set(l.code,l.title);
+      });
       if(lessons.length){TOPICS.push({label:(t.num?t.num+' ':'')+t.name,course:key,lessons});any=true}
     });
     if(any&&!COURSES.some(x=>x.key===key))COURSES.push({key,label});
