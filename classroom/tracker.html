@@ -49,22 +49,13 @@ label.f{display:flex;flex-direction:column;gap:3px;font-size:12.5px;color:var(--
 .row{display:flex;flex-wrap:wrap;gap:10px 12px;align-items:flex-end;margin:0 0 12px}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin:0 0 14px}
 .note{font-size:12.5px;color:var(--muted);margin:8px 0 0;max-width:85ch}
-.roll{border:1px solid var(--line);border-radius:10px;overflow:auto;max-height:68vh;margin:6px 0 0}
-.atable{border-collapse:collapse;font-size:13px;width:100%}
-.atable th,.atable td{border:1px solid var(--line);text-align:center;padding:0}
-.atable thead th{position:sticky;top:0;background:var(--tint);font-weight:600;font-size:12px;padding:7px 6px;vertical-align:bottom;min-width:62px;z-index:1}
-.atable th.st,.atable td.st{position:sticky;left:0;background:var(--panel);text-align:left;white-space:nowrap;min-width:150px;z-index:2}
-.atable thead th.st{z-index:3;background:var(--tint)}
-.atable td.st{padding:8px 10px}
-.atable td.num{min-width:30px;color:var(--muted);font-size:12px}
-.acell{display:block;padding:10px 6px;cursor:pointer;user-select:none;color:var(--muted)}
-.acell:hover{background:var(--tint)}
-.atable td.sel .acell{font-weight:600}
-.atable td.sel.pres{background:var(--tint)}
-.atable td.sel.pres .acell{color:var(--brand)}
-.atable td.sel.away{background:var(--badbg)}
-.atable td.sel.away .acell{color:var(--bad)}
-.atable tbody tr:hover td.st{background:var(--tint)}
+.roll{margin:10px 0 0}
+.atable{border-collapse:separate;border-spacing:5px 5px;width:100%;table-layout:fixed}
+.atable td{text-align:center;padding:0;vertical-align:middle}
+.atable td.st{text-align:left;white-space:nowrap;font-size:13px;width:150px;overflow:hidden;text-overflow:ellipsis}
+.atable td.num{color:var(--muted);font-size:11px;width:20px}
+.acell{display:block;width:100%;box-sizing:border-box;padding:5px 4px;border-radius:999px;cursor:pointer;user-select:none;font-size:11.5px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border:1.5px solid transparent}
+.acell:hover{filter:brightness(1.06)}
 .tally{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:12px;margin-top:0;border:1px solid var(--line);border-top:0;border-radius:0 0 10px 10px;background:var(--panel)}
 .tally b{font-size:22px;font-family:var(--card)}
 table{width:100%;border-collapse:collapse;font-size:14px}
@@ -434,13 +425,15 @@ function drawRoll(){
   if(!list.length)return emptyRoll('Nobody in this class. Add students on the Classes tab.');
   const names=getReasons().map(rName);
   const extra=[...new Set(list.map(s=>E.marks[s.id]).filter(r=>r&&!names.includes(r)))];
-  const header='<tr><th class="st">Student</th><th class="num">#</th><th>Present</th>'+names.map(r=>'<th>'+esc(r)+'</th>').join('')+extra.map(r=>'<th>'+esc(r)+'</th>').join('')+'</tr>';
+  const PRES='#2E9E6B',PALETTE=['#D1495B','#C9850A','#2F72C4','#7A5AB6','#1E9E8A','#C85C8E','#8A6D3B','#4C7A34'];
+  const colOf=r=>r===''?PRES:PALETTE[(names.concat(extra).indexOf(r))%PALETTE.length];
   const body=list.map((s,i)=>{
     const cur=E.marks[s.id]||'',nm=fullName(s);
-    const cell=(r)=>{const on=cur===r;return '<td class="'+(on?'sel '+(r?'away':'pres'):'')+'" data-id="'+esc(s.id)+'" data-r="'+esc(r)+'"><span class="acell">'+esc(r||'Present')+'</span></td>'};
-    return '<tr><td class="st">'+esc(nm)+'</td><td class="num">'+(i+1)+'</td>'+cell('')+names.map(cell).join('')+extra.map(cell).join('')+'</tr>';
+    const cell=(r)=>{const on=cur===r,c=colOf(r),st=on?('background:'+c+';border-color:'+c+';color:#fff;font-weight:600'):('color:'+c+';border-color:'+c);
+      return '<td class="'+(on?'sel '+(r?'away':'pres'):'')+'" data-id="'+esc(s.id)+'" data-r="'+esc(r)+'"><span class="acell" style="'+st+'">'+esc(r||'Present')+'</span></td>'};
+    return '<tr><td class="num">'+(i+1)+'</td><td class="st" title="'+esc(nm)+'">'+esc(nm)+'</td>'+cell('')+names.map(cell).join('')+extra.map(cell).join('')+'</tr>';
   }).join('');
-  $('roll').innerHTML='<table class="atable"><thead>'+header+'</thead><tbody>'+body+'</tbody></table>';
+  $('roll').innerHTML='<table class="atable"><tbody>'+body+'</tbody></table>';
   updateTally(list.filter(s=>E.marks[s.id]).length,list.length);
 }
 function updateTally(away,total){
