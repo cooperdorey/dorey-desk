@@ -183,7 +183,7 @@ dialog .row{margin-top:12px}
       <button class="quiet" id="sCsv">Download as CSV</button>
     </div>
     <div class="card" style="padding:6px 10px"><div id="sTable"></div></div>
-    <p class="note">Attendance is the share of the lessons you entered that the student was not away for. Removed students are left out.</p>
+    <p class="note">Set "Lessons in this range" for the whole class, then adjust the Lessons box for any individual student (for example one who joined late). Attendance is the share of that student's lessons they were not away for, colour-coded: dark green &gt;95%, green &gt;90%, orange 80–90%, red below 80%. Removed students are left out.</p>
   </section>
 
   <section id="t-cls" hidden>
@@ -229,6 +229,7 @@ const COURSES=[];
 const LESSON_TITLE=new Map();
 const LESSON_ANY=new Map();
 const LESSON_AMBIG=new Set();
+let SUMN={};
 const bKey=(id,lesson)=>id+'|'+lesson;
 
 /* ---------- CSV ---------- */
@@ -532,7 +533,8 @@ function summaryData(){
     const abs=S.abs.filter(r=>r.id===id&&r.class===cls&&(!from||r.date>=from)&&(!to||r.date<=to));
     const keys=new Set(abs.map(r=>r.date+'|'+r.period));
     const by={};abs.forEach(r=>{const k=reasons.includes(r.reason)?r.reason:'Other';by[k]=(by[k]||0)+1});
-    return {id,name:nameOf(id),away:keys.size,pct:Math.max(0,Math.round((1-keys.size/n)*100)),by};
+    const lessons=SUMN[id]!=null?Math.max(1,SUMN[id]):n;
+    return {id,name:nameOf(id),away:keys.size,lessons,pct:Math.max(0,Math.round((1-keys.size/lessons)*100)),by};
   }).sort((a,b)=>cmpId(a.id,b.id));
   const cols=reasons.slice();
   if(rows.some(r=>r.by.Other))cols.push('Other');
@@ -542,14 +544,15 @@ function attColour(p){return p>95?'#15803D':p>90?'#4FA45E':p>=80?'#D9850A':'#C03
 function summaryHTML(d){
   if(!d.rows.length)return '<p class="empty">No students found for that class and date range.</p>';
   const used=d.cols.filter(c=>d.rows.some(r=>r.by[c]));
-  return '<table><thead><tr><th>Student</th><th class="n">Away</th><th class="n">Attendance</th>'+used.map(c=>'<th class="n">'+esc(c)+'</th>').join('')+'</tr></thead><tbody>'+
-    d.rows.map(r=>{const c=attColour(r.pct);return '<tr><td>'+esc(r.name)+'</td><td class="n">'+r.away+'</td><td class="n"><span style="display:inline-block;min-width:46px;padding:2px 8px;border-radius:999px;background:'+c+';color:#fff;font-weight:600">'+r.pct+'%</span></td>'+used.map(k=>'<td class="n">'+(r.by[k]||'')+'</td>').join('')+'</tr>'}).join('')+'</tbody></table>';
+  return '<table><thead><tr><th>Student</th><th class="n">Away</th><th class="n">Lessons</th><th class="n">Attendance</th>'+used.map(c=>'<th class="n">'+esc(c)+'</th>').join('')+'</tr></thead><tbody>'+
+    d.rows.map(r=>{const c=attColour(r.pct);return '<tr><td>'+esc(r.name)+'</td><td class="n">'+r.away+'</td><td class="n"><input type="number" class="snrow" data-id="'+esc(r.id)+'" min="1" value="'+r.lessons+'" style="width:56px;padding:3px 6px"></td><td class="n"><span style="display:inline-block;min-width:46px;padding:2px 8px;border-radius:999px;background:'+c+';color:#fff;font-weight:600">'+r.pct+'%</span></td>'+used.map(k=>'<td class="n">'+(r.by[k]||'')+'</td>').join('')+'</tr>'}).join('')+'</tbody></table>';
 }
 function drawSummary(){
   if(!S.loaded){$('sTable').innerHTML='<p class="empty">Open your folder or files first.</p>';return}
   $('sTable').innerHTML=summaryHTML(summaryData());
 }
-['sClass','sFrom','sTo','sN'].forEach(id=>$(id).oninput=drawSummary);
+['sClass','sFrom','sTo','sN'].forEach(id=>$(id).oninput=()=>{SUMN={};drawSummary()});
+$('sTable').addEventListener('change',ev=>{const i=ev.target.closest('.snrow');if(!i)return;const v=parseInt(i.value,10);if(v>=1)SUMN[i.dataset.id]=v;else delete SUMN[i.dataset.id];drawSummary()});
 $('sPrint').onclick=()=>{
   const d=summaryData();
   $('printArea').innerHTML='<div class="sumTable"><h2>Attendance summary · '+esc(d.cls)+'</h2><p>'+esc(showShort(d.from))+' to '+esc(showShort(d.to))+' · '+d.n+' lessons</p>'+summaryHTML(d)+'</div>';
@@ -557,8 +560,8 @@ $('sPrint').onclick=()=>{
 };
 $('sCsv').onclick=()=>{
   const d=summaryData();const used=d.cols.filter(c=>d.rows.some(r=>r.by[c]));
-  const cols=['name','away','attendance_pct'].concat(used);
-  const rows=d.rows.map(r=>{const o={name:r.name,away:r.away,attendance_pct:r.pct};used.forEach(c=>o[c]=r.by[c]||0);return o});
+  const cols=['name','away','lessons','attendance_pct'].concat(used);
+  const rows=d.rows.map(r=>{const o={name:r.name,away:r.away,lessons:r.lessons,attendance_pct:r.pct};used.forEach(c=>o[c]=r.by[c]||0);return o});
   download('attendance-summary-'+d.cls+'.csv',toCSV(cols,rows));
 };
 
