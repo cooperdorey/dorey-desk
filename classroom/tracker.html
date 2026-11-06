@@ -437,7 +437,7 @@ function drawRoll(){
   const header='<tr><th class="st">Student</th><th class="num">#</th><th>Present</th>'+names.map(r=>'<th>'+esc(r)+'</th>').join('')+extra.map(r=>'<th>'+esc(r)+'</th>').join('')+'</tr>';
   const body=list.map((s,i)=>{
     const cur=E.marks[s.id]||'',nm=fullName(s);
-    const cell=(r)=>{const on=cur===r;return '<td class="'+(on?'sel '+(r?'away':'pres'):'')+'" data-id="'+esc(s.id)+'" data-r="'+esc(r)+'"><span class="acell">'+(on?'✓':'')+'</span></td>'};
+    const cell=(r)=>{const on=cur===r;return '<td class="'+(on?'sel '+(r?'away':'pres'):'')+'" data-id="'+esc(s.id)+'" data-r="'+esc(r)+'"><span class="acell">'+esc(r||'Present')+'</span></td>'};
     return '<tr><td class="st">'+esc(nm)+'</td><td class="num">'+(i+1)+'</td>'+cell('')+names.map(cell).join('')+extra.map(cell).join('')+'</tr>';
   }).join('');
   $('roll').innerHTML='<table class="atable"><thead>'+header+'</thead><tbody>'+body+'</tbody></table>';
