@@ -134,6 +134,7 @@ dialog .row{margin-top:12px}
     <button role="tab" aria-selected="false" data-t="catch">Catch-up slips</button>
     <button role="tab" aria-selected="false" data-t="book">Book work</button>
     <button role="tab" aria-selected="false" data-t="sum">Attendance summary</button>
+    <button role="tab" aria-selected="false" data-t="naw">N-awards</button>
     <button role="tab" aria-selected="false" data-t="cls">Classes</button>
   </div>
 
@@ -198,6 +199,22 @@ dialog .row{margin-top:12px}
     <p class="note">Set "Lessons in this range" for the whole class, then adjust the Lessons box for any individual student (for example one who joined late). Attendance is the share of that student's lessons they were not away for, colour-coded: dark green &gt;95%, green &gt;90%, orange 80–90%, red below 80%. Removed students are left out.</p>
   </section>
 
+  <section id="t-naw" hidden>
+    <div class="card">
+      <h2>Log an N-award warning</h2>
+      <div class="row">
+        <label class="f">Class<select id="nClass"></select></label>
+        <label class="f">Student<select id="nStudent"></select></label>
+        <label class="f">Date issued<input type="date" id="nDate"></label>
+        <label class="f">Task or work<input type="text" id="nTask" placeholder="e.g. Assessment Task 2" style="flex:1 1 200px;max-width:300px"></label>
+        <button class="solid" id="nAdd">Add warning</button>
+        <span id="nMsg" class="note" style="margin:0"></span>
+      </div>
+      <p class="note">The warning number is filled in automatically (1st, 2nd…) from how many that student already has. Saved to nawards.csv (IDs only, no names).</p>
+    </div>
+    <div class="card" style="padding:6px 10px"><div id="nList"></div></div>
+  </section>
+
   <section id="t-cls" hidden>
     <div class="row">
       <label class="f">Class<select id="kClass"></select></label>
@@ -233,8 +250,9 @@ const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;'
 const CC=['id','last','first','class','course','left'];
 const AC=['date','period','class','id','reason','lesson','status','notes'];
 const BC=['id','lesson','done'];
+const NC=['id','date','number','task','notes'];
 const DEFAULT_REASONS=['Explained','Learning Enrichment','SBAT','School Business','Sick','Suspension','Tafe','Truant','Unexplained','Wellbeing','Work Placement'];
-const S={classes:[],abs:[],book:new Map(),dir:null,handles:{},loaded:false,dirty:false};
+const S={classes:[],abs:[],book:new Map(),naw:[],dir:null,handles:{},loaded:false,dirty:false};
 const E={marks:{},reason:''};
 const TOPICS=[];
 const COURSES=[];
@@ -334,8 +352,8 @@ function updateBar(){
     setMsg(S.dirty?where+' · unsaved changes':where+' · '+S.classes.length+' enrolments, '+S.abs.length+' absence rows');
   }
 }
-function loadFromText(ct,at,bt){
-  const c=parseCSV(ct),a=parseCSV(at),b=parseCSV(bt);
+function loadFromText(ct,at,bt,nt){
+  const c=parseCSV(ct),a=parseCSV(at),b=parseCSV(bt),nw=parseCSV(nt);
   S.classes=c.rows.filter(r=>r.id&&r.class).map(r=>{
     const o={};CC.forEach(k=>o[k]=r[k]||'');
     if(!o.first&&!o.last&&r.name){const s=splitName(r.name);o.last=s.last;o.first=s.first}
@@ -344,6 +362,7 @@ function loadFromText(ct,at,bt){
   S.abs=a.rows.filter(r=>r.date&&r.id).map(r=>{const o={};AC.forEach(k=>o[k]=r[k]||'');o.date=isoDate(o.date);return o});
   S.book=new Map();
   b.rows.filter(r=>r.id&&r.lesson).forEach(r=>S.book.set(bKey(r.id,r.lesson),r.done||'yes'));
+  S.naw=nw.rows.filter(r=>r.id&&r.date).map(r=>{const o={};NC.forEach(k=>o[k]=r[k]||'');o.date=isoDate(o.date);return o});
   S.loaded=true;S.dirty=false;
   refreshAll();updateBar();
 }
@@ -357,8 +376,8 @@ $('openDir').onclick=async()=>{
   try{
     const dir=await window.showDirectoryPicker({mode:'readwrite'});
     S.dir=dir;S.handles={};
-    const ct=await readHandle(dir,'classes.csv'),at=await readHandle(dir,'absences.csv'),bt=await readHandle(dir,'bookwork.csv');
-    loadFromText(ct,at,bt);
+    const ct=await readHandle(dir,'classes.csv'),at=await readHandle(dir,'absences.csv'),bt=await readHandle(dir,'bookwork.csv'),nt=await readHandle(dir,'nawards.csv');
+    loadFromText(ct,at,bt,nt);
     if(!ct&&!at){S.dirty=true;updateBar();setMsg('Folder open: '+dir.name+' · no files found yet, starting empty. Add a class on the Classes tab.')}
   }catch(e){ if(!e||e.name!=='AbortError') setMsg('Couldn’t open that folder. '+(e&&e.message?e.message:'')) }
 };
@@ -366,15 +385,16 @@ $('openFiles').onclick=()=>$('fileIn').click();
 $('fileIn').onchange=async ev=>{
   const files=[...ev.target.files];ev.target.value='';
   if(!files.length)return;
-  let ct='',at='',bt='';
+  let ct='',at='',bt='',nt='';
   for(const f of files){
     const t=await f.text(),p=parseCSV(t);
-    if(/book/i.test(f.name)||(p.head.includes('lesson')&&p.head.includes('done'))) bt=t;
+    if(/naward/i.test(f.name)||p.head.includes('task')) nt=t;
+    else if(/book/i.test(f.name)||(p.head.includes('lesson')&&p.head.includes('done'))) bt=t;
     else if(p.head.includes('date')||/absen/i.test(f.name)) at=t;
     else if(p.head.includes('last')||p.head.includes('name')||/class/i.test(f.name)) ct=t;
   }
   S.dir=null;S.handles={};
-  loadFromText(ct,at,bt);
+  loadFromText(ct,at,bt,nt);
   setMsg('Files loaded'+(ct?'':' (no classes file chosen)')+(at?'':' (no absences file chosen)')+'. Save by downloading the files back over the originals.');
 };
 async function writeFile(name,text){
@@ -388,6 +408,7 @@ async function saveAll(){
     await writeFile('classes.csv',toCSV(CC,S.classes));
     await writeFile('absences.csv',toCSV(AC,S.abs));
     await writeFile('bookwork.csv',toCSV(BC,bookRows()));
+    await writeFile('nawards.csv',toCSV(NC,S.naw));
     S.dirty=false;updateBar();return true;
   }catch(e){setMsg('Couldn’t save to the folder: '+(e&&e.message?e.message:e)+'. Use Download both instead.');return false}
 }
@@ -400,6 +421,7 @@ $('dlAll').onclick=()=>{
   download('classes.csv',toCSV(CC,S.classes));
   setTimeout(()=>download('absences.csv',toCSV(AC,S.abs)),300);
   setTimeout(()=>download('bookwork.csv',toCSV(BC,bookRows())),600);
+  setTimeout(()=>download('nawards.csv',toCSV(NC,S.naw)),900);
   S.dirty=false;updateBar();
 };
 window.addEventListener('beforeunload',e=>{if(S.dirty){e.preventDefault();e.returnValue=''}});
@@ -408,7 +430,7 @@ async function persist(){markDirty();if(S.dir)await saveAll()}
 /* ---------- tabs ---------- */
 document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('#tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));
-  ['entry','catch','book','sum','cls'].forEach(t=>$('t-'+t).hidden=(t!==b.dataset.t));
+  ['entry','catch','book','sum','naw','cls'].forEach(t=>$('t-'+t).hidden=(t!==b.dataset.t));
   refreshAll();
 });
 
@@ -741,6 +763,37 @@ $('bGrid').onclick=async ev=>{
 };
 $('bClass').onchange=fillBookTopics;$('bTopic').onchange=drawBook;
 
+/* ---------- N-awards ---------- */
+function nawFor(id){return S.naw.filter(r=>r.id===id).sort((a,b)=>(+a.number||0)-(+b.number||0)||a.date.localeCompare(b.date))}
+function drawNaw(){
+  const box=$('nList');
+  if(!S.loaded){box.innerHTML='<p class="empty">Open your folder or files first.</p>';return}
+  const cls=$('nClass').value;
+  fillSelect($('nStudent'),studentsIn(cls).map(s=>s.id),true,id=>nameOf(id));
+  const students=studentsIn(cls).filter(s=>nawFor(s.id).length);
+  if(!students.length){box.innerHTML='<p class="empty">No warnings logged for this class yet.</p>';return}
+  box.innerHTML='<table><thead><tr><th>Student</th><th>Warnings</th></tr></thead><tbody>'+
+    students.map(s=>'<tr><td>'+esc(fullName(s))+'</td><td>'+
+      nawFor(s.id).map(r=>'<span class="tag" title="'+esc(showDate(r.date))+'">#'+esc(r.number||'?')+' '+esc(r.task||'')+' · '+esc(showShort(r.date))+' <button class="nx" data-id="'+esc(r.id)+'" data-num="'+esc(r.number)+'" data-date="'+esc(r.date)+'" aria-label="Delete" style="border:0;background:transparent;color:var(--bad);cursor:pointer;padding:0 2px">×</button></span>').join('')+
+      '</td></tr>').join('')+'</tbody></table>';
+}
+$('nClass').onchange=drawNaw;
+$('nAdd').onclick=async()=>{
+  const id=$('nStudent').value,date=$('nDate').value||todayISO(),task=$('nTask').value.trim();
+  if(!S.loaded){$('nMsg').textContent='Open your folder or files first.';return}
+  if(!id){$('nMsg').textContent='Choose a student.';return}
+  const num=nawFor(id).reduce((m,r)=>Math.max(m,+r.number||0),0)+1;
+  S.naw.push({id,date,number:String(num),task,notes:''});
+  S.naw.sort((a,b)=>a.id.localeCompare(b.id)||(+a.number||0)-(+b.number||0));
+  $('nTask').value='';$('nMsg').textContent='Warning #'+num+' logged for '+nameOf(id)+'.';
+  await persist();drawNaw();
+};
+$('nList').onclick=async ev=>{
+  const b=ev.target.closest('.nx');if(!b)return;
+  S.naw=S.naw.filter(r=>!(r.id===b.dataset.id&&r.number===b.dataset.num&&r.date===b.dataset.date));
+  await persist();drawNaw();
+};
+
 /* ---------- refresh ---------- */
 function refreshAll(){
   refreshReasons();
@@ -751,11 +804,13 @@ function refreshAll(){
   fillSelect($('cClass'),['all'].concat(active),true,v=>v==='all'?'All classes':v);
   fillSelect($('sClass'),active);
   fillSelect($('bClass'),active);
+  fillSelect($('nClass'),active);
   fillSelect($('kClass'),any);
   $('classCodes').innerHTML=any.map(c=>'<option value="'+esc(c)+'">').join('');
   if(!$('sTo').value){$('sTo').value=todayISO();$('sFrom').value=addDays(todayISO(),-13)}
+  if(!$('nDate').value)$('nDate').value=todayISO();
   if(S.loaded)loadMarks();else drawRoll();
-  drawCatch();drawSummary();fillBookTopics();drawClasses();
+  drawCatch();drawSummary();fillBookTopics();drawNaw();drawClasses();
 }
 $('eDate').value=todayISO();
 refreshAll();
