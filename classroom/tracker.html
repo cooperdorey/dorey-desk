@@ -108,6 +108,25 @@ dialog .row{margin-top:12px}
   #printArea .sumPrint td.nm{width:48mm;vertical-align:middle}
   #printArea .sumPrint th.rsn,#printArea .sumPrint td.rsn{width:34mm;vertical-align:middle;font-size:9.5pt}
   #printArea .sumPrint th.cmt,#printArea .sumPrint td.cmt{width:auto}
+  #printArea .natPage{font-family:Arial,Helvetica,sans-serif;color:#000;page-break-after:always;font-size:8.5pt;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  #printArea .natPage:last-child{page-break-after:auto}
+  #printArea .natPage h2{text-align:center;font-size:13pt;margin:0 0 2mm;padding-bottom:1mm;border-bottom:1px solid #000}
+  #printArea .natHead{width:100%;border-collapse:collapse;margin-bottom:3mm}
+  #printArea .natHead td{border:1px solid #000;padding:1.2mm 2mm;font-size:9.5pt}
+  #printArea .natHead td.l{width:30mm}
+  #printArea .natSec{display:grid;grid-template-columns:13mm 25mm 42mm 1fr 36mm;border:1px solid #000;border-bottom:0;margin-top:0;page-break-inside:avoid}
+  #printArea .natSec>div{border-right:1px solid #ccc;padding:0}
+  #printArea .natSec .hd{background:#7f7f7f;color:#fff;text-align:center;font-size:7.5pt;font-weight:bold;padding:0.8mm 0;letter-spacing:.2px}
+  #printArea .natSec .cell{padding:1mm 1.5mm;min-height:6mm}
+  #printArea .natLast{border-bottom:1px solid #000}
+  #printArea .natSec .num{text-align:center;font-weight:bold;font-size:10pt;padding-top:1.5mm}
+  #printArea .natSec .line{display:flex;align-items:center;gap:1mm;margin-bottom:1.2mm}
+  #printArea .natSec .fld{flex:1;border:1px solid #000;height:4.6mm}
+  #printArea .natSec .opt{display:flex;justify-content:space-between;align-items:center;padding:0 1mm 0 1.5mm;height:4.9mm;font-size:8pt}
+  #printArea .natSec .bx{display:inline-block;width:4mm;height:4mm;border:1px solid #000;margin-left:2mm;text-align:center;line-height:4mm;font-weight:bold;font-size:9pt}
+  #printArea .natSec .yn{display:flex;gap:1.5mm;align-items:center;justify-content:center;padding-top:2mm;font-size:8pt}
+  #printArea .natSec .yn .bx{width:7mm;margin:0}
+  #printArea .natSec .top{font-size:7pt;color:#333;text-align:center;line-height:1.2}
   #printArea .sumPrint .pct{display:inline-block;min-width:15mm;padding:1mm 2mm;border-radius:3mm;color:#fff;font-weight:bold;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 }
 </style>
@@ -230,7 +249,7 @@ dialog .row{margin-top:12px}
           </label>
         </div>
       </div>
-      <div class="row" style="margin-top:8px"><button class="solid" id="nAdd">Add warning</button><span id="nMsg" class="note" style="margin:0"></span></div>
+      <div class="row" style="margin-top:8px"><button class="solid" id="nAdd">Add warning</button><button class="quiet" id="nSheet" type="button">Print tracker sheets (ticked students)</button><span id="nMsg" class="note" style="margin:0"></span></div>
       <p class="note">Tick one or more students, pick a topic and the two boxes prefill from the topic's lessons and outcomes — edit them if you like before logging. The warning number fills in automatically. Outcomes and classroom codes come from <code>classroom/naward.json</code>; edit that file to change them. Saved to nawards.csv (IDs only, no names). In the list below, click a warning to switch it between Unresolved (red) and Resolved (green); right-click it to delete.</p>
     </div>
     <div class="card" style="padding:6px 10px"><div id="nList"></div></div>
@@ -715,7 +734,7 @@ function buildTopics(data){
       });
       if(lessons.length){TOPICS.push({label:(t.num?t.num+' ':'')+t.name,num:t.num||'',name:t.name||'',course:key,lessons});any=true}
     });
-    if(any&&!COURSES.some(x=>x.key===key))COURSES.push({key,label});
+    if(any&&!COURSES.some(x=>x.key===key))COURSES.push({key,label,name:c.name||label,year:y.name||''});
   }));
   fillSelect($('aCourse'),[''].concat(COURSES.map(c=>c.key)),false,v=>v?(COURSES.find(c=>c.key===v)||{}).label:'— choose —');
   fillSelect($('kCourse'),[''].concat(COURSES.map(c=>c.key)),true,v=>v?(COURSES.find(c=>c.key===v)||{}).label:'— not set —');
@@ -859,6 +878,43 @@ $('nList').oncontextmenu=async ev=>{
   if(!confirm('Delete warning #'+r.number+' ('+r.topic+') for '+nameOf(r.id)+'?'))return;
   S.naw=S.naw.filter(x=>x!==r);
   await persist();drawNaw();drawDash();
+};
+
+/* ---------- N-award tracker sheet (A4, one page per student) ---------- */
+function courseInfo(cls){const k=classCourse(cls);return COURSES.find(c=>c.key===k)||{name:'',year:''}}
+function nSheetHTML(st){
+  const ci=courseInfo(st.class),ws=nawFor(st.id),by={};
+  ws.forEach(r=>{const n=+r.number;if(n>=1&&!by[n])by[n]=r});
+  const year=ci.year||'',title=(year?year+' ':'')+'Mathematics N-Award Tracker';
+  let h='<div class="natPage"><h2>'+esc(title)+'</h2><table class="natHead">'+
+    '<tr><td class="l">Student Name:</td><td>'+esc(fullName(st))+'</td></tr>'+
+    '<tr><td class="l">Teacher Name:</td><td style="text-align:center">Dorey</td></tr>'+
+    '<tr><td class="l">Course Name:</td><td style="text-align:center">'+esc(ci.name||'')+'</td></tr></table>';
+  for(let n=1;n<=5;n++){
+    const r=by[n],res=r&&r.status==='resolved';
+    const contact=['CRT:','HT:'].concat(n>=3?['DP:']:[]);
+    const opts=['P/C TO PARENT','TUE/ THURSDAY TUTORIAL','RECESS/ LUNCH DETENTION','EMAIL TO PARENT','SLSO SUPPORT'].concat(n>=2?['HT INTERVIEW']:[]).concat(n>=3?['DP INTERVIEW']:[]);
+    h+='<div class="natSec'+(n===5?' natLast':'')+'">'+
+      '<div><div class="hd">LETTER</div><div class="num">'+n+'</div></div>'+
+      '<div><div class="hd">DATE SENT</div><div class="cell">'+(r?'<strong>'+esc(r.date.split('-').reverse().join('/'))+'</strong><div class="top">'+esc(r.topic||'')+'</div>':'')+'</div></div>'+
+      '<div><div class="hd">DATE PARENT CONTACT</div><div class="cell">'+contact.map(c=>'<div class="line"><span style="width:9mm">'+c+'</span><span class="fld"></span></div>').join('')+'</div></div>'+
+      '<div><div class="hd">SUPPORT OFFERED</div>'+opts.map(o=>'<div class="opt"><span>'+o+'</span><span class="bx"></span></div>').join('')+'</div>'+
+      '<div style="border-right:0"><div class="hd">RESOLVED</div><div class="yn">YES<span class="bx">'+(res?'✓':'')+'</span> NO<span class="bx">'+(r&&!res?'✓':'')+'</span></div></div>'+
+    '</div>';
+  }
+  const extra=ws.filter(r=>+r.number>5).length;
+  if(extra)h+='<p style="font-size:8pt;margin:2mm 0 0">+ '+extra+' further warning'+(extra>1?'s':'')+' not shown (this sheet holds five letters).</p>';
+  return h+'</div>';
+}
+$('nSheet').onclick=()=>{
+  if(!S.loaded){$('nMsg').textContent='Open your folder or files first.';return}
+  const ids=nChecked(),sts=ids.map(rowOf).filter(Boolean).sort(cmpRow);
+  if(!sts.length){$('nMsg').textContent='Tick the students to print sheets for.';return}
+  const withW=sts.filter(st=>nawFor(st.id).length);
+  if(!withW.length){$('nMsg').textContent='None of the ticked students have a warning logged yet.';return}
+  $('nMsg').textContent='Printing '+withW.length+' sheet'+(withW.length>1?'s':'')+(withW.length<sts.length?' (skipped '+(sts.length-withW.length)+' with no warnings)':'')+' — choose "Save as PDF", A4.';
+  $('printArea').innerHTML=withW.map(nSheetHTML).join('');
+  window.print();
 };
 
 /* ---------- Dashboard ---------- */
