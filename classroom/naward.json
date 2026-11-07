@@ -4,8 +4,16 @@
  },
  "outcomes": {
   "year-12/maths-standard-1|1": [
-   "MS-M1 Applications of measurement",
-   "MS1-12-1 uses detailed algebraic and graphical techniques to critically analyse and interpret practical situations"
+   "MST-12-S1-05 interprets ratios and rates to solve problems in practical contexts",
+   "MAO-WM-01 develops understanding and fluency in mathematics through exploring and connecting mathematical concepts, choosing and applying mathematical techniques to solve problems, and communicating their thinking and reasoning coherently and clearly"
+  ],
+  "year-12/maths-standard-1|2": [
+   "MST-12-S1-07 models and solves problems involving the probabilities of simple and compound events",
+   "MAO-WM-01 develops understanding and fluency in mathematics through exploring and connecting mathematical concepts, choosing and applying mathematical techniques to solve problems, and communicating their thinking and reasoning coherently and clearly"
+  ],
+  "year-12/maths-standard-1|3": [
+   "MST-12-S1-04 applies Pythagoras’ theorem and trigonometry to solve problems involving right-angled triangles",
+   "MAO-WM-01 develops understanding and fluency in mathematics through exploring and connecting mathematical concepts, choosing and applying mathematical techniques to solve problems, and communicating their thinking and reasoning coherently and clearly"
   ]
  }
 }
