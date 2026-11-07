@@ -204,7 +204,7 @@ dialog .row{margin-top:12px}
       <h2>Log an N-award warning</h2>
       <div class="row">
         <label class="f">Class<select id="nClass"></select></label>
-        <label class="f">Student<select id="nStudent"></select></label>
+        <label class="f">Students (pick one or more)<select id="nStudent" multiple size="6" style="min-width:200px"></select></label>
         <label class="f">Topic<select id="nTopic"></select></label>
         <label class="f">Date issued<input type="date" id="nDate"></label>
       </div>
@@ -787,7 +787,7 @@ function nPrefill(){
   $('nOutcomes').value=(NAWARD.outcomes[key]||[]).join('\n');
   const codes=topic.lessons.map(l=>l.code).join(', ');
   const cc=NAWARD.classroomCodes[cls]||'xxxxx';
-  $('nDetail').value='Student to complete all lessons and the Dorey’s Resource Book (DRB) for '+topic.name+': '+codes+'. All lessons and the DRB can be found on Dorey Desk and on the Google Classroom (code: '+cc+').';
+  $('nDetail').value='Student to complete all lessons and the Dorey’s Resource Book (DRB) for '+topic.name+': '+codes+'. All lessons and the DRB can be found on OneNote or Google Classroom (code: '+cc+').';
 }
 function fillNTopics(){
   const cc=classCourse($('nClass').value);
@@ -811,14 +811,18 @@ $('nClass').onchange=()=>{fillNTopics();drawNaw()};
 $('nTopic').onchange=nPrefill;
 $('nStudent').onchange=()=>{};
 $('nAdd').onclick=async()=>{
-  const id=$('nStudent').value,date=$('nDate').value||todayISO(),topic=nTopicObj();
+  const ids=[...$('nStudent').selectedOptions].map(o=>o.value).filter(Boolean);
+  const date=$('nDate').value||todayISO(),topic=nTopicObj();
   if(!S.loaded){$('nMsg').textContent='Open your folder or files first.';return}
-  if(!id){$('nMsg').textContent='Choose a student.';return}
+  if(!ids.length){$('nMsg').textContent='Choose at least one student.';return}
   if(!topic){$('nMsg').textContent='Choose a topic.';return}
-  const num=nawFor(id).reduce((m,r)=>Math.max(m,+r.number||0),0)+1;
-  S.naw.push({id,date,number:String(num),topic:topic.label,outcomes:$('nOutcomes').value.trim(),detail:$('nDetail').value.trim()});
+  const outcomes=$('nOutcomes').value.trim(),detail=$('nDetail').value.trim();
+  ids.forEach(id=>{
+    const num=nawFor(id).reduce((m,r)=>Math.max(m,+r.number||0),0)+1;
+    S.naw.push({id,date,number:String(num),topic:topic.label,outcomes,detail});
+  });
   S.naw.sort((a,b)=>a.id.localeCompare(b.id)||(+a.number||0)-(+b.number||0));
-  $('nMsg').textContent='Warning #'+num+' logged for '+nameOf(id)+' ('+topic.label+').';
+  $('nMsg').textContent='Warning logged for '+ids.length+' student'+(ids.length>1?'s':'')+' ('+topic.label+').';
   await persist();drawNaw();
 };
 $('nList').onclick=async ev=>{
