@@ -571,7 +571,7 @@ $('sTable').addEventListener('change',ev=>{const i=ev.target.closest('.snrow');i
 $('sPrint').onclick=()=>{
   const d=summaryData(),title='Term '+$('sTerm').value+' Week '+$('sWeek').value;
   const topReason=by=>{let best='',n=0;for(const k in by){if(by[k]>n){n=by[k];best=k}}return n?best+' ('+n+')':''};
-  const body=d.rows.map(r=>'<tr><td class="nm">'+esc(r.name)+'</td><td class="n">'+r.lessons+'</td><td class="n"><span class="pct" style="background:'+attColour(r.pct)+'">'+r.pct+'%</span></td><td class="rsn">'+esc(topReason(r.by))+'</td><td class="cmt"></td></tr>').join('');
+  const body=d.rows.map(r=>'<tr><td class="nm">'+esc(r.name)+'</td><td class="n">'+r.lessons+'</td><td class="n"><span class="pct" style="background:'+attColour(r.pct)+'">'+r.pct+'%</span></td><td class="rsn">'+esc(r.pct<80?topReason(r.by):'')+'</td><td class="cmt"></td></tr>').join('');
   $('printArea').innerHTML='<div class="sumPrint"><p class="cls">'+esc(d.cls)+'</p><div class="ptitle">'+esc(title)+'</div>'+
     '<table><thead><tr><th class="nm">Name</th><th class="n">Lessons</th><th class="n">Attendance</th><th class="rsn">Main reason</th><th class="cmt">Comment</th></tr></thead><tbody>'+
     (body||'<tr><td colspan="5">No students.</td></tr>')+'</tbody></table></div>';
