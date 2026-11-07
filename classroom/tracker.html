@@ -825,7 +825,7 @@ function nPrefill(){
   const key=topic.course+'|'+topic.num;
   $('nOutcomes').value=(NAWARD.outcomes[key]||[]).join('\n');
   const codes=topic.lessons.map(l=>l.code).join(', ');
-  const cc=NAWARD.classroomCodes[cls]||'xxxxx';
+  const cc=NAWARD.classroomCodes[cls]||NAWARD.classroomCodes[classCourse(cls)]||'xxxxx';
   $('nDetail').value='Student to complete all lessons and the Dorey’s Resource Book (DRB) for '+topic.name+': '+codes+'. All lessons and the DRB can be found on OneNote or Google Classroom (code: '+cc+').';
 }
 function fillNTopics(){
