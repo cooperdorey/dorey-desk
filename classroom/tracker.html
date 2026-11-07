@@ -106,6 +106,7 @@ dialog .row{margin-top:12px}
   #printArea .sumPrint td{border-bottom:1px solid #000;padding:0 2mm;height:15mm;vertical-align:top}
   #printArea .sumPrint td.n{text-align:center;width:22mm;vertical-align:middle}
   #printArea .sumPrint td.nm{width:48mm;vertical-align:middle}
+  #printArea .sumPrint th.rsn,#printArea .sumPrint td.rsn{width:34mm;vertical-align:middle;font-size:9.5pt}
   #printArea .sumPrint th.cmt,#printArea .sumPrint td.cmt{width:auto}
   #printArea .sumPrint .pct{display:inline-block;min-width:15mm;padding:1mm 2mm;border-radius:3mm;color:#fff;font-weight:bold;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 }
@@ -569,10 +570,11 @@ function drawSummary(){
 $('sTable').addEventListener('change',ev=>{const i=ev.target.closest('.snrow');if(!i)return;const v=parseInt(i.value,10);if(v>=1)SUMN[i.dataset.id]=v;else delete SUMN[i.dataset.id];drawSummary()});
 $('sPrint').onclick=()=>{
   const d=summaryData(),title='Term '+$('sTerm').value+' Week '+$('sWeek').value;
-  const body=d.rows.map(r=>'<tr><td class="nm">'+esc(r.name)+'</td><td class="n">'+r.lessons+'</td><td class="n"><span class="pct" style="background:'+attColour(r.pct)+'">'+r.pct+'%</span></td><td class="cmt"></td></tr>').join('');
+  const topReason=by=>{let best='',n=0;for(const k in by){if(by[k]>n){n=by[k];best=k}}return n?best+' ('+n+')':''};
+  const body=d.rows.map(r=>'<tr><td class="nm">'+esc(r.name)+'</td><td class="n">'+r.lessons+'</td><td class="n"><span class="pct" style="background:'+attColour(r.pct)+'">'+r.pct+'%</span></td><td class="rsn">'+esc(topReason(r.by))+'</td><td class="cmt"></td></tr>').join('');
   $('printArea').innerHTML='<div class="sumPrint"><p class="cls">'+esc(d.cls)+'</p><div class="ptitle">'+esc(title)+'</div>'+
-    '<table><thead><tr><th class="nm">Name</th><th class="n">Lessons</th><th class="n">Attendance</th><th class="cmt">Comment</th></tr></thead><tbody>'+
-    (body||'<tr><td colspan="4">No students.</td></tr>')+'</tbody></table></div>';
+    '<table><thead><tr><th class="nm">Name</th><th class="n">Lessons</th><th class="n">Attendance</th><th class="rsn">Main reason</th><th class="cmt">Comment</th></tr></thead><tbody>'+
+    (body||'<tr><td colspan="5">No students.</td></tr>')+'</tbody></table></div>';
   window.print();
 };
 $('sCsv').onclick=()=>{
