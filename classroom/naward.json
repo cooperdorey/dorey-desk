@@ -14,6 +14,14 @@
   "year-12/maths-standard-1|3": [
    "MST-12-S1-04 applies Pythagoras’ theorem and trigonometry to solve problems involving right-angled triangles",
    "MAO-WM-01 develops understanding and fluency in mathematics through exploring and connecting mathematical concepts, choosing and applying mathematical techniques to solve problems, and communicating their thinking and reasoning coherently and clearly"
+  ],
+  "year-12/maths-advanced|1": [
+   "MAV-12-04 selects and applies differentiation methods to solve problems",
+   "MAO-WM-01 develops understanding and fluency in mathematics through exploring and connecting mathematical concepts, choosing and applying mathematical techniques to solve problems, and communicating their thinking and reasoning coherently and clearly"
+  ],
+  "year-12/maths-advanced|2": [
+   "MAV-12-05 solves problems involving indefinite and definite integrals",
+   "MAO-WM-01 develops understanding and fluency in mathematics through exploring and connecting mathematical concepts, choosing and applying mathematical techniques to solve problems, and communicating their thinking and reasoning coherently and clearly"
   ]
  }
 }
