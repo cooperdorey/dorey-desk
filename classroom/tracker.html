@@ -130,14 +130,22 @@ dialog .row{margin-top:12px}
   <p class="note">The folder you open must be somewhere approved for student information. The page keeps nothing after you close it: no names are stored in the browser or sent anywhere.</p>
 
   <div class="tabs" role="tablist" id="tabs">
+    <button role="tab" aria-selected="false" data-t="dash">Dashboard</button>
     <button role="tab" aria-selected="true" data-t="entry">Quick entry</button>
     <button role="tab" aria-selected="false" data-t="catch">Catch-up slips</button>
     <button role="tab" aria-selected="false" data-t="book">Book work</button>
     <button role="tab" aria-selected="false" data-t="sum">Attendance summary</button>
     <button role="tab" aria-selected="false" data-t="naw">N-awards</button>
-    <button role="tab" aria-selected="false" data-t="nt">N-award tracker</button>
     <button role="tab" aria-selected="false" data-t="cls">Classes</button>
   </div>
+
+  <section id="t-dash" hidden>
+    <div class="row">
+      <label class="f">Class<select id="dClass"></select></label>
+    </div>
+    <div class="card" style="padding:6px 10px"><div id="dList"></div></div>
+    <p class="note">Every student in the class with their N-award warnings (resolved and unresolved) and the book work they still owe, in lesson order. Owed lessons come from the Book work tab (a lesson counts once someone in the class has it ticked).</p>
+  </section>
 
   <section id="t-entry">
     <div class="row">
@@ -223,19 +231,9 @@ dialog .row{margin-top:12px}
         </div>
       </div>
       <div class="row" style="margin-top:8px"><button class="solid" id="nAdd">Add warning</button><span id="nMsg" class="note" style="margin:0"></span></div>
-      <p class="note">Tick one or more students, pick a topic and the two boxes prefill from the topic's lessons and outcomes — edit them if you like before logging. The warning number fills in automatically. Outcomes and classroom codes come from <code>classroom/naward.json</code>; edit that file to change them. Saved to nawards.csv (IDs only, no names).</p>
+      <p class="note">Tick one or more students, pick a topic and the two boxes prefill from the topic's lessons and outcomes — edit them if you like before logging. The warning number fills in automatically. Outcomes and classroom codes come from <code>classroom/naward.json</code>; edit that file to change them. Saved to nawards.csv (IDs only, no names). In the list below, click a warning to switch it between Unresolved (red) and Resolved (green); right-click it to delete.</p>
     </div>
     <div class="card" style="padding:6px 10px"><div id="nList"></div></div>
-  </section>
-
-  <section id="t-nt" hidden>
-    <div class="row">
-      <label class="f">Class<select id="ntClass"></select></label>
-      <label class="f">Show<select id="ntShow"><option value="unresolved">Unresolved</option><option value="resolved">Resolved</option><option value="all">All</option></select></label>
-      <span id="ntCount" class="note" style="margin:0 0 6px"></span>
-    </div>
-    <div class="card" style="padding:6px 10px"><div id="ntList"></div></div>
-    <p class="note">Click a status to flip it between Unresolved and Resolved. Saved to nawards.csv (IDs only, no names).</p>
   </section>
 
   <section id="t-cls" hidden>
@@ -454,7 +452,7 @@ async function persist(){markDirty();if(S.dir)await saveAll()}
 /* ---------- tabs ---------- */
 document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('#tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));
-  ['entry','catch','book','sum','naw','nt','cls'].forEach(t=>$('t-'+t).hidden=(t!==b.dataset.t));
+  ['dash','entry','catch','book','sum','naw','cls'].forEach(t=>$('t-'+t).hidden=(t!==b.dataset.t));
   refreshAll();
 });
 
@@ -825,7 +823,7 @@ function drawNaw(){
   if(!students.length){box.innerHTML='<p class="empty">No warnings logged for this class yet.</p>';return}
   box.innerHTML='<table><thead><tr><th>Student</th><th>Warnings</th></tr></thead><tbody>'+
     students.map(s=>'<tr><td>'+esc(fullName(s))+'</td><td>'+
-      nawFor(s.id).map(r=>'<span class="tag" title="'+esc(r.detail||'')+'">#'+esc(r.number||'?')+' '+esc(r.topic||'')+' · '+esc(showShort(r.date))+' <button class="nx" data-id="'+esc(r.id)+'" data-num="'+esc(r.number)+'" data-date="'+esc(r.date)+'" aria-label="Delete" style="border:0;background:transparent;color:var(--bad);cursor:pointer;padding:0 2px">×</button></span>').join('')+
+      nawFor(s.id).map(r=>{const res=r.status==='resolved';return '<span class="tag nt" data-id="'+esc(r.id)+'" data-num="'+esc(r.number)+'" data-date="'+esc(r.date)+'" title="'+esc((r.detail||'')+'\n\n'+(res?'Resolved':'Unresolved')+' — click to switch, right-click to delete')+'" style="cursor:pointer;color:#fff;border:0;background:'+(res?'#15803D':'#C0392B')+'">#'+esc(r.number||'?')+' '+esc(r.topic||'')+' · '+esc(showShort(r.date))+' · '+(res?'Resolved':'Unresolved')+'</span>'}).join('')+
       '</td></tr>').join('')+'</tbody></table>';
 }
 $('nClass').onchange=()=>{fillNTopics();drawNaw()};
@@ -845,34 +843,41 @@ $('nAdd').onclick=async()=>{
   });
   S.naw.sort((a,b)=>a.id.localeCompare(b.id)||(+a.number||0)-(+b.number||0));
   $('nMsg').textContent='Warning logged for '+ids.length+' student'+(ids.length>1?'s':'')+' ('+topic.label+').';
-  await persist();drawNaw();drawNT();
+  await persist();drawNaw();drawDash();
 };
+function nFind(el){return S.naw.find(x=>x.id===el.dataset.id&&x.number===el.dataset.num&&x.date===el.dataset.date)}
 $('nList').onclick=async ev=>{
-  const b=ev.target.closest('.nx');if(!b)return;
-  S.naw=S.naw.filter(r=>!(r.id===b.dataset.id&&r.number===b.dataset.num&&r.date===b.dataset.date));
-  await persist();drawNaw();drawNT();
+  const b=ev.target.closest('.nt');if(!b)return;
+  const r=nFind(b);if(!r)return;
+  r.status=r.status==='resolved'?'unresolved':'resolved';
+  await persist();drawNaw();drawDash();
+};
+$('nList').oncontextmenu=async ev=>{
+  const b=ev.target.closest('.nt');if(!b)return;
+  ev.preventDefault();
+  const r=nFind(b);if(!r)return;
+  if(!confirm('Delete warning #'+r.number+' ('+r.topic+') for '+nameOf(r.id)+'?'))return;
+  S.naw=S.naw.filter(x=>x!==r);
+  await persist();drawNaw();drawDash();
 };
 
-/* ---------- N-award tracker ---------- */
-function drawNT(){
-  const box=$('ntList');
-  if(!S.loaded){box.innerHTML='<p class="empty">Open your folder or files first.</p>';$('ntCount').textContent='';return}
-  const cls=$('ntClass').value,show=$('ntShow').value;
-  const inCls=r=>{const st=rowOf(r.id);return !!st&&(cls==='all'||st.class===cls)};
-  const rows=S.naw.filter(r=>inCls(r)&&(show==='all'||r.status===show)).sort((a,b)=>cmpId(a.id,b.id)||(+a.number||0)-(+b.number||0));
-  $('ntCount').textContent=S.naw.filter(r=>inCls(r)&&r.status!=='resolved').length+' unresolved';
-  if(!rows.length){box.innerHTML='<p class="empty">Nothing to show.</p>';return}
-  box.innerHTML='<table><thead><tr><th>Student</th><th>Class</th><th>#</th><th>Topic</th><th>Issued</th><th>Status</th></tr></thead><tbody>'+
-    rows.map(r=>{const st=rowOf(r.id),res=r.status==='resolved';
-      return '<tr><td>'+esc(nameOf(r.id))+'</td><td>'+esc(st.class)+'</td><td>'+esc(r.number)+'</td><td title="'+esc(r.detail||'')+'">'+esc(r.topic)+'</td><td>'+esc(showShort(r.date))+'</td><td><button class="nst" data-id="'+esc(r.id)+'" data-num="'+esc(r.number)+'" data-date="'+esc(r.date)+'" style="border-radius:999px;border:0;padding:3px 12px;color:#fff;cursor:pointer;background:'+(res?'#15803D':'#C0392B')+'">'+(res?'Resolved':'Unresolved')+'</button></td></tr>'}).join('')+'</tbody></table>';
+/* ---------- Dashboard ---------- */
+function drawDash(){
+  const box=$('dList');
+  if(!S.loaded){box.innerHTML='<p class="empty">Open your folder or files first.</p>';return}
+  const cls=$('dClass').value,students=studentsIn(cls);
+  if(!students.length){box.innerHTML='<p class="empty">No students in this class.</p>';return}
+  const idset=new Set(students.map(s=>s.id)),active=new Set();
+  S.book.forEach((v,k)=>{const i=k.indexOf('|');if(idset.has(k.slice(0,i)))active.add(k.slice(i+1))});
+  const lessons=[...active].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));
+  box.innerHTML='<table><thead><tr><th>Student</th><th>N-awards resolved</th><th>N-awards unresolved</th><th>Missed lessons</th></tr></thead><tbody>'+
+    students.map(s=>{
+      const n=nawFor(s.id),res=n.filter(r=>r.status==='resolved').length,un=n.length-res;
+      const owed=lessons.filter(l=>!S.book.has(bKey(s.id,l)));
+      return '<tr><td>'+esc(s.last)+', '+esc(s.first)+'</td><td style="text-align:center;color:#15803D;font-weight:600">'+res+'</td><td style="text-align:center;color:'+(un?'#C0392B':'inherit')+';font-weight:600">'+un+'</td><td>'+
+        (owed.map(l=>'<span class="tag">'+esc(l)+'</span>').join('')||'<span class="note" style="margin:0">None</span>')+'</td></tr>'}).join('')+'</tbody></table>';
 }
-$('ntClass').onchange=drawNT;$('ntShow').onchange=drawNT;
-$('ntList').onclick=async ev=>{
-  const b=ev.target.closest('.nst');if(!b)return;
-  const r=S.naw.find(x=>x.id===b.dataset.id&&x.number===b.dataset.num&&x.date===b.dataset.date);if(!r)return;
-  r.status=r.status==='resolved'?'unresolved':'resolved';
-  await persist();drawNT();
-};
+$('dClass').onchange=drawDash;
 
 /* ---------- refresh ---------- */
 function refreshAll(){
@@ -885,13 +890,13 @@ function refreshAll(){
   fillSelect($('sClass'),active);
   fillSelect($('bClass'),active);
   fillSelect($('nClass'),active);
-  fillSelect($('ntClass'),['all'].concat(active),true,v=>v==='all'?'All classes':v);
+  fillSelect($('dClass'),active);
   fillSelect($('kClass'),any);
   $('classCodes').innerHTML=any.map(c=>'<option value="'+esc(c)+'">').join('');
   if(!$('sTo').value){$('sTo').value=todayISO();$('sFrom').value=addDays(todayISO(),-13)}
   if(!$('nDate').value)$('nDate').value=todayISO();
   if(S.loaded)loadMarks();else drawRoll();
-  drawCatch();drawSummary();fillBookTopics();fillNTopics();drawNaw();drawNT();drawClasses();
+  drawCatch();drawSummary();fillBookTopics();fillNTopics();drawNaw();drawDash();drawClasses();
 }
 $('eDate').value=todayISO();
 refreshAll();
