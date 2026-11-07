@@ -135,6 +135,7 @@ dialog .row{margin-top:12px}
     <button role="tab" aria-selected="false" data-t="book">Book work</button>
     <button role="tab" aria-selected="false" data-t="sum">Attendance summary</button>
     <button role="tab" aria-selected="false" data-t="naw">N-awards</button>
+    <button role="tab" aria-selected="false" data-t="nt">N-award tracker</button>
     <button role="tab" aria-selected="false" data-t="cls">Classes</button>
   </div>
 
@@ -204,22 +205,37 @@ dialog .row{margin-top:12px}
       <h2>Log an N-award warning</h2>
       <div class="row">
         <label class="f">Class<select id="nClass"></select></label>
-        <label class="f">Students (pick one or more)<select id="nStudent" multiple size="6" style="min-width:200px"></select></label>
         <label class="f">Topic<select id="nTopic"></select></label>
         <label class="f">Date issued<input type="date" id="nDate"></label>
       </div>
-      <div class="row" style="align-items:stretch">
-        <label class="f" style="flex:1 1 280px">Outcomes
-          <textarea id="nOutcomes" style="min-height:90px"></textarea>
-        </label>
-        <label class="f" style="flex:1 1 280px">How to complete the N-award
-          <textarea id="nDetail" style="min-height:90px"></textarea>
-        </label>
+      <div class="row" style="align-items:flex-start;flex-wrap:nowrap">
+        <div class="f" style="flex:0 0 210px">
+          <span>Students <button class="quiet" id="nAll" type="button" style="padding:0 8px;font-size:12px">All</button> <button class="quiet" id="nNone" type="button" style="padding:0 8px;font-size:12px">None</button></span>
+          <div id="nStudents" style="border:1px solid var(--line);border-radius:8px;padding:4px 8px;max-height:260px;overflow:auto"></div>
+        </div>
+        <div style="flex:1 1 auto;display:flex;flex-direction:column;gap:8px;min-width:0">
+          <label class="f">Outcomes
+            <textarea id="nOutcomes" style="min-height:90px"></textarea>
+          </label>
+          <label class="f">How to complete the N-award
+            <textarea id="nDetail" style="min-height:90px"></textarea>
+          </label>
+        </div>
       </div>
       <div class="row" style="margin-top:8px"><button class="solid" id="nAdd">Add warning</button><span id="nMsg" class="note" style="margin:0"></span></div>
-      <p class="note">Pick a student and topic and the two boxes prefill from the topic's lessons and outcomes — edit them if you like before logging. The warning number fills in automatically. Outcomes and classroom codes come from <code>classroom/naward.json</code>; edit that file to change them. Saved to nawards.csv (IDs only, no names).</p>
+      <p class="note">Tick one or more students, pick a topic and the two boxes prefill from the topic's lessons and outcomes — edit them if you like before logging. The warning number fills in automatically. Outcomes and classroom codes come from <code>classroom/naward.json</code>; edit that file to change them. Saved to nawards.csv (IDs only, no names).</p>
     </div>
     <div class="card" style="padding:6px 10px"><div id="nList"></div></div>
+  </section>
+
+  <section id="t-nt" hidden>
+    <div class="row">
+      <label class="f">Class<select id="ntClass"></select></label>
+      <label class="f">Show<select id="ntShow"><option value="unresolved">Unresolved</option><option value="resolved">Resolved</option><option value="all">All</option></select></label>
+      <span id="ntCount" class="note" style="margin:0 0 6px"></span>
+    </div>
+    <div class="card" style="padding:6px 10px"><div id="ntList"></div></div>
+    <p class="note">Click a status to flip it between Unresolved and Resolved. Saved to nawards.csv (IDs only, no names).</p>
   </section>
 
   <section id="t-cls" hidden>
@@ -257,7 +273,7 @@ const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;'
 const CC=['id','last','first','class','course','left'];
 const AC=['date','period','class','id','reason','lesson','status','notes'];
 const BC=['id','lesson','done'];
-const NC=['id','date','number','topic','outcomes','detail'];
+const NC=['id','date','number','topic','outcomes','detail','status'];
 let NAWARD={classroomCodes:{},outcomes:{}};
 const DEFAULT_REASONS=['Explained','Learning Enrichment','SBAT','School Business','Sick','Suspension','Tafe','Truant','Unexplained','Wellbeing','Work Placement'];
 const S={classes:[],abs:[],book:new Map(),naw:[],dir:null,handles:{},loaded:false,dirty:false};
@@ -370,7 +386,7 @@ function loadFromText(ct,at,bt,nt){
   S.abs=a.rows.filter(r=>r.date&&r.id).map(r=>{const o={};AC.forEach(k=>o[k]=r[k]||'');o.date=isoDate(o.date);return o});
   S.book=new Map();
   b.rows.filter(r=>r.id&&r.lesson).forEach(r=>S.book.set(bKey(r.id,r.lesson),r.done||'yes'));
-  S.naw=nw.rows.filter(r=>r.id&&r.date).map(r=>{const o={};NC.forEach(k=>o[k]=r[k]||'');if(!o.topic&&r.task)o.topic=r.task;if(!o.detail&&r.notes)o.detail=r.notes;o.date=isoDate(o.date);return o});
+  S.naw=nw.rows.filter(r=>r.id&&r.date).map(r=>{const o={};NC.forEach(k=>o[k]=r[k]||'');if(!o.topic&&r.task)o.topic=r.task;if(!o.detail&&r.notes)o.detail=r.notes;o.date=isoDate(o.date);o.status=/^resolved/i.test(o.status)?'resolved':'unresolved';return o});
   S.loaded=true;S.dirty=false;
   refreshAll();updateBar();
 }
@@ -438,7 +454,7 @@ async function persist(){markDirty();if(S.dir)await saveAll()}
 /* ---------- tabs ---------- */
 document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('#tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));
-  ['entry','catch','book','sum','naw','cls'].forEach(t=>$('t-'+t).hidden=(t!==b.dataset.t));
+  ['entry','catch','book','sum','naw','nt','cls'].forEach(t=>$('t-'+t).hidden=(t!==b.dataset.t));
   refreshAll();
 });
 
@@ -776,7 +792,12 @@ $('bClass').onchange=fillBookTopics;$('bTopic').onchange=drawBook;
 async function loadNawardConfig(){
   try{const r=await fetch('./naward.json',{cache:'no-store'});
     if(r.ok){const j=await r.json();NAWARD={classroomCodes:j.classroomCodes||{},outcomes:j.outcomes||{}}}}catch(e){}
-  if($('nStudent'))nPrefill();
+  if($('nTopic'))nPrefill();
+}
+function nChecked(){return [...document.querySelectorAll('#nStudents .nchk:checked')].map(i=>i.value)}
+function drawNStudents(cls){
+  const keep=new Set(nChecked());
+  $('nStudents').innerHTML=studentsIn(cls).map(s=>'<label style="display:flex;gap:6px;align-items:center;padding:2px 0;font-size:14px"><input type="checkbox" class="nchk" value="'+esc(s.id)+'"'+(keep.has(s.id)?' checked':'')+'>'+esc(s.last)+', '+esc(s.first)+'</label>').join('')||'<p class="empty">No students.</p>';
 }
 function nawFor(id){return S.naw.filter(r=>r.id===id).sort((a,b)=>(+a.number||0)-(+b.number||0)||a.date.localeCompare(b.date))}
 function nTopicObj(){const v=$('nTopic').value;return v===''?null:TOPICS[+v]}
@@ -799,7 +820,7 @@ function drawNaw(){
   const box=$('nList');
   if(!S.loaded){box.innerHTML='<p class="empty">Open your folder or files first.</p>';return}
   const cls=$('nClass').value;
-  fillSelect($('nStudent'),studentsIn(cls).map(s=>s.id),true,id=>nameOf(id));
+  drawNStudents(cls);
   const students=studentsIn(cls).filter(s=>nawFor(s.id).length);
   if(!students.length){box.innerHTML='<p class="empty">No warnings logged for this class yet.</p>';return}
   box.innerHTML='<table><thead><tr><th>Student</th><th>Warnings</th></tr></thead><tbody>'+
@@ -809,9 +830,10 @@ function drawNaw(){
 }
 $('nClass').onchange=()=>{fillNTopics();drawNaw()};
 $('nTopic').onchange=nPrefill;
-$('nStudent').onchange=()=>{};
+$('nAll').onclick=()=>document.querySelectorAll('#nStudents .nchk').forEach(i=>i.checked=true);
+$('nNone').onclick=()=>document.querySelectorAll('#nStudents .nchk').forEach(i=>i.checked=false);
 $('nAdd').onclick=async()=>{
-  const ids=[...$('nStudent').selectedOptions].map(o=>o.value).filter(Boolean);
+  const ids=nChecked();
   const date=$('nDate').value||todayISO(),topic=nTopicObj();
   if(!S.loaded){$('nMsg').textContent='Open your folder or files first.';return}
   if(!ids.length){$('nMsg').textContent='Choose at least one student.';return}
@@ -819,16 +841,37 @@ $('nAdd').onclick=async()=>{
   const outcomes=$('nOutcomes').value.trim(),detail=$('nDetail').value.trim();
   ids.forEach(id=>{
     const num=nawFor(id).reduce((m,r)=>Math.max(m,+r.number||0),0)+1;
-    S.naw.push({id,date,number:String(num),topic:topic.label,outcomes,detail});
+    S.naw.push({id,date,number:String(num),topic:topic.label,outcomes,detail,status:'unresolved'});
   });
   S.naw.sort((a,b)=>a.id.localeCompare(b.id)||(+a.number||0)-(+b.number||0));
   $('nMsg').textContent='Warning logged for '+ids.length+' student'+(ids.length>1?'s':'')+' ('+topic.label+').';
-  await persist();drawNaw();
+  await persist();drawNaw();drawNT();
 };
 $('nList').onclick=async ev=>{
   const b=ev.target.closest('.nx');if(!b)return;
   S.naw=S.naw.filter(r=>!(r.id===b.dataset.id&&r.number===b.dataset.num&&r.date===b.dataset.date));
-  await persist();drawNaw();
+  await persist();drawNaw();drawNT();
+};
+
+/* ---------- N-award tracker ---------- */
+function drawNT(){
+  const box=$('ntList');
+  if(!S.loaded){box.innerHTML='<p class="empty">Open your folder or files first.</p>';$('ntCount').textContent='';return}
+  const cls=$('ntClass').value,show=$('ntShow').value;
+  const inCls=r=>{const st=rowOf(r.id);return !!st&&(cls==='all'||st.class===cls)};
+  const rows=S.naw.filter(r=>inCls(r)&&(show==='all'||r.status===show)).sort((a,b)=>cmpId(a.id,b.id)||(+a.number||0)-(+b.number||0));
+  $('ntCount').textContent=S.naw.filter(r=>inCls(r)&&r.status!=='resolved').length+' unresolved';
+  if(!rows.length){box.innerHTML='<p class="empty">Nothing to show.</p>';return}
+  box.innerHTML='<table><thead><tr><th>Student</th><th>Class</th><th>#</th><th>Topic</th><th>Issued</th><th>Status</th></tr></thead><tbody>'+
+    rows.map(r=>{const st=rowOf(r.id),res=r.status==='resolved';
+      return '<tr><td>'+esc(nameOf(r.id))+'</td><td>'+esc(st.class)+'</td><td>'+esc(r.number)+'</td><td title="'+esc(r.detail||'')+'">'+esc(r.topic)+'</td><td>'+esc(showShort(r.date))+'</td><td><button class="nst" data-id="'+esc(r.id)+'" data-num="'+esc(r.number)+'" data-date="'+esc(r.date)+'" style="border-radius:999px;border:0;padding:3px 12px;color:#fff;cursor:pointer;background:'+(res?'#15803D':'#C0392B')+'">'+(res?'Resolved':'Unresolved')+'</button></td></tr>'}).join('')+'</tbody></table>';
+}
+$('ntClass').onchange=drawNT;$('ntShow').onchange=drawNT;
+$('ntList').onclick=async ev=>{
+  const b=ev.target.closest('.nst');if(!b)return;
+  const r=S.naw.find(x=>x.id===b.dataset.id&&x.number===b.dataset.num&&x.date===b.dataset.date);if(!r)return;
+  r.status=r.status==='resolved'?'unresolved':'resolved';
+  await persist();drawNT();
 };
 
 /* ---------- refresh ---------- */
@@ -842,12 +885,13 @@ function refreshAll(){
   fillSelect($('sClass'),active);
   fillSelect($('bClass'),active);
   fillSelect($('nClass'),active);
+  fillSelect($('ntClass'),['all'].concat(active),true,v=>v==='all'?'All classes':v);
   fillSelect($('kClass'),any);
   $('classCodes').innerHTML=any.map(c=>'<option value="'+esc(c)+'">').join('');
   if(!$('sTo').value){$('sTo').value=todayISO();$('sFrom').value=addDays(todayISO(),-13)}
   if(!$('nDate').value)$('nDate').value=todayISO();
   if(S.loaded)loadMarks();else drawRoll();
-  drawCatch();drawSummary();fillBookTopics();fillNTopics();drawNaw();drawClasses();
+  drawCatch();drawSummary();fillBookTopics();fillNTopics();drawNaw();drawNT();drawClasses();
 }
 $('eDate').value=todayISO();
 refreshAll();
