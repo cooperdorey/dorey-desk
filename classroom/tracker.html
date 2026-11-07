@@ -290,7 +290,7 @@ const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;'
 const CC=['id','last','first','class','course','left'];
 const AC=['date','period','class','id','reason','lesson','status','notes'];
 const BC=['id','lesson','done'];
-const NC=['id','date','number','topic','outcomes','detail','status'];
+const NC=['id','date','number','topic','outcomes','detail','status','crt','ht','dp'];
 let NAWARD={classroomCodes:{},outcomes:{}};
 const DEFAULT_REASONS=['Explained','Learning Enrichment','SBAT','School Business','Sick','Suspension','Tafe','Truant','Unexplained','Wellbeing','Work Placement'];
 const S={classes:[],abs:[],book:new Map(),naw:[],dir:null,handles:{},loaded:false,dirty:false};
@@ -403,7 +403,7 @@ function loadFromText(ct,at,bt,nt){
   S.abs=a.rows.filter(r=>r.date&&r.id).map(r=>{const o={};AC.forEach(k=>o[k]=r[k]||'');o.date=isoDate(o.date);return o});
   S.book=new Map();
   b.rows.filter(r=>r.id&&r.lesson).forEach(r=>S.book.set(bKey(r.id,r.lesson),r.done||'yes'));
-  S.naw=nw.rows.filter(r=>r.id&&r.date).map(r=>{const o={};NC.forEach(k=>o[k]=r[k]||'');if(!o.topic&&r.task)o.topic=r.task;if(!o.detail&&r.notes)o.detail=r.notes;o.date=isoDate(o.date);o.status=/^resolved/i.test(o.status)?'resolved':'unresolved';return o});
+  S.naw=nw.rows.filter(r=>r.id&&r.date).map(r=>{const o={};NC.forEach(k=>o[k]=r[k]||'');if(!o.topic&&r.task)o.topic=r.task;if(!o.detail&&r.notes)o.detail=r.notes;o.date=isoDate(o.date);o.status=/^resolved/i.test(o.status)?'resolved':'unresolved';['crt','ht','dp'].forEach(k=>{o[k]=o[k]?isoDate(o[k]):''});return o});
   S.loaded=true;S.dirty=false;
   refreshAll();updateBar();
 }
@@ -816,6 +816,7 @@ function drawNStudents(cls){
   const keep=new Set(nChecked());
   $('nStudents').innerHTML=studentsIn(cls).map(s=>'<label style="display:flex;gap:6px;align-items:center;padding:2px 0;font-size:14px"><input type="checkbox" class="nchk" value="'+esc(s.id)+'"'+(keep.has(s.id)?' checked':'')+'>'+esc(s.last)+', '+esc(s.first)+'</label>').join('')||'<p class="empty">No students.</p>';
 }
+function contactKeys(n){return n>=3?['crt','ht','dp']:n===2?['crt','ht']:['crt']}
 function nawFor(id){return S.naw.filter(r=>r.id===id).sort((a,b)=>(+a.number||0)-(+b.number||0)||a.date.localeCompare(b.date))}
 function nTopicObj(){const v=$('nTopic').value;return v===''?null:TOPICS[+v]}
 function nPrefill(){
@@ -842,7 +843,8 @@ function drawNaw(){
   if(!students.length){box.innerHTML='<p class="empty">No warnings logged for this class yet.</p>';return}
   box.innerHTML='<table><thead><tr><th>Student</th><th>Warnings</th></tr></thead><tbody>'+
     students.map(s=>'<tr><td>'+esc(fullName(s))+'</td><td>'+
-      nawFor(s.id).map(r=>{const res=r.status==='resolved';return '<span class="tag nt" data-id="'+esc(r.id)+'" data-num="'+esc(r.number)+'" data-date="'+esc(r.date)+'" title="'+esc((r.detail||'')+'\n\n'+(res?'Resolved':'Unresolved')+' — click to switch, right-click to delete')+'" style="cursor:pointer;color:#fff;border:0;background:'+(res?'#15803D':'#C0392B')+'">#'+esc(r.number||'?')+' '+esc(r.topic||'')+' · '+esc(showShort(r.date))+' · '+(res?'Resolved':'Unresolved')+'</span>'}).join('')+
+      nawFor(s.id).map(r=>{const res=r.status==='resolved';return '<div style="margin:3px 0 7px"><span class="tag nt" data-id="'+esc(r.id)+'" data-num="'+esc(r.number)+'" data-date="'+esc(r.date)+'" title="'+esc((r.detail||'')+'\n\n'+(res?'Resolved':'Unresolved')+' — click to switch, right-click to delete')+'" style="cursor:pointer;color:#fff;border:0;background:'+(res?'#15803D':'#C0392B')+'">#'+esc(r.number||'?')+' '+esc(r.topic||'')+' · '+esc(showShort(r.date))+' · '+(res?'Resolved':'Unresolved')+'</span> '+
+        '<span class="note" style="margin:0 0 0 6px">Parent contacted:</span> '+contactKeys(+r.number).map(k=>'<label style="font-size:12px;margin-left:8px">'+k.toUpperCase()+' <input type="date" class="nd" data-f="'+k+'" data-id="'+esc(r.id)+'" data-num="'+esc(r.number)+'" data-date="'+esc(r.date)+'" value="'+esc(r[k]||'')+'" style="font-size:12px;padding:1px 3px"></label>').join('')+'</div>'}).join('')+
       '</td></tr>').join('')+'</tbody></table>';
 }
 $('nClass').onchange=()=>{fillNTopics();drawNaw()};
@@ -858,11 +860,17 @@ $('nAdd').onclick=async()=>{
   const outcomes=$('nOutcomes').value.trim(),detail=$('nDetail').value.trim();
   ids.forEach(id=>{
     const num=nawFor(id).reduce((m,r)=>Math.max(m,+r.number||0),0)+1;
-    S.naw.push({id,date,number:String(num),topic:topic.label,outcomes,detail,status:'unresolved'});
+    S.naw.push({id,date,number:String(num),topic:topic.label,outcomes,detail,status:'unresolved',crt:'',ht:'',dp:''});
   });
   S.naw.sort((a,b)=>a.id.localeCompare(b.id)||(+a.number||0)-(+b.number||0));
   $('nMsg').textContent='Warning logged for '+ids.length+' student'+(ids.length>1?'s':'')+' ('+topic.label+').';
   await persist();drawNaw();drawDash();
+};
+$('nList').onchange=async ev=>{
+  const i=ev.target.closest('.nd');if(!i)return;
+  const r=nFind(i);if(!r)return;
+  r[i.dataset.f]=i.value;
+  await persist();
 };
 function nFind(el){return S.naw.find(x=>x.id===el.dataset.id&&x.number===el.dataset.num&&x.date===el.dataset.date)}
 $('nList').onclick=async ev=>{
@@ -892,13 +900,13 @@ function nSheetHTML(st){
     '<tr><td class="l">Course Name:</td><td style="text-align:center">'+esc(ci.name||'')+'</td></tr></table>';
   for(let n=1;n<=5;n++){
     const r=by[n],res=r&&r.status==='resolved';
-    const contact=['CRT:','HT:'].concat(n>=3?['DP:']:[]);
-    const opts=['P/C TO PARENT','TUE/ THURSDAY TUTORIAL','RECESS/ LUNCH DETENTION','EMAIL TO PARENT','SLSO SUPPORT'].concat(n>=2?['HT INTERVIEW']:[]).concat(n>=3?['DP INTERVIEW']:[]);
+    const contact=contactKeys(n);
+    const opts=['TUTORIAL TIMES','DETENTION'];
     h+='<div class="natSec'+(n===5?' natLast':'')+'">'+
       '<div><div class="hd">LETTER</div><div class="num">'+n+'</div></div>'+
       '<div><div class="hd">DATE SENT</div><div class="cell">'+(r?'<strong>'+esc(r.date.split('-').reverse().join('/'))+'</strong><div class="top">'+esc(r.topic||'')+'</div>':'')+'</div></div>'+
-      '<div><div class="hd">DATE PARENT CONTACT</div><div class="cell">'+contact.map(c=>'<div class="line"><span style="width:9mm">'+c+'</span><span class="fld"></span></div>').join('')+'</div></div>'+
-      '<div><div class="hd">SUPPORT OFFERED</div>'+opts.map(o=>'<div class="opt"><span>'+o+'</span><span class="bx"></span></div>').join('')+'</div>'+
+      '<div><div class="hd">DATE PARENT CONTACT</div><div class="cell">'+contact.map(c=>'<div class="line"><span style="width:9mm">'+c.toUpperCase()+':</span><span class="fld" style="padding:0 1.5mm;line-height:4.4mm;font-size:8.5pt">'+(r&&r[c]?esc(r[c].split('-').reverse().join('/')):'')+'</span></div>').join('')+'</div></div>'+
+      '<div><div class="hd">SUPPORTS OFFERED</div>'+opts.map(o=>'<div class="opt"><span>'+o+'</span><span class="bx"></span></div>').join('')+'</div>'+
       '<div style="border-right:0"><div class="hd">RESOLVED</div><div class="yn">YES<span class="bx">'+(res?'✓':'')+'</span> NO<span class="bx">'+(r&&!res?'✓':'')+'</span></div></div>'+
     '</div>';
   }
