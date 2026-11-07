@@ -205,12 +205,19 @@ dialog .row{margin-top:12px}
       <div class="row">
         <label class="f">Class<select id="nClass"></select></label>
         <label class="f">Student<select id="nStudent"></select></label>
+        <label class="f">Topic<select id="nTopic"></select></label>
         <label class="f">Date issued<input type="date" id="nDate"></label>
-        <label class="f">Task or work<input type="text" id="nTask" placeholder="e.g. Assessment Task 2" style="flex:1 1 200px;max-width:300px"></label>
-        <button class="solid" id="nAdd">Add warning</button>
-        <span id="nMsg" class="note" style="margin:0"></span>
       </div>
-      <p class="note">The warning number is filled in automatically (1st, 2nd…) from how many that student already has. Saved to nawards.csv (IDs only, no names).</p>
+      <div class="row" style="align-items:stretch">
+        <label class="f" style="flex:1 1 280px">Outcomes
+          <textarea id="nOutcomes" style="min-height:90px"></textarea>
+        </label>
+        <label class="f" style="flex:1 1 280px">How to complete the N-award
+          <textarea id="nDetail" style="min-height:90px"></textarea>
+        </label>
+      </div>
+      <div class="row" style="margin-top:8px"><button class="solid" id="nAdd">Add warning</button><span id="nMsg" class="note" style="margin:0"></span></div>
+      <p class="note">Pick a student and topic and the two boxes prefill from the topic's lessons and outcomes — edit them if you like before logging. The warning number fills in automatically. Outcomes and classroom codes come from <code>classroom/naward.json</code>; edit that file to change them. Saved to nawards.csv (IDs only, no names).</p>
     </div>
     <div class="card" style="padding:6px 10px"><div id="nList"></div></div>
   </section>
@@ -250,7 +257,8 @@ const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;'
 const CC=['id','last','first','class','course','left'];
 const AC=['date','period','class','id','reason','lesson','status','notes'];
 const BC=['id','lesson','done'];
-const NC=['id','date','number','task','notes'];
+const NC=['id','date','number','topic','outcomes','detail'];
+let NAWARD={classroomCodes:{},outcomes:{}};
 const DEFAULT_REASONS=['Explained','Learning Enrichment','SBAT','School Business','Sick','Suspension','Tafe','Truant','Unexplained','Wellbeing','Work Placement'];
 const S={classes:[],abs:[],book:new Map(),naw:[],dir:null,handles:{},loaded:false,dirty:false};
 const E={marks:{},reason:''};
@@ -362,7 +370,7 @@ function loadFromText(ct,at,bt,nt){
   S.abs=a.rows.filter(r=>r.date&&r.id).map(r=>{const o={};AC.forEach(k=>o[k]=r[k]||'');o.date=isoDate(o.date);return o});
   S.book=new Map();
   b.rows.filter(r=>r.id&&r.lesson).forEach(r=>S.book.set(bKey(r.id,r.lesson),r.done||'yes'));
-  S.naw=nw.rows.filter(r=>r.id&&r.date).map(r=>{const o={};NC.forEach(k=>o[k]=r[k]||'');o.date=isoDate(o.date);return o});
+  S.naw=nw.rows.filter(r=>r.id&&r.date).map(r=>{const o={};NC.forEach(k=>o[k]=r[k]||'');if(!o.topic&&r.task)o.topic=r.task;if(!o.detail&&r.notes)o.detail=r.notes;o.date=isoDate(o.date);return o});
   S.loaded=true;S.dirty=false;
   refreshAll();updateBar();
 }
@@ -691,13 +699,14 @@ function buildTopics(data){
         if(LESSON_ANY.has(l.code)){if(LESSON_ANY.get(l.code)!==l.title)LESSON_AMBIG.add(l.code)}
         else LESSON_ANY.set(l.code,l.title);
       });
-      if(lessons.length){TOPICS.push({label:(t.num?t.num+' ':'')+t.name,course:key,lessons});any=true}
+      if(lessons.length){TOPICS.push({label:(t.num?t.num+' ':'')+t.name,num:t.num||'',name:t.name||'',course:key,lessons});any=true}
     });
     if(any&&!COURSES.some(x=>x.key===key))COURSES.push({key,label});
   }));
   fillSelect($('aCourse'),[''].concat(COURSES.map(c=>c.key)),false,v=>v?(COURSES.find(c=>c.key===v)||{}).label:'— choose —');
   fillSelect($('kCourse'),[''].concat(COURSES.map(c=>c.key)),true,v=>v?(COURSES.find(c=>c.key===v)||{}).label:'— not set —');
   fillBookTopics();
+  if($('nTopic'))fillNTopics();
 }
 function fillBookTopics(){
   const cc=classCourse($('bClass').value);
@@ -764,7 +773,28 @@ $('bGrid').onclick=async ev=>{
 $('bClass').onchange=fillBookTopics;$('bTopic').onchange=drawBook;
 
 /* ---------- N-awards ---------- */
+async function loadNawardConfig(){
+  try{const r=await fetch('./naward.json',{cache:'no-store'});
+    if(r.ok){const j=await r.json();NAWARD={classroomCodes:j.classroomCodes||{},outcomes:j.outcomes||{}}}}catch(e){}
+  if($('nStudent'))nPrefill();
+}
 function nawFor(id){return S.naw.filter(r=>r.id===id).sort((a,b)=>(+a.number||0)-(+b.number||0)||a.date.localeCompare(b.date))}
+function nTopicObj(){const v=$('nTopic').value;return v===''?null:TOPICS[+v]}
+function nPrefill(){
+  const cls=$('nClass').value,topic=nTopicObj();
+  if(!topic){$('nOutcomes').value='';$('nDetail').value='';return}
+  const key=topic.course+'|'+topic.num;
+  $('nOutcomes').value=(NAWARD.outcomes[key]||[]).join('\n');
+  const codes=topic.lessons.map(l=>l.code).join(', ');
+  const cc=NAWARD.classroomCodes[cls]||'xxxxx';
+  $('nDetail').value='Student to complete all lessons and the Dorey’s Resource Book (DRB) for '+topic.name+': '+codes+'. All lessons and the DRB can be found on Dorey Desk and on the Google Classroom (code: '+cc+').';
+}
+function fillNTopics(){
+  const cc=classCourse($('nClass').value);
+  const idxs=TOPICS.map((t,i)=>i).filter(i=>!cc||TOPICS[i].course===cc);
+  fillSelect($('nTopic'),idxs.map(String),true,v=>TOPICS[+v].label);
+  nPrefill();
+}
 function drawNaw(){
   const box=$('nList');
   if(!S.loaded){box.innerHTML='<p class="empty">Open your folder or files first.</p>';return}
@@ -774,18 +804,21 @@ function drawNaw(){
   if(!students.length){box.innerHTML='<p class="empty">No warnings logged for this class yet.</p>';return}
   box.innerHTML='<table><thead><tr><th>Student</th><th>Warnings</th></tr></thead><tbody>'+
     students.map(s=>'<tr><td>'+esc(fullName(s))+'</td><td>'+
-      nawFor(s.id).map(r=>'<span class="tag" title="'+esc(showDate(r.date))+'">#'+esc(r.number||'?')+' '+esc(r.task||'')+' · '+esc(showShort(r.date))+' <button class="nx" data-id="'+esc(r.id)+'" data-num="'+esc(r.number)+'" data-date="'+esc(r.date)+'" aria-label="Delete" style="border:0;background:transparent;color:var(--bad);cursor:pointer;padding:0 2px">×</button></span>').join('')+
+      nawFor(s.id).map(r=>'<span class="tag" title="'+esc(r.detail||'')+'">#'+esc(r.number||'?')+' '+esc(r.topic||'')+' · '+esc(showShort(r.date))+' <button class="nx" data-id="'+esc(r.id)+'" data-num="'+esc(r.number)+'" data-date="'+esc(r.date)+'" aria-label="Delete" style="border:0;background:transparent;color:var(--bad);cursor:pointer;padding:0 2px">×</button></span>').join('')+
       '</td></tr>').join('')+'</tbody></table>';
 }
-$('nClass').onchange=drawNaw;
+$('nClass').onchange=()=>{fillNTopics();drawNaw()};
+$('nTopic').onchange=nPrefill;
+$('nStudent').onchange=()=>{};
 $('nAdd').onclick=async()=>{
-  const id=$('nStudent').value,date=$('nDate').value||todayISO(),task=$('nTask').value.trim();
+  const id=$('nStudent').value,date=$('nDate').value||todayISO(),topic=nTopicObj();
   if(!S.loaded){$('nMsg').textContent='Open your folder or files first.';return}
   if(!id){$('nMsg').textContent='Choose a student.';return}
+  if(!topic){$('nMsg').textContent='Choose a topic.';return}
   const num=nawFor(id).reduce((m,r)=>Math.max(m,+r.number||0),0)+1;
-  S.naw.push({id,date,number:String(num),task,notes:''});
+  S.naw.push({id,date,number:String(num),topic:topic.label,outcomes:$('nOutcomes').value.trim(),detail:$('nDetail').value.trim()});
   S.naw.sort((a,b)=>a.id.localeCompare(b.id)||(+a.number||0)-(+b.number||0));
-  $('nTask').value='';$('nMsg').textContent='Warning #'+num+' logged for '+nameOf(id)+'.';
+  $('nMsg').textContent='Warning #'+num+' logged for '+nameOf(id)+' ('+topic.label+').';
   await persist();drawNaw();
 };
 $('nList').onclick=async ev=>{
@@ -810,11 +843,12 @@ function refreshAll(){
   if(!$('sTo').value){$('sTo').value=todayISO();$('sFrom').value=addDays(todayISO(),-13)}
   if(!$('nDate').value)$('nDate').value=todayISO();
   if(S.loaded)loadMarks();else drawRoll();
-  drawCatch();drawSummary();fillBookTopics();drawNaw();drawClasses();
+  drawCatch();drawSummary();fillBookTopics();fillNTopics();drawNaw();drawClasses();
 }
 $('eDate').value=todayISO();
 refreshAll();
 loadReasons();
+loadNawardConfig();
 loadTopics();
 if(!FSA)setMsg('This browser can’t open folders, so use Open files… and download your changes. (Chrome or Edge can open a folder and save straight back.)');
 </script>
