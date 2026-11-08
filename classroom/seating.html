@@ -87,6 +87,8 @@ svg{display:block;width:100%;height:auto;font-family:var(--ui)}
 [data-desk]:focus-visible{outline:none}
 [data-desk]:focus-visible .desk{stroke:var(--brand);stroke-width:4}
 .desk.sel{fill:var(--tint);stroke:var(--brand);stroke-width:4}
+.desk.locked{stroke:var(--brand);stroke-width:3.5}
+.lockmark{pointer-events:none}.lockmark .shackle{fill:none;stroke:var(--brand);stroke-width:2.2}.lockmark .lockbody{fill:var(--brand)}
 .nm{fill:var(--ink);font-family:Helvetica,Arial,sans-serif;font-weight:600;text-anchor:middle;pointer-events:none}   /* same font as the PDF, so the fitting below matches it */
 .lectern{fill:var(--panel);stroke:var(--ink);stroke-width:2.5}
 .door{fill:none;stroke:var(--muted);stroke-width:2}
@@ -121,10 +123,13 @@ svg{display:block;width:100%;height:auto;font-family:var(--ui)}
     <input type="text" id="cls" maxlength="40" placeholder="Class name (used to save, and printed on the PDF)" aria-label="Class name">
     <button type="button" id="save" class="solid">Save plan</button>
     <button type="button" id="pdf" class="solid">Download A4 PDF</button>
+    <button type="button" id="shuffle" class="solid">Shuffle the rest</button>
+    <button type="button" id="lockAll" class="quiet">Lock seated</button>
+    <button type="button" id="unlockAll" class="quiet">Unlock all</button>
     <button type="button" id="clear" class="quiet">Clear desks</button>
     <button type="button" id="newPlan" class="quiet">New plan</button>
   </div>
-  <p class="note">Upload the same classes.csv you use for attendance and pick a class from the list that appears; students marked as left are skipped. Otherwise, use an .xlsx or .csv with the last name in the first column and the first name in the second (or one column of "Last First"). Columns headed First name and Last name work in either order. The file is read in your browser and is never uploaded. Saving keeps the plan, with the student names, in this browser only; delete plans you no longer need with the × in the list.</p>
+  <p class="note">To keep some students in place, click a seated name and press Lock (or use Lock seated). Shuffle the rest then spreads everyone else, seated or not, across the unlocked desks. Locked desks show a padlock. Upload the same classes.csv you use for attendance and pick a class from the list that appears; students marked as left are skipped. Otherwise, use an .xlsx or .csv with the last name in the first column and the first name in the second (or one column of "Last First"). Columns headed First name and Last name work in either order. The file is read in your browser and is never uploaded. Saving keeps the plan, with the student names, in this browser only; delete plans you no longer need with the × in the list.</p>
   <div class="bar" id="bar" role="status" aria-live="polite"></div>
   <div class="pool" id="pool" aria-label="Names not yet seated"></div>
 </div>
@@ -165,13 +170,15 @@ svg.appendChild(el('text', {class:'lbl', x:866, y:gapTop + 52}, 'Door'));
 const blockW = 2*TABLE*DESK.w + AISLE, x0 = ROOM.x + WIN_W + (ROOM.w - WIN_W - blockW)/2;
 const rowY = r => TOP + r*(DESK.h + ROW_GAP);
 const xOf = k => x0 + k*DESK.w + (k >= TABLE ? AISLE : 0);           // k = 0–7 along a full row
-const desks = [];                                                     // {w, rect, t1, t2, name}
+const desks = [];                                                     // {w, rect, t1, t2, name, locked}
 function addDesk(x, y, w){
   const g = el('g', {'data-desk': desks.length + 1, tabindex:0, role:'button'});
   const rect = el('rect', {class:'desk', x, y, width:w, height:DESK.h, rx:4});
   const t1 = el('text', {class:'nm', x:x + w/2}), t2 = el('text', {class:'nm', x:x + w/2});
-  g.append(rect, t1, t2); svg.appendChild(g);
-  desks.push({x, y, w, g, rect, t1, t2, name:null});
+  const lk = el('g', {class:'lockmark', display:'none', transform:`translate(${x + w - 15} ${y + 5})`});
+  lk.append(el('path', {class:'shackle', d:'M2.5 6 V4.2 A3 3 0 0 1 8.5 4.2 V6'}), el('rect', {class:'lockbody', x:0.8, y:6, width:9.4, height:7, rx:1.5}));
+  g.append(rect, t1, t2, lk); svg.appendChild(g);
+  desks.push({x, y, w, g, rect, t1, t2, lk, name:null, locked:false});
 }
 for (let r = 0; r < ROWS; r++) for (let k = 0; k < 2*TABLE; k++) addDesk(xOf(k), rowY(r), DESK.w);
 // front row: 4 desks on the left, then one desk twice as long on the right
@@ -212,6 +219,8 @@ function paint(){
   desks.forEach((d, i) => {
     const n = d.name, lines = n ? [n.l1, n.l2].filter(Boolean) : [];
     d.rect.classList.toggle('sel', !!(sel && sel.t === 'desk' && sel.i === i));
+    d.rect.classList.toggle('locked', !!(d.locked && n));
+    d.lk.setAttribute('display', d.locked && n ? 'inline' : 'none');
     d.g.setAttribute('aria-label', `Desk ${i + 1}: ${n ? label(n) : 'empty'}`);
     d.t1.textContent = lines[0] || ''; d.t2.textContent = lines[1] || '';
     if (!lines.length) return;
@@ -224,18 +233,21 @@ function paint(){
   });
   $('pool').innerHTML = pool.map((n, i) => `<button type="button" class="chip" data-p="${i}" aria-pressed="${!!(sel && sel.t === 'pool' && sel.i === i)}"></button>`).join('');
   $('pool').querySelectorAll('.chip').forEach((b, i) => b.textContent = label(pool[i]));
-  const bar = $('bar'), placed = desks.filter(d => d.name).length;
+  const bar = $('bar'), placed = desks.filter(d => d.name).length, nLocked = desks.filter(d => d.name && d.locked).length;
   if (sel){
     const n = sel.t === 'pool' ? pool[sel.i] : desks[sel.i].name;
     bar.className = 'bar on';
-    bar.innerHTML = '<span class="msg"><strong></strong> is picked up. Click a desk to place it' + (sel.t === 'desk' ? ' or swap it' : '') + '.</span>' +
-      (sel.t === 'desk' ? '<button type="button" data-act="back">Return to list</button>' : '') + '<button type="button" data-act="cancel" class="quiet">Cancel</button>';
+    const lockedSel = sel.t === 'desk' && desks[sel.i].locked;
+    bar.innerHTML = lockedSel
+      ? '<span class="msg"><strong></strong> is locked in place.</span><button type="button" data-act="unlock">Unlock</button><button type="button" data-act="cancel" class="quiet">Cancel</button>'
+      : '<span class="msg"><strong></strong> is picked up. Click a desk to place it' + (sel.t === 'desk' ? ' or swap it' : '') + '.</span>' +
+        (sel.t === 'desk' ? '<button type="button" data-act="lock">Lock here</button><button type="button" data-act="back">Return to list</button>' : '') + '<button type="button" data-act="cancel" class="quiet">Cancel</button>';
     bar.querySelector('strong').textContent = label(n);
   } else {
     bar.className = 'bar';
     const total = placed + pool.length;
     bar.innerHTML = '<span class="msg"></span>';
-    bar.firstChild.textContent = total ? `${total} name${total === 1 ? '' : 's'}: ${placed} seated, ${pool.length} not yet seated. ${total > desks.length ? `There are only ${desks.length} desks.` : 'Click a name, then a desk.'}` : `Upload a class list to begin. There are ${desks.length} desks.`;
+    bar.firstChild.textContent = total ? `${total} name${total === 1 ? '' : 's'}: ${placed} seated, ${pool.length} not yet seated. ${nLocked ? `${nLocked} locked. ` : ''}${total > desks.length ? `There are only ${desks.length} desks.` : 'Click a name, then a desk.'}` : `Upload a class list to begin. There are ${desks.length} desks.`;
   }
 }
 
@@ -243,6 +255,8 @@ function clickDesk(i){
   const d = desks[i];
   if (!sel){ if (d.name) sel = {t:'desk', i}; return paint() }
   if (sel.t === 'desk' && sel.i === i){ sel = null; return paint() }
+  if (d.locked && d.name) return;                                     // a locked desk can't be swapped or overwritten
+  if (sel.t === 'desk' && desks[sel.i].locked) return;
   if (sel.t === 'pool'){ const n = pool.splice(sel.i, 1)[0]; if (d.name) pool.push(d.name); d.name = n }
   else { const from = desks[sel.i]; [from.name, d.name] = [d.name, from.name] }
   sel = null; paint();
@@ -252,17 +266,30 @@ svg.addEventListener('keydown', e => { const g = e.target.closest && e.target.cl
 $('pool').addEventListener('click', e => {
   const b = e.target.closest('.chip'); if (!b) return;
   const i = +b.dataset.p;
-  if (sel && sel.t === 'desk'){ pool.push(desks[sel.i].name); desks[sel.i].name = null; sel = null }
+  if (sel && sel.t === 'desk' && !desks[sel.i].locked){ pool.push(desks[sel.i].name); desks[sel.i].name = null; sel = null }
   else sel = (sel && sel.t === 'pool' && sel.i === i) ? null : {t:'pool', i};
   paint();
 });
 $('bar').addEventListener('click', e => {
   const act = e.target.closest('button') && e.target.closest('button').dataset.act;
   if (act === 'back' && sel && sel.t === 'desk'){ pool.push(desks[sel.i].name); desks[sel.i].name = null }
+  if ((act === 'lock' || act === 'unlock') && sel && sel.t === 'desk') desks[sel.i].locked = act === 'lock';
   if (act) { sel = null; paint() }
 });
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && sel){ sel = null; paint() } });
-$('clear').addEventListener('click', () => { desks.forEach(d => { if (d.name){ pool.push(d.name); d.name = null } }); sel = null; paint() });
+const emptyDesks = () => desks.forEach(d => { d.name = null; d.locked = false });
+$('clear').addEventListener('click', () => { desks.forEach(d => { if (d.name){ pool.push(d.name); d.name = null } d.locked = false }); sel = null; paint() });
+$('lockAll').addEventListener('click', () => { desks.forEach(d => { if (d.name) d.locked = true }); sel = null; paint() });
+$('unlockAll').addEventListener('click', () => { desks.forEach(d => d.locked = false); sel = null; paint() });
+function shuffle(a){ for (let i = a.length - 1; i > 0; i--){ const j = Math.floor(Math.random()*(i + 1)); [a[i], a[j]] = [a[j], a[i]] } return a }
+$('shuffle').addEventListener('click', () => {                        // everyone not locked goes onto a random unlocked desk
+  const free = desks.filter(d => !(d.locked && d.name));
+  const people = shuffle(pool.splice(0).concat(free.filter(d => d.name).map(d => d.name)));
+  if (!people.length) return;
+  free.forEach(d => d.name = null); shuffle(free);
+  people.forEach((n, k) => { if (k < free.length) free[k].name = n; else pool.push(n) });
+  sel = null; paint();
+});
 
 // ---------- reading the class list (.xlsx or .csv, all in the browser) ----------
 async function inflateRaw(u8){
@@ -347,7 +374,7 @@ let fileClasses = null;                                               // classes
 function useClass(code){
   const names = fileClasses && fileClasses[code]; if (!names) return false;
   if (isDirty() && hasNames() && !confirm(`Replace the names on screen with ${code}? Changes you have not saved will be lost.`)) return false;
-  desks.forEach(d => d.name = null); pool = names.map(n => ({l1:n.l1, l2:n.l2})); sel = null; loaded = null;
+  emptyDesks(); pool = names.map(n => ({l1:n.l1, l2:n.l2})); sel = null; loaded = null;
   $('cls').value = code.slice(0, 40); paint(); renderList(); return true;
 }
 function showPicker(){
@@ -376,7 +403,7 @@ $('file').addEventListener('change', async e => {
     const names = namesFromRows(rows);
     if (!names.length) return alert('No names were found. Put the names in the first column, or use First name and Last name columns.');
     if (isDirty() && hasNames() && !confirm('Replace the names on screen with this class list? Changes you have not saved will be lost.')) return;
-    desks.forEach(d => d.name = null); pool = names; sel = null; loaded = null;
+    emptyDesks(); pool = names; sel = null; loaded = null;
     if (!$('cls').value) $('cls').value = f.name.replace(/\.[^.]+$/, '').slice(0, 40);
     paint(); renderList();
   } catch(err){ alert("That file couldn't be read. Try saving it again as .xlsx or .csv."); }
@@ -393,7 +420,7 @@ function readPlans(){
   } catch(e){ return [] }
 }
 function writePlans(a){ try { localStorage.setItem(KEY, JSON.stringify(a)); return true } catch(e){ return false } }
-const snapshot = () => JSON.stringify([desks.map(d => d.name ? copyName(d.name) : null), pool.map(copyName)]);
+const snapshot = () => JSON.stringify([desks.map(d => d.name ? copyName(d.name) : null), pool.map(copyName), desks.map(d => !!(d.locked && d.name))]);
 let loaded = null, savedSnap = snapshot();                           // loaded: name of the saved plan on screen
 const isDirty = () => snapshot() !== savedSnap;
 const hasNames = () => desks.some(d => d.name) || pool.length > 0;
@@ -425,7 +452,7 @@ $('save').addEventListener('click', () => {
   if (!hasNames()) return alert('There are no names to save yet.');
   const plans = readPlans(), i = plans.findIndex(p => p.name === name);
   if (i >= 0 && name !== loaded && !confirm(`There is already a saved plan called "${name}". Replace it?`)) return;
-  const entry = {name, saved:new Date().toISOString(), desks:desks.map(d => d.name ? copyName(d.name) : null), pool:pool.map(copyName)};
+  const entry = {name, saved:new Date().toISOString(), desks:desks.map(d => d.name ? copyName(d.name) : null), locks:desks.map(d => !!(d.locked && d.name)), pool:pool.map(copyName)};
   if (i >= 0) plans[i] = entry; else plans.push(entry);
   if (!writePlans(plans)) return alert("This browser can't keep saved plans (a private window, or storage turned off). Use Download A4 PDF to keep this plan.");
   loaded = name; savedSnap = snapshot(); renderList(); paint();
@@ -440,13 +467,13 @@ $('savedList').addEventListener('click', e => {
     return renderList();
   }
   if (isDirty() && hasNames() && !confirm(`Open "${name}"? Changes you have not saved to the plan on screen will be lost.`)) return;
-  desks.forEach((d, i) => d.name = okName(pl.desks[i]) ? copyName(pl.desks[i]) : null);
+  desks.forEach((d, i) => { d.name = okName(pl.desks[i]) ? copyName(pl.desks[i]) : null; d.locked = !!(d.name && Array.isArray(pl.locks) && pl.locks[i]) });
   pool = (Array.isArray(pl.pool) ? pl.pool : []).filter(okName).map(copyName);
   $('cls').value = name; loaded = name; savedSnap = snapshot(); sel = null; setSide(false); paint(); renderList();
 });
 $('newPlan').addEventListener('click', () => {
   if (isDirty() && hasNames() && !confirm('Start a new plan? Changes you have not saved will be lost.')) return;
-  desks.forEach(d => d.name = null); pool = []; sel = null; loaded = null; $('cls').value = ''; savedSnap = snapshot(); paint(); renderList();
+  emptyDesks(); pool = []; sel = null; loaded = null; $('cls').value = ''; savedSnap = snapshot(); paint(); renderList();
 });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') setSide(false) });
 window.addEventListener('storage', e => { if (e.key === KEY) renderList() });
@@ -460,6 +487,8 @@ $('pdf').addEventListener('click', async () => {
   try {
     const W = 3000, H = Math.round(W*534/1000), clone = svg.cloneNode(true);
     clone.querySelectorAll('.sel').forEach(n => n.classList.remove('sel'));
+    clone.querySelectorAll('.lockmark').forEach(n => n.remove());
+    clone.querySelectorAll('.locked').forEach(n => n.classList.remove('locked'));
     ['role', 'aria-label', 'style'].forEach(a => clone.removeAttribute(a));
     clone.querySelectorAll('[tabindex],[role],[aria-label]').forEach(n => { n.removeAttribute('tabindex'); n.removeAttribute('role'); n.removeAttribute('aria-label') });
     clone.setAttribute('xmlns', NS); clone.setAttribute('width', W); clone.setAttribute('height', H);

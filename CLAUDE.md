@@ -20,7 +20,7 @@ We Do levels) live in the Lesson Creator project; this file covers the repo form
   (The app draws non-fraction `\left…\right` pairs at normal size so pairs always match.)
 - Before committing, run `python3 scripts/build_manifest.py`; it must report no problems.
 - Classroom tools: one self-contained page per tool in `classroom/`, registered in
-  `classroom/classroom.json`. The seating chart is an SVG room plan (29 desks) where an uploaded .xlsx/.csv class list is placed onto desks (the tracker's `classes.csv` is recognised by its `class` column: a class picker appears, students with `left` set are skipped, and the class code becomes the plan name; the parsed file is held in memory only) and
+  `classroom/classroom.json`. The seating chart is an SVG room plan (29 desks) where an uploaded .xlsx/.csv class list is placed onto desks (the tracker's `classes.csv` is recognised by its `class` column: a class picker appears, students with `left` set are skipped, and the class code becomes the plan name; the parsed file is held in memory only; a seated student can be locked (padlock, saved with the plan, left out of the PDF), and Shuffle the rest randomly re-seats everyone unlocked, seated or in the list, across the unlocked desks) and
   exported as an A4 PDF; uploaded files are read locally, and saved plans live in the browser's `localStorage` only (listed in a left side panel), never sent anywhere. Never put student names, rosters or exported seating files in this public repo, and
   never test with real names.
   The attendance tracker (`classroom/tracker.html`) reads `classes.csv` (id, last, first, class, course, left; has names — one old `name` column is split on load), `absences.csv`
