@@ -63,7 +63,9 @@ button:disabled{opacity:.5;cursor:default}
 button.solid{background:var(--brand);color:var(--brand-ink);font-weight:600}
 button.solid:hover:not(:disabled){background:var(--brand);filter:brightness(1.08)}
 button.quiet{border-color:var(--line);color:var(--ink)}
-input[type=text]{flex:1 1 220px;max-width:300px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--ink);font:inherit;font-size:14px}
+input[type=text],select{flex:1 1 220px;max-width:300px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--ink);font:inherit;font-size:14px}
+select{flex:0 1 auto;font-weight:600}
+select[hidden]{display:none}
 .note{font-size:12.5px;color:var(--muted);margin:10px 0 0;max-width:80ch}
 .bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;min-height:46px;padding:8px 12px;margin-top:14px;border:1px solid var(--line);border-radius:10px;background:var(--panel);font-size:14px}
 .bar.on{border-color:var(--brand);background:var(--tint)}
@@ -115,13 +117,14 @@ svg{display:block;width:100%;height:auto;font-family:var(--ui)}
     <button type="button" id="sideToggle" class="side-toggle" aria-controls="side" aria-expanded="false">Saved plans</button>
     <button type="button" id="upload" class="solid">Upload class list</button>
     <input type="file" id="file" accept=".xlsx,.csv,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden>
+    <select id="clsPick" hidden aria-label="Class in the uploaded classes.csv"></select>
     <input type="text" id="cls" maxlength="40" placeholder="Class name (used to save, and printed on the PDF)" aria-label="Class name">
     <button type="button" id="save" class="solid">Save plan</button>
     <button type="button" id="pdf" class="solid">Download A4 PDF</button>
     <button type="button" id="clear" class="quiet">Clear desks</button>
     <button type="button" id="newPlan" class="quiet">New plan</button>
   </div>
-  <p class="note">Use an .xlsx or .csv with the last name in the first column and the first name in the second (or one column of "Last First"). Columns headed First name and Last name work in either order. The file is read in your browser and is never uploaded. Saving keeps the plan, with the student names, in this browser only; delete plans you no longer need with the × in the list.</p>
+  <p class="note">Upload the same classes.csv you use for attendance and pick a class from the list that appears; students marked as left are skipped. Otherwise, use an .xlsx or .csv with the last name in the first column and the first name in the second (or one column of "Last First"). Columns headed First name and Last name work in either order. The file is read in your browser and is never uploaded. Saving keeps the plan, with the student names, in this browser only; delete plans you no longer need with the × in the list.</p>
   <div class="bar" id="bar" role="status" aria-live="polite"></div>
   <div class="pool" id="pool" aria-label="Names not yet seated"></div>
 </div>
@@ -320,6 +323,39 @@ function readCsv(text){
   if (cur || row.length){ row.push(cur); rows.push(row) }
   return rows;
 }
+// The attendance tracker's classes.csv (id, last, first, class, course, left; an old file may have one "name" column).
+// Returns {class code: [names]} for students who have not left, sorted by surname then first name, or null if it isn't that file.
+function classesFromRows(rows){
+  rows = rows.filter(r => r.some(c => String(c == null ? '' : c).trim()));
+  if (!rows.length) return null;
+  const cell = (r, i) => i < 0 ? '' : String(r[i] == null ? '' : r[i]).trim().replace(/\s+/g, ' ');
+  const head = rows[0].map((_, i) => cell(rows[0], i).toLowerCase());
+  const ci = head.indexOf('class'), li = head.indexOf('last'), fi = head.indexOf('first'), ni = head.indexOf('name'), xi = head.indexOf('left');
+  if (ci < 0 || !(li >= 0 || ni >= 0)) return null;
+  const out = {};
+  for (const r of rows.slice(1)){
+    const cls = cell(r, ci), left = cell(r, xi).toLowerCase();
+    if (!cls || (left && left !== 'no')) continue;
+    let n = li >= 0 || fi >= 0 ? {l1:cell(r, fi), l2:cell(r, li)} : null;
+    if (!n || !(n.l1 || n.l2)){ const t = toName(cell(r, ni)); n = {l1:t.l1, l2:t.l2} }   // old name column: "Last First" or "Last, First"
+    if (n.l1 || n.l2) (out[cls] = out[cls] || []).push(n);
+  }
+  for (const k in out) out[k].sort((a, b) => a.l2.localeCompare(b.l2) || a.l1.localeCompare(b.l1));
+  return Object.keys(out).length ? out : null;
+}
+let fileClasses = null;                                               // classes read from an uploaded classes.csv, kept in memory only
+function useClass(code){
+  const names = fileClasses && fileClasses[code]; if (!names) return false;
+  if (isDirty() && hasNames() && !confirm(`Replace the names on screen with ${code}? Changes you have not saved will be lost.`)) return false;
+  desks.forEach(d => d.name = null); pool = names.map(n => ({l1:n.l1, l2:n.l2})); sel = null; loaded = null;
+  $('cls').value = code.slice(0, 40); paint(); renderList(); return true;
+}
+function showPicker(){
+  const p = $('clsPick'), codes = Object.keys(fileClasses || {}).sort((a, b) => a.localeCompare(b, undefined, {numeric:true, sensitivity:'base'}));
+  p.replaceChildren(...codes.map(c => { const o = document.createElement('option'); o.value = c; o.textContent = `${c} (${fileClasses[c].length})`; return o }));
+  p.hidden = codes.length < 1;
+}
+$('clsPick').addEventListener('change', e => { if (!useClass(e.target.value)) e.target.value = $('cls').value });
 $('upload').addEventListener('click', () => $('file').click());
 $('file').addEventListener('change', async e => {
   const f = e.target.files[0]; e.target.value = ''; if (!f) return;
@@ -327,6 +363,16 @@ $('file').addEventListener('change', async e => {
     const ext = (f.name.split('.').pop() || '').toLowerCase();
     if (ext !== 'xlsx' && ext !== 'csv') return alert('Please choose an .xlsx or .csv file. For an older .xls file, open it in Excel and Save As .xlsx.');
     const rows = ext === 'xlsx' ? await readXlsx(await f.arrayBuffer()) : readCsv(await f.text());
+    const multi = classesFromRows(rows);
+    if (multi){                                                       // the attendance classes.csv: choose one class from it
+      fileClasses = multi; showPicker();
+      const codes = Object.keys(multi), pick = $('clsPick');
+      const want = codes.includes($('cls').value) ? $('cls').value : codes.sort((a, b) => a.localeCompare(b, undefined, {numeric:true, sensitivity:'base'}))[0];
+      pick.value = want;
+      if (!useClass(want)) pick.value = $('cls').value;
+      return;
+    }
+    fileClasses = null; showPicker();
     const names = namesFromRows(rows);
     if (!names.length) return alert('No names were found. Put the names in the first column, or use First name and Last name columns.');
     if (isDirty() && hasNames() && !confirm('Replace the names on screen with this class list? Changes you have not saved will be lost.')) return;
