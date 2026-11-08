@@ -1,0 +1,117 @@
+---
+code: 2.12
+title: The Trapezoidal Rule and Rectangles
+---
+
+<div class="c"><div class="h">Year 12 Mathematics Advanced<span>Episode 12</span></div><div class="b">
+<div class="title">2.12 – The Trapezoidal Rule and Rectangles</div>
+</div></div>
+
+<div class="c"><div class="h">Prior knowledge<span>Episode 12 · Numerical estimates of area</span></div><div class="b" style="min-height:330px">
+<b>1.</b> 
+<div class="g" style="grid-template-columns:repeat(2,1fr);font-size:25px;gap:52px 30px;margin:30px 0 20px 20px"><div>a) Area of a trapezium with parallel sides $3$ and $7$ and height $2$<div class="ws">$\tfrac{1}{2}\times2\times(3+7)=10$</div></div><div>b) If $f(x)=x^{2}+1$, find $f(2)$<div class="ws">$5$</div></div><div>c) Evaluate $\sqrt{1+x^{2}}$ at $x=1$ (exact)<div class="ws">$\sqrt{2}$</div></div><div>d) Width of each strip when $[0,2]$ is split into $4$ equal strips<div class="ws">$0.5$</div></div></div>
+</div></div>
+
+<div class="c"><div class="h">Fact<span>Episode 12 · Numerical estimates of area</span></div><div class="b">
+<div class="rule">One trapezium under a curve
+<div class="m">$\displaystyle\int_{a}^{b}f(x)\,dx\approx\dfrac{b-a}{2}[f(a)+f(b)]$</div>Join the points $(a,f(a))$ and $(b,f(b))$ with a straight line. The shape under it is a trapezium with parallel sides $f(a)$ and $f(b)$ and height $b-a$.</div>
+<div class="key">This is an estimate, not the exact area.</div>
+</div></div>
+
+<div class="c"><div class="h">Routine · model<span>Episode 12 · Numerical estimates of area</span></div><div class="b">
+<div class="cq">Estimate $\displaystyle\int_{a}^{b}f(x)\,dx$ with one trapezium</div>
+<div class="g" style="grid-template-columns:repeat(2,1fr);font-size:26px;gap:44px 20px;text-align:center"><div>$\displaystyle\int_{0}^{2}x^{2}dx$<div class="ws">$\dfrac{2}{2}\left[0+4\right]=4$</div></div><div>$\displaystyle\int_{1}^{3}\dfrac{1}{x}dx$<div class="ws">$\dfrac{2}{2}\left[1+\tfrac{1}{3}\right]=\tfrac{4}{3}$</div></div></div>
+</div></div>
+
+<div class="c"><div class="h">Routine · your turn<span>Episode 12 · Numerical estimates of area</span></div><div class="b" style="min-height:320px">
+<b>3.</b> Estimate with one trapezium.
+<div class="g" style="grid-template-columns:repeat(2,1fr);font-size:26px;gap:52px 30px;margin:30px 0 20px 20px"><div>a) $\displaystyle\int_{0}^{4}\sqrt{x}\,dx$<div class="ws">$\dfrac{4}{2}\left[0+2\right]=4$</div></div><div>b) $\displaystyle\int_{0}^{2}2^{x}dx$<div class="ws">$\dfrac{2}{2}\left[1+4\right]=5$</div></div><div>c) $\displaystyle\int_{1}^{2}x^{3}dx$<div class="ws">$\dfrac{1}{2}\left[1+8\right]=4.5$</div></div></div>
+</div></div>
+
+<div class="c"><div class="h">Fact<span>Episode 12 · Numerical estimates of area</span></div><div class="b">
+<div class="rule">The trapezoidal rule with $n$ strips
+<div class="m">$\displaystyle\int_{a}^{b}f(x)\,dx\approx\dfrac{h}{2}[f(x_{0})+2(f(x_{1})+\cdots+f(x_{n-1}))+f(x_{n})]$<br>where $h=\dfrac{b-a}{n}$ and $x_{k}=a+kh$</div>Each inner value is used in two neighbouring trapezia, so it is doubled. The ends are used once. This formula is on the reference sheet.</div>
+<div class="key">'Two applications' means $n=2$ strips.</div>
+</div></div>
+
+<div class="c"><div class="h">Transformation · model<span>Episode 12 · Numerical estimates of area</span></div><div class="b">
+<div class="cq">Find $h$ and list $x_{0},x_{1},\ldots,x_{n}$</div>
+<div class="g" style="grid-template-columns:repeat(3,1fr);font-size:25px;gap:44px 20px;text-align:center"><div>$[0,2]$ with $n=4$<div class="ws">$h=0.5$<br>$x=0,\,0.5,\,1,\,1.5,\,2$</div></div><div>$[1,3]$ with $n=2$<div class="ws">$h=1$<br>$x=1,\,2,\,3$</div></div><div>$[0,1]$ with $n=4$<div class="ws">$h=0.25$<br>$x=0,\,0.25,\,0.5,\,0.75,\,1$</div></div></div>
+</div></div>
+
+<div class="c"><div class="h">Transformation · your turn<span>Episode 12 · Numerical estimates of area</span></div><div class="b" style="min-height:360px">
+<b>4.</b> Find $h$ and list the $x$-values.
+<div class="g" style="grid-template-columns:repeat(2,1fr);font-size:25px;gap:52px 30px;margin:30px 0 20px 20px"><div>a) $[0,3]$ with $n=3$<div class="ws">$h=1$<br>$x=0,1,2,3$</div></div><div>b) $[2,6]$ with $n=4$<div class="ws">$h=1$<br>$x=2,3,4,5,6$</div></div><div>c) $[0,1]$ with $n=2$<div class="ws">$h=0.5$<br>$x=0,\,0.5,\,1$</div></div><div>d) $[1,2]$ with $n=5$<div class="ws">$h=0.2$<br>$x=1,\,1.2,\,1.4,\,1.6,\,1.8,\,2$</div></div></div>
+</div></div>
+
+<div class="c"><div class="h">Routine · model<span>Episode 12 · Numerical estimates of area</span></div><div class="b">
+<div class="cq">Use the trapezoidal rule on a table of values</div>
+<div class="g" style="grid-template-columns:repeat(2,1fr);font-size:26px;gap:44px 20px;text-align:center"><div>$\begin{array}{c|ccccc}x&0&1&2&3&4\\\hline f(x)&2&3&5&4&1\end{array}$<div class="ws">$h=1$<br>$\dfrac{1}{2}[2+2(3+5+4)+1]=\dfrac{27}{2}=13.5$</div></div><div>$\begin{array}{c|ccc}x&0&2&4\\\hline f(x)&6&4&1\end{array}$<div class="ws">$h=2$<br>$\dfrac{2}{2}[6+2(4)+1]=15$</div></div></div>
+</div></div>
+
+<div class="c"><div class="h">Routine · your turn<span>Episode 12 · Numerical estimates of area</span></div><div class="b" style="min-height:360px">
+<b>5.</b> Use the trapezoidal rule.
+<div class="g" style="grid-template-columns:repeat(2,1fr);font-size:26px;gap:52px 30px;margin:30px 0 20px 20px"><div>a) $\begin{array}{c|ccc}x&0&1&2\\\hline f(x)&3&5&4\end{array}$<div class="ws">$\dfrac{1}{2}[3+2(5)+4]=8.5$</div></div><div>b) $\begin{array}{c|cccc}x&0&3&6&9\\\hline f(x)&1&4&6&5\end{array}$<div class="ws">$\dfrac{3}{2}[1+2(4+6)+5]=39$</div></div></div>
+</div></div>
+
+<div class="c"><div class="h">I Do<span>Episode 12 · Numerical estimates of area</span></div><div class="b" style="min-height:440px">
+Use the trapezoidal rule with $4$ strips to estimate $\displaystyle\int_{0}^{1}e^{x^{2}}dx$. Give the answer to $3$ decimal places.
+<div class="ws">$h=\dfrac{1-0}{4}=0.25$, so $x=0,\,0.25,\,0.5,\,0.75,\,1$<br>$f=e^{x^{2}}$: $1,\ 1.0645,\ 1.2840,\ 1.7551,\ 2.7183$<br>$\dfrac{0.25}{2}[1+2(1.0645+1.2840+1.7551)+2.7183]=0.125\times11.9255\approx1.491$</div>
+</div></div>
+
+<div class="c"><div class="h">We Do 1<span>Episode 12 · Numerical estimates of area</span></div><div class="b" style="min-height:400px">
+Use the trapezoidal rule with the five values in the table to estimate $\displaystyle\int_{0}^{4}f(x)\,dx$.<div style="text-align:center;margin:16px 0">$\begin{array}{c|ccccc}x&0&1&2&3&4\\\hline f(x)&3&5&6&4&2\end{array}$</div><div class="ws">$h=1$<br>$\dfrac{1}{2}[3+2(5+6+4)+2]=\dfrac{35}{2}=17.5$</div>
+</div></div>
+
+<div class="c"><div class="h">We Do 2<span>Episode 12 · Numerical estimates of area</span></div><div class="b" style="min-height:440px">
+The table gives values of $g(t)$ at six equally spaced values.<div style="text-align:center;margin:16px 0">$\begin{array}{c|cccccc}t&0&1&2&3&4&5\\\hline g(t)&60&55&65&68&70&67\end{array}$</div>Use the trapezoidal rule to estimate $\displaystyle\int_{0}^{5}g(t)\,dt$.<div class="ws">$h=1$<br>$\dfrac{1}{2}[60+2(55+65+68+70)+67]=\dfrac{1}{2}\left(643\right)=321.5$</div><div style="font-size:16px;color:#777;margin-top:8px">Modelled on HSC 2020 Q20.</div>
+</div></div>
+
+<div class="c"><div class="h">We Do 3<span>Episode 12 · Numerical estimates of area</span></div><div class="b" style="min-height:380px">
+Use two applications of the trapezoidal rule to estimate $\displaystyle\int_{0}^{2}\sqrt{1+x^{2}}\,dx$. Give the answer to $2$ decimal places.<div class="ws">$h=1$, $x=0,1,2$<br>$\dfrac{1}{2}[1+2\sqrt{2}+\sqrt{5}]=\dfrac{1}{2}(1+2.8284+2.2361)\approx3.03$</div><div style="font-size:16px;color:#777;margin-top:8px">Modelled on HSC 2022 Q13.</div>
+</div></div>
+
+<div class="c"><div class="h">We Do 4<span>Episode 12 · Numerical estimates of area</span></div><div class="b" style="min-height:380px">
+Use two applications of the trapezoidal rule to estimate $\displaystyle\int_{0}^{2}\left(\dfrac{1}{3}\right)^{x}dx$.<div class="ws">$h=1$, $x=0,1,2$<br>$\dfrac{1}{2}[1+2\times\tfrac{1}{3}+\tfrac{1}{9}]=\dfrac{1}{2}\times\dfrac{16}{9}=\dfrac{8}{9}$</div><div style="font-size:16px;color:#777;margin-top:8px">Modelled on HSC 2025 Q27(a).</div>
+</div></div>
+
+<div class="c"><div class="h">We Do 5<span>Episode 12 · Numerical estimates of area</span></div><div class="b" style="min-height:460px">
+Show that the exact value of $\displaystyle\int_{0}^{2}\left(\dfrac{1}{3}\right)^{x}dx$ is $\dfrac{8}{9\ln3}$, and show that the trapezoidal estimate in the last question is too large.<div class="ws">$\left(\tfrac{1}{3}\right)^{x}=3^{-x}$, so $\int3^{-x}dx=-\dfrac{3^{-x}}{\ln3}$<br>$\left[-\dfrac{3^{-x}}{\ln3}\right]_{0}^{2}=-\dfrac{1}{9\ln3}+\dfrac{1}{\ln3}=\dfrac{8}{9\ln3}\approx0.809$<br>The estimate is $\tfrac{8}{9}\approx0.889\gt 0.809$.</div><div style="font-size:16px;color:#777;margin-top:8px">Modelled on HSC 2025 Q27(b).</div>
+</div></div>
+
+<div class="c"><div class="h">Comparative · model<span>Episode 12 · Numerical estimates of area</span></div><div class="b">
+<div class="cq">Over- or under-estimate?</div>
+<div class="g" style="grid-template-columns:repeat(2,1fr);font-size:26px;gap:44px 20px;text-align:center"><div>Curve concave up ($f''\gt 0$)<div class="ws">The chord lies above the curve.<br>Trapezium estimate is <b>too large</b>.</div></div><div>Curve concave down ($f''\lt 0$)<div class="ws">The chord lies below the curve.<br>Trapezium estimate is <b>too small</b>.</div></div></div>
+</div></div>
+
+<div class="c"><div class="h">Comparative · your turn<span>Episode 12 · Numerical estimates of area</span></div><div class="b" style="min-height:320px">
+<b>3.</b> Is the trapezoidal estimate an over- or under-estimate?
+<div class="g" style="grid-template-columns:repeat(2,1fr);font-size:26px;gap:52px 30px;margin:30px 0 20px 20px"><div>a) $y=x^{2}$ on $[0,2]$<div class="ws">$f''=2\gt 0$: over-estimate</div></div><div>b) $y=\sqrt{x}$ on $[0,4]$<div class="ws">$f''=-\tfrac{1}{4}x^{-3/2}\lt 0$: under-estimate</div></div><div>c) $y=e^{x}$ on $[0,1]$<div class="ws">$f''=e^{x}\gt 0$: over-estimate</div></div></div>
+</div></div>
+
+<div class="c"><div class="h">We Do 6<span>Episode 12 · Numerical estimates of area</span></div><div class="b" style="min-height:460px">
+Use the trapezoidal rule with $2$ strips to estimate $\displaystyle\int_{0}^{4}\sqrt{x}\,dx$, and state whether the estimate is too large or too small. Check with the exact value.<div class="ws">$h=2$, $x=0,2,4$<br>$\dfrac{2}{2}[0+2\sqrt{2}+2]=2\sqrt{2}+2\approx4.83$<br>$f''(x)=-\tfrac{1}{4}x^{-3/2}\lt 0$, so the estimate is too small.<br>Exact: $\left[\tfrac{2}{3}x^{3/2}\right]_{0}^{4}=\tfrac{16}{3}\approx5.33\gt 4.83$ ✓</div>
+</div></div>
+
+<div class="c"><div class="h">We Do 7<span>Episode 12 · Numerical estimates of area</span></div><div class="b" style="min-height:460px">
+For $f(x)=e^{x^{2}}$, show that $f''(x)\gt 0$ for all $x$, and so state whether the estimate $1.491$ from the I Do is an over- or under-estimate.<div class="ws">$f'(x)=2xe^{x^{2}}$<br>$f''(x)=2e^{x^{2}}+4x^{2}e^{x^{2}}=(2+4x^{2})e^{x^{2}}\gt 0$ for all $x$.<br>The curve is concave up, so the trapezoidal estimate is an over-estimate.</div><div style="font-size:16px;color:#777;margin-top:8px">Modelled on HSC 2024 Q22.</div>
+</div></div>
+
+<div class="c"><div class="h">Fact<span>Episode 12 · Numerical estimates of area</span></div><div class="b">
+<div class="rule">Rectangles give bounds
+<div class="m">For an increasing function: left-end rectangles give an under-estimate, right-end rectangles give an over-estimate.<br>For a decreasing function the two swap.</div>With $n$ strips of width $h$: left sum $=h[f(x_{0})+\cdots+f(x_{n-1})]$ and right sum $=h[f(x_{1})+\cdots+f(x_{n})]$.</div>
+<div class="key">The exact area lies between the two sums.</div>
+</div></div>
+
+<div class="c"><div class="h">Routine · model<span>Episode 12 · Numerical estimates of area</span></div><div class="b">
+<div class="cq">Find the left and right rectangle sums for $f(x)=x^{2}$ on $[0,2]$ with $4$ strips</div>
+<div class="g" style="grid-template-columns:repeat(3,1fr);font-size:26px;gap:44px 20px;text-align:center"><div>Left sum (under-estimate)<div class="ws">$h=0.5$: $0.5[0+0.25+1+2.25]=1.75$</div></div><div>Right sum (over-estimate)<div class="ws">$0.5[0.25+1+2.25+4]=3.75$</div></div><div>Bounds<div class="ws">$1.75\lt \dfrac{8}{3}\lt 3.75$ ✓</div></div></div>
+</div></div>
+
+<div class="c"><div class="h">We Do 8<span>Episode 12 · Numerical estimates of area</span></div><div class="b" style="min-height:520px">
+Use $4$ rectangles of equal width to find a lower and an upper bound for the area under $y=\dfrac{1}{x}$ from $x=1$ to $x=3$. Give each to $3$ decimal places.<div class="ws">$h=0.5$, $x=1,\,1.5,\,2,\,2.5,\,3$; $f=1,\,\tfrac{2}{3},\,\tfrac{1}{2},\,\tfrac{2}{5},\,\tfrac{1}{3}$<br>The function is decreasing, so right-end rectangles give the lower bound and left-end give the upper bound.<br>Lower $=0.5\left[\tfrac{2}{3}+\tfrac{1}{2}+\tfrac{2}{5}+\tfrac{1}{3}\right]=0.95$<br>Upper $=0.5\left[1+\tfrac{2}{3}+\tfrac{1}{2}+\tfrac{2}{5}\right]\approx1.283$<br>Check: $\ln3\approx1.099$ is between ✓</div>
+</div></div>
+
+<div class="c"><div class="h">We Do 9<span>Episode 12 · Numerical estimates of area</span></div><div class="b" style="min-height:400px">
+Show that the trapezoidal rule with $2$ strips gives $\dfrac{h}{2}[f(x_{0})+2f(x_{1})+f(x_{2})]$.<div class="ws">First trapezium: $\dfrac{h}{2}[f(x_{0})+f(x_{1})]$. Second: $\dfrac{h}{2}[f(x_{1})+f(x_{2})]$.<br>Add: $\dfrac{h}{2}[f(x_{0})+f(x_{1})+f(x_{1})+f(x_{2})]=\dfrac{h}{2}[f(x_{0})+2f(x_{1})+f(x_{2})]$</div>
+</div></div>
