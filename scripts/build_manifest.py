@@ -162,6 +162,24 @@ if os.path.exists(eng_path):
     if dups:
         problems.append(f'generators/engine.js: CODE_ORDER lists {", ".join(dups)} more than once')
 
+# Standard 1 bank: same rule for its own CODE_ORDER.
+s1_path = os.path.join(ROOT, 'generators', 'std1-bank.js')
+if os.path.exists(s1_path):
+    with open(s1_path, encoding='utf-8') as fh:
+        s1 = fh.read()
+    s1_ids = re.findall(r"\{id:'([\w-]+)',group:[^{}]*?\bgen:", s1)
+    m = re.search(r'const CODE_ORDER=\[(.*?)\];', s1, re.S)
+    if not m:
+        problems.append('generators/std1-bank.js: CODE_ORDER list not found')
+    else:
+        s1_order = re.findall(r"['\"]([\w-]+)['\"]", m.group(1))
+        for lid in s1_ids:
+            if lid not in s1_order:
+                problems.append(f'generators/std1-bank.js: lesson "{lid}" is missing from CODE_ORDER (add it at the END of the list)')
+        dups = sorted({x for x in s1_order if s1_order.count(x) > 1})
+        if dups:
+            problems.append(f'generators/std1-bank.js: CODE_ORDER lists {", ".join(dups)} more than once')
+
 with open(os.path.join(ROOT, 'manifest.json'), 'w', encoding='utf-8') as fh:
     json.dump({'years': years}, fh, ensure_ascii=False, indent=1)
 

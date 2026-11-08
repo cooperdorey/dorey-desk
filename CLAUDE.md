@@ -49,6 +49,10 @@ We Do levels) live in the Lesson Creator project; this file covers the repo form
   Question text from HSC papers is cited by year and question number; omit questions that need a diagram.
   In the question generator, test every generator function on many seeds before committing
   (all maths must parse in KaTeX; no `NaN`, `undefined`, `+ -` or `1x`).
+- Standard 1 LSQ (`generators/lsq-std1.html`): a copy of the LSQ page with its own bank, `generators/std1-bank.js`
+  (global `S1`; text-only questions for Std 1 topics 1 to 3; borrows only the RNG and fraction helpers from engine.js).
+  Its `CODE_ORDER` is append-only too (checked by `build_manifest.py`). Sheet codes end `.s1.<lessons>` so the Advanced
+  pages reject them. Money inside maths is written `\$`. Run `node scripts/check_std1.js` before committing.
 - Tutorial generator (`generators/tutorial.html`): hard, unfamiliar questions for a 20, 25 or 30 minute tutorial. Its bank is
   `generators/tutorial-bank.js` (loads after engine.js; independent of lesson ids and `CODE_ORDER`). Each template has a topic id
   from `TOPICS`, a (now ignored) minutes value, level (2 Hard, 3 Very hard), a hint and `gen(R)`, which must return a `chk()` that tests the printed

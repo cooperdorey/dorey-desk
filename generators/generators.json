@@ -18,6 +18,14 @@
   ]
  },
  {
+  "file": "lsq-std1.html",
+  "name": "LSQ generator (Standard 1)",
+  "desc": "A Low Stakes Quiz for Year 12 Standard 1 (Ratios and rates, Probability, Right-angled triangles), sized to the time you set, on two A4 pages. Downloads as a PDF with a separate answers PDF.",
+  "courses": [
+   "12 STD 1"
+  ]
+ },
+ {
   "file": "homework.html",
   "name": "Homework generator",
   "desc": "A weekly homework sheet, two A4 pages to print double-sided, set out like an HSC extended-response question, with past HSC questions as set or with new numbers. Downloads as a PDF with a separate sample-answers PDF, and makes the matching end-of-week LSQ.",
