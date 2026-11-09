@@ -58,6 +58,12 @@ select.overridden{border-color:var(--brand);box-shadow:0 0 0 1px var(--brand)}
 .fr td{padding:9px 14px;border-bottom:0;vertical-align:middle}
 .fr tbody tr:nth-child(even){background:var(--paper)}
 .fr tfoot th,.fr tfoot td{background:var(--paper);border-top:1px solid var(--line);border-bottom:0;padding:10px 14px;color:var(--ink);font-weight:600}
+.lg{display:flex;flex-wrap:wrap;gap:6px 16px}
+.lgrp{display:flex;flex-direction:column;gap:3px}
+.lgrp small{font-size:11px;color:var(--muted)}
+.ltr{display:flex;gap:3px}
+.lt{width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;border:1.5px solid transparent;background:rgba(46,158,107,.28);color:var(--ink)}
+.lt.owed{background:var(--badbg);border-color:var(--bad);color:var(--bad);font-weight:600}
 .abar{display:flex;align-items:center;gap:10px}
 .abar .trk{flex:1;height:6px;border-radius:3px;background:var(--line);overflow:hidden;min-width:80px}
 .abar .trk i{display:block;height:100%;border-radius:3px}
@@ -214,7 +220,7 @@ dialog .row{margin-top:12px}
     <div class="tiles" id="dTiles"></div>
     <h2 style="margin:0 0 8px">Fortnight attendance</h2>
     <div class="card fr" style="padding:0"><div id="dFort"></div></div>
-    <div class="card" style="padding:6px 10px"><div id="dList"></div></div>
+    <div class="card fr" style="padding:0"><div id="dList"></div></div>
   </section>
 
   <section id="t-entry">
@@ -1204,12 +1210,23 @@ function drawDash(){
   drawDashTiles(cls,students);drawFortnight(cls,students);
   S.book.forEach((v,k)=>{const i=k.indexOf('|');if(idset.has(k.slice(0,i)))active.add(k.slice(i+1))});
   const lessons=[...active].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));
-  box.innerHTML='<table><thead><tr><th>Student</th><th>N-awards resolved</th><th>N-awards unresolved</th><th>Total missed</th><th>Missed lessons</th></tr></thead><tbody>'+
+  const course=classCourse(cls),groups=[];
+  lessons.forEach(l=>{
+    const pre=l.includes('.')?l.slice(0,l.lastIndexOf('.')):'';
+    let g=groups.find(x=>x.pre===pre);
+    if(!g){const t=TOPICS.find(t=>t.course===course&&String(t.num)===pre);g={pre,label:pre?'Topic '+pre:'',name:t?t.name:'',items:[]};groups.push(g)}
+    g.items.push(l);
+  });
+  const lab=l=>{const i=l.lastIndexOf('.'),r=i>=0?l.slice(i+1):l,n=parseInt(r,10);return isNaN(n)?r:String(n)};
+  const strip=s=>groups.map(g=>'<div class="lgrp"><div class="ltr">'+g.items.map(l=>{
+    const owed=!S.book.has(bKey(s.id,l)),t=lessonTitle(cls,l);
+    return '<div class="lt'+(owed?' owed':'')+'" title="'+esc(l+(t?' '+t:'')+(owed?' (owed)':''))+'">'+esc(lab(l))+'</div>'}).join('')+'</div><small title="'+esc(g.name)+'">'+esc(g.label)+'</small></div>').join('');
+  box.innerHTML='<table><thead><tr><th>Student</th><th>N-awards resolved</th><th>N-awards unresolved</th><th>Total missed</th><th>Book work</th></tr></thead><tbody>'+
     students.map(s=>{
       const n=nawFor(s.id),res=n.filter(r=>r.status==='resolved').length,un=n.length-res;
       const owed=lessons.filter(l=>!S.book.has(bKey(s.id,l)));
       return '<tr><td>'+esc(s.last)+', '+esc(s.first)+'</td><td style="text-align:center;color:#15803D;font-weight:600">'+res+'</td><td style="text-align:center;color:'+(un?'#C0392B':'inherit')+';font-weight:600">'+un+'</td><td style="text-align:center">'+missPill(owed.length)+'</td><td>'+
-        (owed.map(l=>'<span class="tag">'+esc(l)+'</span>').join('')||'<span class="note" style="margin:0">None</span>')+'</td></tr>'}).join('')+'</tbody></table>';
+        (lessons.length?'<div class="lg">'+strip(s)+'</div>':'<span class="note" style="margin:0">No book work ticked yet</span>')+'</td></tr>'}).join('')+'</tbody></table>';
 }
 $('dClass').onchange=drawDash;$('dEnd').oninput=drawDash;$('dN').oninput=drawDash;
 
