@@ -84,6 +84,8 @@ main{min-width:0}
 .pq .n{font-weight:700;font-size:17px;color:#1B6F6A}
 .pq .mk{font-family:var(--ui);font-size:11.5px;color:#333;text-align:right;padding-top:3px;white-space:nowrap}
 .pq .space{grid-column:1/-1}
+.pq .fig{float:right;margin:0 0 4px 12px;line-height:0}
+.pq .fig svg{display:block}
 .pfoot{position:absolute;left:60px;right:60px;bottom:22px;display:flex;justify-content:space-between;font-family:var(--ui);font-size:10.5px;color:#666}
 .pfoot .code{position:absolute;left:50%;transform:translateX(-50%);bottom:-12px;font-size:8px;letter-spacing:.04em;color:#b4b8be;white-space:nowrap}
 .akey .pq{grid-template-columns:30px minmax(0,1fr) 62px;padding-bottom:8px}
@@ -231,7 +233,7 @@ document.addEventListener('DOMContentLoaded',()=>{
    <div class="inst">Show relevant working in the space under each question. Calculators may be used.</div>`}
  // display maths sits left-aligned in the flow of a question, so show it as inline maths in display style
  const inl=s=>String(s).replace(/\$\$([\s\S]+?)\$\$/g,(m,x)=>`<div>$\\displaystyle ${x}$</div>`);
- const qHTML=(Q,i,space)=>`<div class="pq"><div class="n">${i+1}</div><div class="p">${inl(Q.q).replace(/\\frac/g,'\\dfrac')}</div><div class="mk">${Q.marks} mark${Q.marks>1?'s':''}</div>${space==null?'':`<div class="space" style="height:${space}px"></div>`}</div>`;
+ const qHTML=(Q,i,space)=>`<div class="pq"><div class="n">${i+1}</div><div class="p">${Q.fig?`<div class="fig">${Q.fig}</div>`:''}${inl(Q.q).replace(/\\frac/g,'\\dfrac')}</div><div class="mk">${Q.marks} mark${Q.marks>1?'s':''}</div>${space==null?'':`<div class="space" style="height:${space}px"></div>`}</div>`;
  const aHTML=(Q,i)=>`<div class="pq"><div class="n">${i+1}</div><div class="steps">${Q.sol.map(s=>`<div>${inl(s)}</div>`).join('')}<div class="final">Answer: ${inl(Q.ans)}</div><div class="src">${srcLine(Q)}</div></div><div class="mk">${Q.marks} mark${Q.marks>1?'s':''}</div></div>`;
  const srcLine=Q=>`${esc(Q.lesson.topic.name)} · ${esc(Q.lesson.name)}`;
  const foot=(info,p,n,label)=>`<div class="pfoot"><span>${esc(info.title)}${info.cls?' · '+esc(info.cls):''}${label?' · '+label:''}</span>${info.code?`<span class="code">${esc(info.code)}</span>`:''}<span>Page ${p} of ${n}</span></div>`;

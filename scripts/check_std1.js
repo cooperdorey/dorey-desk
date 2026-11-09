@@ -37,6 +37,17 @@ function checkText(where,Q){const parts=[Q.q,...(Q.sol||[]),Q.ans];
   maths.forEach(m=>{try{katex.renderToString(m,{throwOnError:true,output:'mathml'})}catch(e){fail(where,'KaTeX: '+e.message.slice(0,100)+' in '+m.slice(0,100))}})})}
 
 let total=0;
+const figs={};
+// a diagram is an inline SVG with finite numbers, no stray $ (it sits inside the question), and every coordinate inside its own box
+function checkFig(w,f){
+ if(typeof f!=='string'||!/^<svg [^>]*viewBox="0 0 (\d+) (\d+)"/.test(f)||!/<\/svg>$/.test(f))return fail(w,'figure is not a complete svg');
+ if(BAD.test(f.replace(/\.\./g,'')))fail(w,'bad pattern in figure: '+(f.match(BAD)||[''])[0]);
+ if(/\$/.test(f))fail(w,'figure contains a $');
+ const m=f.match(/viewBox="0 0 (\d+) (\d+)"/),W=+m[1],H=+m[2];
+ for(const mm of f.matchAll(/\b(x1|x2|cx|x)="(-?[\d.]+)"/g))if(+mm[2]<0||+mm[2]>W)fail(w,`figure x=${mm[2]} outside 0..${W}`);
+ for(const mm of f.matchAll(/\b(y1|y2|cy|y)="(-?[\d.]+)"/g))if(+mm[2]<0||+mm[2]>H)fail(w,`figure y=${mm[2]} outside 0..${H}`);
+ for(const mm of f.matchAll(/points="([^"]+)"/g))for(const pr of mm[1].trim().split(/\s+/)){const [x,y]=pr.split(',').map(Number);if(!(x>=0&&x<=W&&y>=0&&y<=H))fail(w,'figure point '+pr+' outside the box')}
+}
 for(const L of Object.values(S1.LESSONS)){
  const seen=new Set();
  for(let s=0;s<SEEDS;s++){
@@ -46,11 +57,13 @@ for(const L of Object.values(S1.LESSONS)){
   if(!Array.isArray(Q.sol)||!Q.sol.length)fail(w,'no solution lines');
   checkText(w,Q);
   if(Q.chk&&!Q.chk())fail(w,'its own check failed: '+Q.q.slice(0,160));
+  if(Q.fig!=null){figs[L.id]=(figs[L.id]||0)+1;checkFig(w,Q.fig)}
   seen.add(Q.q);
   if(SHOW===L.id&&s<(+process.env.N||8))console.log('\n'+Q.q+'\n  '+Q.sol.join('\n  ')+'\n  => '+Q.ans+'   ['+Q.marks+']')}
  const variety=seen.size/SEEDS;
  if(seen.size<Math.min(SEEDS,40)*0.5)fail('lesson '+L.id,`only ${seen.size} different questions in ${SEEDS} seeds`);
  if(!SHOW)console.log(`${L.id.padEnd(14)} ${String(seen.size).padStart(4)} different in ${SEEDS}`)}
+if(!SHOW)console.log('\nfigures per lesson: '+Object.entries(figs).map(([k,v])=>k+' '+v).join(', '));
 console.log(`\n${Object.keys(S1.LESSONS).length} lessons, ${total} questions checked`);
 
 // ---- sheet codes ----

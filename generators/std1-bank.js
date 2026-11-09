@@ -325,12 +325,66 @@ const TRIPLES=[[3,4,5],[5,12,13],[8,15,17],[7,24,25],[20,21,29],[9,40,41]];
 const UNIT=['cm','m','mm'];
 const triOK=(th,o,a,h)=>Math.abs(o*o+a*a-h*h)<1e-6*h*h&&Math.abs(o/h-sin(th))<1e-9&&Math.abs(a/h-cos(th))<1e-9&&Math.abs(o/a-tan(th))<1e-9;
 
+// ---- diagrams: inline SVG, drawn roughly in proportion and marked "Not to scale" ----
+const pl=x=>String(+(+x).toFixed(3));
+const fx=n=>Math.round(n*10)/10;
+const FTXT=(x,y,s,o={})=>`<text x="${fx(x)}" y="${fx(y)}" text-anchor="${o.a||'middle'}"${o.i?' font-style="italic"':''}${o.halo?' stroke="#fff" stroke-width="4" stroke-linejoin="round" paint-order="stroke"':''}>${s}</text>`;
+const FLN=(a,b,o='')=>`<line x1="${fx(a[0])}" y1="${fx(a[1])}" x2="${fx(b[0])}" y2="${fx(b[1])}" stroke="#000" stroke-width="1.4"${o}/>`;
+const FSVG=(W,H,body)=>(W=Math.ceil(W),H=Math.ceil(H),`<svg xmlns="http://www.w3.org/2000/svg" width="${Math.round(W*0.88)}" height="${Math.round(H*0.88)}" viewBox="0 0 ${W} ${H}" font-family="'Times New Roman',Times,serif" font-size="12" fill="#000" stroke-linecap="round">${body}<text x="${W-2}" y="${H-3}" text-anchor="end" font-size="8.5" fill="#777" font-family="Arial,sans-serif">Not to scale</text></svg>`);
+const fUnit=(a,b)=>{const d=Math.hypot(b[0]-a[0],b[1]-a[1])||1;return[(b[0]-a[0])/d,(b[1]-a[1])/d]};
+const fAnchor=o=>o[0]>0.45?'start':o[0]<-0.45?'end':'middle';
+// label for side PQ, set on the side away from the third vertex T
+const sideLab=(P,Q,T,s,halo)=>{if(s===''||s==null)return'';const m=[(P[0]+Q[0])/2,(P[1]+Q[1])/2],e=fUnit(P,Q);let o=[-e[1],e[0]];if(o[0]*(m[0]-T[0])+o[1]*(m[1]-T[1])<0)o=[-o[0],-o[1]];
+ return FTXT(m[0]+o[0]*11,m[1]+o[1]*11+4+o[1]*6,s,{a:fAnchor(o),halo})};
+// arc at V from the direction of P1 round to the direction of P2, with a label beyond it
+const arcLab=(V,P1,P2,r,s,out)=>{const a1=Math.atan2(P1[1]-V[1],P1[0]-V[0]);let d=Math.atan2(P2[1]-V[1],P2[0]-V[0])-a1;
+ while(d>Math.PI)d-=2*Math.PI;while(d<-Math.PI)d+=2*Math.PI;
+ const pt=a=>[V[0]+r*Math.cos(a),V[1]+r*Math.sin(a)],p=pt(a1),q=pt(a1+d),mid=a1+d/2,o=[Math.cos(mid),Math.sin(mid)];
+ return `<path d="M${fx(p[0])} ${fx(p[1])} A${r} ${r} 0 0 ${d>0?1:0} ${fx(q[0])} ${fx(q[1])}" fill="none" stroke="#000" stroke-width="1.1"/>`+
+  (()=>{if(!s)return'';const q=out&&Math.abs(d)<(out===true?0.5:out)?-1:1,k=q>0?r+5:r+6,oo=[o[0]*q,o[1]*q];return FTXT(V[0]+k*oo[0],V[1]+k*oo[1]+4+oo[1]*6,s,{a:fAnchor(oo),halo:true})})()};
+const rightMark=(K,P,Q)=>{const a=fUnit(K,P),b=fUnit(K,Q),f=n=>fx(n);return `<polyline points="${f(K[0]+9*a[0])},${f(K[1]+9*a[1])} ${f(K[0]+9*a[0]+9*b[0])},${f(K[1]+9*a[1]+9*b[1])} ${f(K[0]+9*b[0])},${f(K[1]+9*b[1])}" fill="none" stroke="#000" stroke-width="1"/>`};
+const tw=(w,h)=>{let r=Math.min(4.5,Math.max(0.5,w/h));return r>=120/68?[120,120/r]:[68*r,68]};
+// right-angled triangle, right angle at B (names [A,B,C]); A above B, C level with B. lab {v:AB, hz:BC, hyp:AC}
+// ang {at:'A'|'C', txt}; dep: text for an angle of depression drawn at A; flip mirrors left-right
+function triFig(o){const [ww,hh]=tw(o.w,o.h),PX=58,PY=20,fl=o.flip?-1:1,bx=o.flip?PX+120:PX,by=PY+68,
+  B=[bx,by],A=[bx,by-hh],C=[bx+fl*ww,by],W=PX*2+120;let s='';
+ s+=`<polygon points="${A.join(',')} ${B.join(',')} ${C.join(',')}" fill="none" stroke="#000" stroke-width="1.4" stroke-linejoin="round"/>`;
+ s+=rightMark(B,A,C);
+ if(o.names){const G=[(A[0]+B[0]+C[0])/3,(A[1]+B[1]+C[1])/3];[[A,o.names[0]],[B,o.names[1]],[C,o.names[2]]].forEach(([P,n])=>{const u=fUnit(G,P);s+=FTXT(P[0]+u[0]*11,P[1]+u[1]*11+5,n,{i:true})})}
+ const L=o.lab||{};s+=sideLab(A,B,C,L.v)+sideLab(B,C,A,L.hz)+sideLab(A,C,B,L.hyp);
+ if(o.ang){const V=o.ang.at==='A'?A:C;s+=arcLab(V,o.ang.at==='A'?B:A,o.ang.at==='A'?C:B,o.ang.r||24,o.ang.txt,o.ang.at==='C')}
+ if(o.dep){const dx=fl,end=[C[0]+dx*16,A[1]];s+=FLN(A,end,' stroke-dasharray="4 3"')+arcLab(A,end,C,26,o.dep)}
+ return FSVG(W,PY+68+(o.names?28:24),s)}
+// rectangle with one diagonal. lab {w, h, d}
+function rectFig(w,h,L){const [ww,hh]=tw(w,h),PX=58,PY=14,P=[PX,PY],Q=[PX+ww,PY],Rr=[PX+ww,PY+hh],S=[PX,PY+hh];
+ let s=`<polygon points="${P} ${Q} ${Rr} ${S}" fill="none" stroke="#000" stroke-width="1.4"/>`+FLN(P,Rr);
+ s+=sideLab(S,Rr,P,L.w)+sideLab(P,S,Q,L.h)+(L.d?FTXT((P[0]+Rr[0])/2,(P[1]+Rr[1])/2+4-10,L.d,{halo:true}):'');
+ return FSVG(PX*2+120,PY+hh+34,s)}
+// observer's eye above the ground, looking up at the top of a building. lab {e, d, h}, ang text, th (degrees) for the slope
+function eyeFig(o){const gy=96,ex=48,ey=gy-16,bx=168,top=Math.max(12,ey-120*Math.tan(o.th*Math.PI/180)),E=[ex,ey],T=[bx,top];
+ let s=FLN([14,gy],[206,gy])+`<rect x="${bx}" y="${fx(top)}" width="30" height="${fx(gy-top)}" fill="none" stroke="#000" stroke-width="1.4"/>`+FLN([ex,gy],E)+`<circle cx="${ex}" cy="${ey}" r="2.2"/>`;
+ s+=FLN(E,[bx,ey],' stroke-dasharray="4 3"')+FLN(E,T)+arcLab(E,[bx,ey],T,26,o.ang);
+ s+=FTXT(ex-6,gy-3,o.lab.e,{a:'end'})+FTXT((ex+bx)/2,gy+14,o.lab.d)+FTXT(bx+34,(top+gy)/2+4,o.lab.h,{a:'start'});
+ return FSVG(230,gy+22,s)}
+// a journey drawn from O with a north line. n = north displacement (negative = south), e = east. corner 'v': go north/south first, 'h': go east first.
+// lab {n, e, hyp}, arc: label for the bearing arc (clockwise from north)
+function bearFig(o){const [ew,nh]=tw(Math.abs(o.e),Math.abs(o.n)),PX=52,TOP=36,north=o.n>=0,O=[PX,north?TOP+nh:TOP],S=[PX+ew,north?TOP:TOP+nh],
+  K=o.corner==='v'?[O[0],S[1]]:[S[0],O[1]];let s='';
+ s+=FLN(O,[O[0],TOP-16],' stroke-dasharray="4 3"')+FTXT(O[0],TOP-20,'N')+FLN(O,K)+FLN(K,S)+FLN(O,S);
+ s+=rightMark(K,O,S);
+ const vert=o.corner==='v'?[O,K]:[K,S],horz=o.corner==='v'?[K,S]:[O,K],Tv=o.corner==='v'?S:O,Th=o.corner==='v'?O:S;
+ s+=sideLab(vert[0],vert[1],Tv,o.lab.n)+sideLab(horz[0],horz[1],Th,o.lab.e)+sideLab(O,S,K,o.lab.hyp);
+ s+=arcLab(O,[O[0],O[1]-100],S,22,o.arc,0.8);
+ return FSVG(PX*2+120,TOP+nh+(north?46:30),s)}
+
 const g301=G(R=>{const v=R.int(0,2),T=tri(R),u=R.pick(UNIT);
  if(v===0){const l1=R.int(3,20),l2=R.int(3,20),s=l1*l1+l2*l2,c=Math.sqrt(s);if(tie(c,2))return null;const ex=Number.isInteger(c);
   return{q:`In triangle ${T.name}, ${T.ra}, ${ts(T.AB,l1,u)} and ${ts(T.BC,l2,u)}. Find the length of $${T.hyp}$${ex?'':', correct to 2 decimal places'}.`,marks:2,
+   fig:triFig({flip:R.next()<0.5,w:l2,h:l1,names:[T.a,T.b,T.c],lab:{v:`${l1} ${u}`,hz:`${l2} ${u}`,hyp:'?'}}),
    sol:[`$${T.hyp}^{2} = ${T.AB}^{2} + ${T.BC}^{2}$`,`$${T.hyp}^{2} = ${l1}^{2} + ${l2}^{2} = ${l1*l1} + ${l2*l2} = ${s}$`,ex?`$${T.hyp} = \\sqrt{${s}} = ${c}$ ${u}`:`$${T.hyp} = \\sqrt{${s}} \\approx ${D(c,2)}$ ${u}`],ans:`$${T.hyp}${ex?'=':'\\approx'} ${D(c,ex?0:2)}\\text{ ${u}}$`,chk:()=>Math.abs(c*c-l1*l1-l2*l2)<1e-9}}
  if(v===1){const h=R.int(8,30),l=R.int(3,h-2),s=h*h-l*l,x=Math.sqrt(s);if(tie(x,2))return null;const ex=Number.isInteger(x);
   return{q:`In triangle ${T.name}, ${T.ra}, ${ts(T.hyp,h,u)} and ${ts(T.AB,l,u)}. Find the length of $${T.BC}$${ex?'':', correct to 2 decimal places'}.`,marks:2,
+   fig:triFig({flip:R.next()<0.5,w:x,h:l,names:[T.a,T.b,T.c],lab:{v:`${l} ${u}`,hz:'?',hyp:`${h} ${u}`}}),
    sol:[`$${T.BC}^{2} = ${T.hyp}^{2} - ${T.AB}^{2}$`,`$${T.BC}^{2} = ${h}^{2} - ${l}^{2} = ${h*h} - ${l*l} = ${s}$`,ex?`$${T.BC} = \\sqrt{${s}} = ${x}$ ${u}`:`$${T.BC} = \\sqrt{${s}} \\approx ${D(x,2)}$ ${u}`],ans:`$${T.BC}${ex?'=':'\\approx'} ${D(x,ex?0:2)}\\text{ ${u}}$`,chk:()=>Math.abs(x*x+l*l-h*h)<1e-9}}
  const [p,q,r]=R.pick(TRIPLES),k=R.pick([1,1,2]),right=R.next()<0.5;let a=p*k,b=q*k,c=r*k;if(!right){const w=R.pick([-2,-1,1,2]);c=c+w;if(c<=b)return null}
  const lhs=a*a+b*b,rhs=c*c;
@@ -340,26 +394,32 @@ const g301=G(R=>{const v=R.int(0,2),T=tri(R),u=R.pick(UNIT);
 const g302=G(R=>{const v=R.int(0,3);
  if(v===0){const L=R.int(30,90)/10,d=R.int(10,Math.floor(L*10*0.55))/10,h=Math.sqrt(L*L-d*d);if(tie(h,1))return null;
   return{q:`A ladder $${N(L)}$ m long leans against a vertical wall. The foot of the ladder is $${N(d)}$ m from the base of the wall. How far up the wall does the ladder reach? Give your answer correct to 1 decimal place.`,marks:2,
+   fig:triFig({flip:R.next()<0.5,w:d,h:h,lab:{v:'?',hz:`${pl(d)} m`,hyp:`${pl(L)} m`}}),
    sol:[`$h^{2} = ${N(L)}^{2} - ${N(d)}^{2} = ${N(L*L)} - ${N(d*d)} = ${N(L*L-d*d)}$`,`$h = \\sqrt{${N(L*L-d*d)}} \\approx ${D(h,1)}$ m`],ans:`$${D(h,1)}\\text{ m}$`,chk:()=>Math.abs(h*h+d*d-L*L)<1e-9}}
  if(v===1){const k=R.int(4,9),W=16*k,H=9*k,dg=Math.sqrt(W*W+H*H);if(tie(dg,0))return null;
   return{q:`A television screen is $${W}$ cm wide and $${H}$ cm high. The size of a screen is the length of its diagonal. Find the size of this screen, to the nearest centimetre.`,marks:2,
+   fig:rectFig(W,H,{w:`${W} cm`,h:`${H} cm`,d:'?'}),
    sol:[`$d^{2} = ${W}^{2} + ${H}^{2} = ${W*W} + ${H*H} = ${W*W+H*H}$`,`$d = \\sqrt{${W*W+H*H}} \\approx ${Math.round(dg)}$ cm`],ans:`$${Math.round(dg)}\\text{ cm}$`}}
  if(v===2){const a=R.int(30,120),b=R.int(20,a),dg=Math.sqrt(a*a+b*b),sv=a+b-dg;if(tie(sv,0))return null;
   return{q:`A rectangular paddock is $${a}$ m long and $${b}$ m wide. Sam walks along two sides from one corner to the opposite corner. Tia walks straight across along the diagonal. How much shorter is Tia's walk, to the nearest metre?`,marks:3,
+   fig:rectFig(a,b,{w:`${a} m`,h:`${b} m`}),
    sol:[`Sam: $${a} + ${b} = ${a+b}$ m`,`Tia: $\\sqrt{${a}^{2} + ${b}^{2}} = \\sqrt{${a*a+b*b}} \\approx ${D(dg,2)}$ m`,`Difference: $${a+b} - ${D(dg,2)} \\approx ${Math.round(sv)}$ m`],ans:`$${Math.round(sv)}\\text{ m}$`}}
  const h=R.int(40,120)/10,d=R.int(20,70)/10,w=Math.sqrt(h*h+d*d);if(tie(w,2))return null;
  return{q:`A flagpole $${N(h)}$ m high is held upright by a wire from its top to a point on level ground $${N(d)}$ m from its base. Find the length of the wire, correct to 2 decimal places.`,marks:2,
-  sol:[`$w^{2} = ${N(h)}^{2} + ${N(d)}^{2} = ${N(h*h)} + ${N(d*d)} = ${N(h*h+d*d)}$`,`$w = \\sqrt{${N(h*h+d*d)}} \\approx ${D(w,2)}$ m`],ans:`$${D(w,2)}\\text{ m}$`}});
+  fig:triFig({flip:R.next()<0.5,w:d,h:h,lab:{v:`${pl(h)} m`,hz:`${pl(d)} m`,hyp:'?'}}),
+   sol:[`$w^{2} = ${N(h)}^{2} + ${N(d)}^{2} = ${N(h*h)} + ${N(d*d)} = ${N(h*h+d*d)}$`,`$w = \\sqrt{${N(h*h+d*d)}} \\approx ${D(w,2)}$ m`],ans:`$${D(w,2)}\\text{ m}$`}});
 
 const g303=G(R=>{const [p,q,r]=R.pick(TRIPLES),k=R.pick([1,1,2]),T=tri(R),lg1=p*k,lg2=q*k,hy=r*k,u=R.pick(UNIT);   // legs AB = lg1, BC = lg2
  const V=R.pick([T.a,T.c]),opp=V===T.a?T.BC:T.AB,adj=V===T.a?T.AB:T.BC,ov=V===T.a?lg2:lg1,av=V===T.a?lg1:lg2,v=R.int(0,1);
  const fns=R.sample([['sin',opp,ov,T.hyp,hy],['cos',adj,av,T.hyp,hy],['tan',opp,ov,adj,av]],2);
  const word={sin:'\\dfrac{\\text{opp}}{\\text{hyp}}',cos:'\\dfrac{\\text{adj}}{\\text{hyp}}',tan:'\\dfrac{\\text{opp}}{\\text{adj}}'};
  if(v===0)return{q:`In triangle ${T.name}, ${T.ra}, ${ts(T.AB,lg1,u)}, ${ts(T.BC,lg2,u)} and ${ts(T.hyp,hy,u)}. Write down $${fns.map(f=>`\\${f[0]}\\,${V}`).join('$ and $')}$ as fractions in simplest form.`,marks:2,
+   fig:triFig({flip:R.next()<0.5,w:lg2,h:lg1,names:[T.a,T.b,T.c],lab:{v:`${lg1} ${u}`,hz:`${lg2} ${u}`,hyp:`${hy} ${u}`},ang:{at:V===T.a?'A':'C',txt:''}}),
    sol:[`Angle $${V}$: the opposite side is $${opp}$, the adjacent side is $${adj}$ and the hypotenuse is $${T.hyp}$.`,...fns.map(f=>`$\\${f[0]}\\,${V} = ${word[f[0]]} = ${eqf(f[2],f[4])}$`)],ans:fns.map(f=>`$\\${f[0]}\\,${V} = ${fr(f[2],f[4])}$`).join(', ')};
  const f=fns[0];
  return{q:`In triangle ${T.name}, ${T.ra}, ${ts(T.AB,lg1,u)} and ${ts(T.BC,lg2,u)}. Find $${T.hyp}$ using Pythagoras' theorem, then write down $\\${f[0]}\\,${V}$ as a fraction in simplest form.`,marks:3,
-  sol:[`$${T.hyp}^{2} = ${lg1}^{2} + ${lg2}^{2} = ${lg1*lg1} + ${lg2*lg2} = ${hy*hy}$, so ${ts(T.hyp,hy,u)}.`,`Angle $${V}$: opposite $${opp}$, adjacent $${adj}$, hypotenuse $${T.hyp}$.`,`$\\${f[0]}\\,${V} = ${word[f[0]]} = ${eqf(f[2],f[4])}$`],ans:`$${T.hyp} = ${hy}$ ${u}, $\\${f[0]}\\,${V} = ${fr(f[2],f[4])}$`}});
+  fig:triFig({flip:R.next()<0.5,w:lg2,h:lg1,names:[T.a,T.b,T.c],lab:{v:`${lg1} ${u}`,hz:`${lg2} ${u}`,hyp:'?'},ang:{at:V===T.a?'A':'C',txt:''}}),
+   sol:[`$${T.hyp}^{2} = ${lg1}^{2} + ${lg2}^{2} = ${lg1*lg1} + ${lg2*lg2} = ${hy*hy}$, so ${ts(T.hyp,hy,u)}.`,`Angle $${V}$: opposite $${opp}$, adjacent $${adj}$, hypotenuse $${T.hyp}$.`,`$\\${f[0]}\\,${V} = ${word[f[0]]} = ${eqf(f[2],f[4])}$`],ans:`$${T.hyp} = ${hy}$ ${u}, $\\${f[0]}\\,${V} = ${fr(f[2],f[4])}$`}});
 
 // the unknown side of a right-angled triangle from one side and one angle. mode 'top': x = k × ratio, 'bottom': x = k ÷ ratio
 const trigSide=(R,mode)=>{const T=tri(R),fn=R.pick(['sin','cos','tan']),th=R.int(15,75),V=R.pick([T.a,T.c]),
@@ -370,6 +430,7 @@ const trigSide=(R,mode)=>{const T=tri(R),fn=R.pick(['sin','cos','tan']),th=R.int
   const solve=mode==='top'?`${unk} = ${N(k)} \\times \\${fn}\\,${ang(th)}`:`${unk} = \\dfrac{${N(k)}}{\\${fn}\\,${ang(th)}}`;
   const side={[opp]:'opposite',[adj]:'adjacent',[T.hyp]:'hypotenuse'};
   return{q:`In triangle ${T.name}, ${T.ra}, $\\angle ${V} = ${ang(th)}$ and ${ts(known,N(k),u)}. Find the length of $${unk}$, correct to 2 decimal places.`,marks:2,
+   fig:triFig({flip:R.next()<0.5,w:V===T.a?tan(th):1,h:V===T.a?1:tan(th),names:[T.a,T.b,T.c],lab:Object.fromEntries([[T.AB,'v'],[T.BC,'hz'],[T.hyp,'hyp']].map(([n,p])=>[p,n===known?`${pl(k)} ${u}`:n===unk?'?':''])),ang:{at:V===T.a?'A':'C',txt:`${th}°`}}),
    sol:[`Relative to angle $${V}$, $${known}$ is the ${side[known]} and $${unk}$ is the ${side[unk]}, so use ${fn==='sin'?'sine':fn==='cos'?'cosine':'tangent'}.`,`$${eq}$`,`$${solve} \\approx ${D(x,2)}$ ${u}`],ans:`$${unk} \\approx ${D(x,2)}\\text{ ${u}}$`,
    chk:()=>{const vals={};vals[known]=k;vals[unk]=x;const third=[opp,adj,T.hyp].find(s=>s!==known&&s!==unk);let o=vals[opp],a=vals[adj],h=vals[T.hyp];
      if(third===T.hyp)h=Math.hypot(o,a);else if(third===opp)o=Math.sqrt(h*h-a*a);else a=Math.sqrt(h*h-o*o);return triOK(th,o,a,h)}}};
@@ -377,14 +438,17 @@ const g304=G(R=>{const v=R.int(0,2);
  if(v<2)return trigSide(R,'top');
  const ladder=R.next()<0.5,L=R.int(30,90)/10,th=ladder?R.int(55,80):R.int(4,20),x=ladder?L*sin(th):L*cos(th);if(tie(x,2))return null;
  return ladder?{q:`A ladder $${N(L)}$ m long makes an angle of $${ang(th)}$ with level ground. How far up a vertical wall does it reach? Give your answer correct to 2 decimal places.`,marks:2,
+   fig:triFig({flip:R.next()<0.5,w:1,h:tan(th),lab:{v:'?',hyp:`${pl(L)} m`},ang:{at:'C',txt:`${th}°`}}),
    sol:[`The height is opposite the angle, and the ladder is the hypotenuse, so use sine.`,`$\\sin\\,${ang(th)} = \\dfrac{h}{${N(L)}}$`,`$h = ${N(L)} \\times \\sin\\,${ang(th)} \\approx ${D(x,2)}$ m`],ans:`$${D(x,2)}\\text{ m}$`}
   :{q:`A ramp $${N(L)}$ m long makes an angle of $${ang(th)}$ with level ground. Find the horizontal distance the ramp covers, correct to 2 decimal places.`,marks:2,
+   fig:triFig({flip:R.next()<0.5,w:1,h:tan(th),lab:{hz:'?',hyp:`${pl(L)} m`},ang:{at:'C',txt:`${th}°`}}),
    sol:[`The horizontal distance is adjacent to the angle, and the ramp is the hypotenuse, so use cosine.`,`$\\cos\\,${ang(th)} = \\dfrac{d}{${N(L)}}$`,`$d = ${N(L)} \\times \\cos\\,${ang(th)} \\approx ${D(x,2)}$ m`],ans:`$${D(x,2)}\\text{ m}$`}});
 const g305=G(R=>{const v=R.int(0,2);
  if(v<2)return trigSide(R,'bottom');
  const h=R.int(3,15)/10,th=R.int(4,12),L=h/sin(th);if(tie(L,2))return null;
  return{q:`A wheelchair ramp rises $${N(h)}$ m and makes an angle of $${ang(th)}$ with level ground. Find the length of the ramp, correct to 2 decimal places.`,marks:2,
-  sol:[`The rise is opposite the angle and the ramp is the hypotenuse, so use sine.`,`$\\sin\\,${ang(th)} = \\dfrac{${N(h)}}{L}$`,`$L = \\dfrac{${N(h)}}{\\sin\\,${ang(th)}} \\approx ${D(L,2)}$ m`],ans:`$${D(L,2)}\\text{ m}$`}});
+  fig:triFig({flip:R.next()<0.5,w:1,h:tan(th),lab:{v:`${pl(h)} m`,hyp:'?'},ang:{at:'C',txt:`${th}°`}}),
+   sol:[`The rise is opposite the angle and the ramp is the hypotenuse, so use sine.`,`$\\sin\\,${ang(th)} = \\dfrac{${N(h)}}{L}$`,`$L = \\dfrac{${N(h)}}{\\sin\\,${ang(th)}} \\approx ${D(L,2)}$ m`],ans:`$${D(L,2)}\\text{ m}$`}});
 
 const g306=G(R=>{const v=R.int(0,3);
  if(v===0){const d=R.int(10,80),f=R.int(1000,9999)/10000,x=d+f;if(dmsTie(x))return null;
@@ -396,6 +460,7 @@ const g306=G(R=>{const v=R.int(0,3);
  if(v===2){const T=tri(R),d=R.int(15,70),m=R.int(1,19)*3,th=d+m/60,fn=R.pick(['sin','cos']),H=R.int(40,200)/R.pick([2,4]),f=fn==='sin'?sin(th):cos(th),x=H*f,V=T.a,opp=T.BC,adj=T.AB,u=R.pick(UNIT);if(tie(x,2)||!dpOK(H,2))return null;
   const want=fn==='sin'?opp:adj;
   return{q:`In triangle ${T.name}, ${T.ra}, $\\angle ${V} = ${d}^{\\circ}${String(m).padStart(2,'0')}'$ and ${T.hyp} $= ${N(H)}$ ${u}. Find the length of ${want}, correct to 2 decimal places.`,marks:2,
+   fig:triFig({flip:R.next()<0.5,w:tan(th),h:1,names:[T.a,T.b,T.c],lab:Object.fromEntries([[T.hyp,'hyp'],[want,want===T.BC?'hz':'v']].map(([n,p],i)=>[p,i?'?':`${pl(H)} ${u}`])),ang:{at:'A',txt:`${d}°${String(m).padStart(2,'0')}′`}}),
    sol:[`Use ${fn==='sin'?'sine (opposite and hypotenuse)':'cosine (adjacent and hypotenuse)'}.`,`$${want} = ${N(H)} \\times \\${fn}\\,${d}^{\\circ}${String(m).padStart(2,'0')}'$`,`$${want} \\approx ${D(x,2)}$ ${u}`],ans:`$${want} \\approx ${D(x,2)}\\text{ ${u}}$`,
    chk:()=>{const o=fn==='sin'?x:H*sin(th),a=fn==='sin'?H*cos(th):x;return triOK(th,o,a,H)}}}
  const d1=R.int(30,80),m1=R.int(10,55),d2=R.int(20,70),m2=R.int(10,55),tot=d1*60+m1+d2*60+m2,left=180*60-tot;if(left<60*10)return null;
@@ -411,31 +476,39 @@ const g307=G(R=>{const v=R.int(0,3),T=tri(R),u=R.pick(UNIT);
   const nameX=fn==='cos'?adjN:oppN,nameY=fn==='tan'?adjN:T.hyp,out=nm?dms(th):ang(Math.round(th));
   const describe=fn==='sin'?'the opposite side and the hypotenuse':fn==='cos'?'the adjacent side and the hypotenuse':'the opposite side and the adjacent side';
   return{q:`In triangle ${T.name}, ${T.ra}, ${ts(nameX,x,u)} and ${ts(nameY,y,u)}. Find the size of $\\angle ${V}$, correct to the nearest ${nm?'minute':'degree'}.`,marks:2,
+   fig:triFig({flip:R.next()<0.5,w:fn==='sin'?x:fn==='cos'?Math.sqrt(y*y-x*x):x,h:fn==='sin'?Math.sqrt(y*y-x*x):fn==='cos'?x:y,names:[T.a,T.b,T.c],lab:Object.fromEntries([[T.AB,'v'],[T.BC,'hz'],[T.hyp,'hyp']].map(([n,p])=>[p,n===nameX?`${x} ${u}`:n===nameY?`${y} ${u}`:''])),ang:{at:'A',txt:'?'}}),
    sol:[`Relative to angle $${V}$, the given sides are ${describe}, so use ${fn==='sin'?'sine':fn==='cos'?'cosine':'tangent'}.`,`$\\${fn}\\,${V} = ${fu(x,y)}$`,`$${V} = \\${fn}^{-1}\\left(${fu(x,y)}\\right) \\approx ${out}$`],ans:`$\\angle ${V} \\approx ${out}$`,
    chk:()=>{const o=fn==='cos'?Math.sqrt(y*y-x*x):x,a=fn==='cos'?x:fn==='tan'?y:Math.sqrt(y*y-x*x),h=fn==='tan'?Math.hypot(x,y):y;return triOK(th,o,a,h)}}}
  if(v===2){const L=R.int(30,80)/10,d=R.int(Math.ceil(L*10*0.2),Math.floor(L*10*0.6))/10,th=acos(d/L);if(tie(th,0))return null;
   return{q:`A ladder $${N(L)}$ m long leans against a vertical wall. The foot of the ladder is $${N(d)}$ m from the base of the wall. Find the angle the ladder makes with the ground, correct to the nearest degree.`,marks:2,
+   fig:triFig({flip:R.next()<0.5,w:d,h:Math.sqrt(L*L-d*d),lab:{hz:`${pl(d)} m`,hyp:`${pl(L)} m`},ang:{at:'C',txt:'?'}}),
    sol:[`The distance from the wall is adjacent to the angle and the ladder is the hypotenuse, so use cosine.`,`$\\cos\\,\\theta = \\dfrac{${N(d)}}{${N(L)}}$`,`$\\theta = \\cos^{-1}\\left(\\dfrac{${N(d)}}{${N(L)}}\\right) \\approx ${ang(Math.round(th))}$`],ans:`$${ang(Math.round(th))}$`,chk:()=>Math.abs(Math.cos(th*rad)-d/L)<1e-9}}
  const rise=R.int(2,30),run=R.int(rise*3,rise*12),th=atan(rise/run);if(tie(th,1))return null;
  return{q:`A road rises $${rise}$ m over a horizontal distance of $${run}$ m. Find the angle the road makes with the horizontal, correct to 1 decimal place.`,marks:2,
-  sol:[`The rise is opposite the angle and the horizontal distance is adjacent, so use tangent.`,`$\\tan\\,\\theta = \\dfrac{${rise}}{${run}}$`,`$\\theta = \\tan^{-1}\\left(\\dfrac{${rise}}{${run}}\\right) \\approx ${D(th,1)}^{\\circ}$`],ans:`$${D(th,1)}^{\\circ}$`,chk:()=>Math.abs(Math.tan(th*rad)-rise/run)<1e-9}});
+  fig:triFig({flip:R.next()<0.5,w:run,h:rise,lab:{v:`${rise} m`,hz:`${run} m`},ang:{at:'C',txt:'?'}}),
+   sol:[`The rise is opposite the angle and the horizontal distance is adjacent, so use tangent.`,`$\\tan\\,\\theta = \\dfrac{${rise}}{${run}}$`,`$\\theta = \\tan^{-1}\\left(\\dfrac{${rise}}{${run}}\\right) \\approx ${D(th,1)}^{\\circ}$`],ans:`$${D(th,1)}^{\\circ}$`,chk:()=>Math.abs(Math.tan(th*rad)-rise/run)<1e-9}});
 
 const g308=G(R=>{const v=R.int(0,4);
  if(v===0){const d=R.int(15,150),th=R.int(15,70),h=d*tan(th),ob=R.pick(['a tree','a building','a tower','a cliff']);if(tie(h,1))return null;
   return{q:`From a point on level ground $${d}$ m from the base of ${ob}, the angle of elevation of the top is $${ang(th)}$. Find the height of ${ob}, correct to 1 decimal place.`,marks:2,
+   fig:triFig({flip:R.next()<0.5,w:d,h:d*tan(th),lab:{v:'?',hz:`${d} m`},ang:{at:'C',txt:`${th}°`}}),
    sol:[`The height is opposite the angle and the distance is adjacent, so use tangent.`,`$\\tan\\,${ang(th)} = \\dfrac{h}{${d}}$`,`$h = ${d} \\times \\tan\\,${ang(th)} \\approx ${D(h,1)}$ m`],ans:`$${D(h,1)}\\text{ m}$`}}
  if(v===1){const d=R.int(15,80),th=R.int(20,65),e=R.pick([1.4,1.5,1.6,1.7,1.8]),h=d*tan(th)+e;if(tie(h,1))return null;
   return{q:`Maya stands $${d}$ m from the base of a building. Her eyes are $${N(e)}$ m above the ground. The angle of elevation of the top of the building from her eyes is $${ang(th)}$. Find the height of the building, correct to 1 decimal place.`,marks:3,
+   fig:eyeFig({th,ang:`${th}°`,lab:{e:`${pl(e)} m`,d:`${d} m`,h:'?'}}),
    sol:[`Height above her eyes: $${d} \\times \\tan\\,${ang(th)} \\approx ${D(d*tan(th),2)}$ m`,`Add her eye height: $${D(d*tan(th),2)} + ${N(e)} = ${D(h,2)}$ m`,`Height of the building $\\approx ${D(h,1)}$ m`],ans:`$${D(h,1)}\\text{ m}$`}}
  if(v===2){const h=R.int(8,60),d=R.int(Math.ceil(h*0.6),h*4),th=atan(h/d);if(tie(th,0))return null;
   return{q:`The top of a flagpole is $${h}$ m above the eye level of an observer standing $${d}$ m from its base. Find the angle of elevation of the top of the flagpole from the observer, correct to the nearest degree.`,marks:2,
+   fig:triFig({flip:R.next()<0.5,w:d,h:h,lab:{v:`${h} m`,hz:`${d} m`},ang:{at:'C',txt:'?'}}),
    sol:[`$\\tan\\,\\theta = \\dfrac{${h}}{${d}}$`,`$\\theta = \\tan^{-1}\\left(\\dfrac{${h}}{${d}}\\right) \\approx ${ang(Math.round(th))}$`],ans:`$${ang(Math.round(th))}$`}}
  if(v===3){const H=R.int(20,120),th=R.int(15,60),d=H/tan(th);if(tie(d,1))return null;
   return{q:`From the top of a cliff $${H}$ m high, the angle of depression of a boat is $${ang(th)}$. How far is the boat from the base of the cliff, correct to 1 decimal place?`,marks:2,
+   fig:triFig({flip:R.next()<0.5,w:H/tan(th),h:H,lab:{v:`${H} m`,hz:'?'},dep:`${th}°`}),
    sol:[`The angle of depression equals the angle of elevation from the boat (alternate angles).`,`$\\tan\\,${ang(th)} = \\dfrac{${H}}{d}$`,`$d = \\dfrac{${H}}{\\tan\\,${ang(th)}} \\approx ${D(d,1)}$ m`],ans:`$${D(d,1)}\\text{ m}$`}}
  const H=R.int(15,100),d=R.int(Math.ceil(H*0.5),H*3),th=atan(H/d);if(tie(th,0))return null;
  return{q:`A lookout is $${H}$ m above sea level. A boat is $${d}$ m horizontally from the base of the lookout. Find the angle of depression of the boat from the lookout, correct to the nearest degree.`,marks:2,
-  sol:[`The angle of depression equals the angle of elevation from the boat: $\\tan\\,\\theta = \\dfrac{${H}}{${d}}$`,`$\\theta = \\tan^{-1}\\left(\\dfrac{${H}}{${d}}\\right) \\approx ${ang(Math.round(th))}$`],ans:`$${ang(Math.round(th))}$`}});
+  fig:triFig({flip:R.next()<0.5,w:d,h:H,lab:{v:`${H} m`,hz:`${d} m`},dep:'?'}),
+   sol:[`The angle of depression equals the angle of elevation from the boat: $\\tan\\,\\theta = \\dfrac{${H}}{${d}}$`,`$\\theta = \\tan^{-1}\\left(\\dfrac{${H}}{${d}}\\right) \\approx ${ang(Math.round(th))}$`],ans:`$${ang(Math.round(th))}$`}});
 
 const bt=th=>`${String(th).padStart(3,'0')}^{\\circ}\\text{T}`;
 const compass=th=>th<90?['N',th,'E']:th<180?['S',180-th,'E']:th<270?['S',th-180,'W']:['N',360-th,'W'];
@@ -458,18 +531,22 @@ const g309=G(R=>{const v=R.int(0,3);
 const g310=G(R=>{const v=R.int(0,3);
  if(v===0){const d=R.int(8,200),th=R.int(10,80),n=d*cos(th),e=d*sin(th);if(tie(n,1)||tie(e,1))return null;
   return{q:`A ship sails $${d}$ km on a bearing of $${bt(th)}$. How far north and how far east of its starting point is it? Give your answers correct to 1 decimal place.`,marks:3,
+   fig:bearFig({n:n,e:e,corner:'v',lab:{n:'north',e:'east',hyp:`${d} km`},arc:`${String(th).padStart(3,'0')}°T`}),
    sol:[`The bearing is $${th}^{\\circ}$ clockwise from north. North is the adjacent side and east is the opposite side.`,`North: $${d} \\times \\cos\\,${ang(th)} \\approx ${D(n,1)}$ km`,`East: $${d} \\times \\sin\\,${ang(th)} \\approx ${D(e,1)}$ km`],ans:`$${D(n,1)}$ km north and $${D(e,1)}$ km east`,
    chk:()=>Math.abs(Math.hypot(n,e)-d)<1e-9&&Math.abs(Math.atan2(e,n)/rad-th)<1e-9}}
  if(v===1){const d=R.int(8,200),th=R.int(100,170),a=180-th,s=d*cos(a),e=d*sin(a);if(tie(s,1)||tie(e,1))return null;
   return{q:`A plane flies $${d}$ km on a bearing of $${bt(th)}$. How far south and how far east of its starting point is it? Give your answers correct to 1 decimal place.`,marks:3,
+   fig:bearFig({n:-s,e:e,corner:'v',lab:{n:'south',e:'east',hyp:`${d} km`},arc:`${String(th).padStart(3,'0')}°T`}),
    sol:[`$${bt(th)} = ${cb(compass(th))}$, so the angle from south is $180^{\\circ} - ${th}^{\\circ} = ${a}^{\\circ}$.`,`South: $${d} \\times \\cos\\,${ang(a)} \\approx ${D(s,1)}$ km`,`East: $${d} \\times \\sin\\,${ang(a)} \\approx ${D(e,1)}$ km`],ans:`$${D(s,1)}$ km south and $${D(e,1)}$ km east`,
    chk:()=>Math.abs(Math.hypot(s,e)-d)<1e-9&&Math.abs(90+Math.atan2(s,e)/rad-th)<1e-9}}
  if(v===2){const a=R.int(3,40),b=R.int(3,40),c=Math.hypot(a,b),th=atan(b/a);if(tie(c,1)||tie(th,0))return null;const t=Math.round(th);
   return{q:`A hiker walks $${a}$ km north and then $${b}$ km east.<br>(a) How far is the hiker from the starting point, correct to 1 decimal place?<br>(b) Find the true bearing of the hiker from the starting point, correct to the nearest degree.`,marks:3,
+   fig:bearFig({n:a,e:b,corner:'v',lab:{n:`${a} km`,e:`${b} km`,hyp:'?'},arc:'?'}),
    sol:[`(a) $d^{2} = ${a}^{2} + ${b}^{2} = ${a*a+b*b}$, so $d \\approx ${D(c,1)}$ km`,`(b) $\\tan\\,\\theta = \\dfrac{${b}}{${a}}$ , so $\\theta = \\tan^{-1}\\left(\\dfrac{${b}}{${a}}\\right) \\approx ${t}^{\\circ}$`,`The bearing is measured clockwise from north: $${bt(t)}$.`],ans:`(a) $${D(c,1)}$ km (b) $${bt(t)}$`,chk:()=>Math.abs(Math.atan2(b,a)/rad-th)<1e-9}}
  const d=R.int(3,40),e=R.int(3,40),c=Math.hypot(d,e),ph=atan(e/d);if(tie(c,1)||tie(ph,0))return null;const t=90+Math.round(ph);
  return{q:`A boat is $${d}$ km due east and $${e}$ km due south of a lighthouse.<br>(a) How far is the boat from the lighthouse, correct to 1 decimal place?<br>(b) Find the true bearing of the boat from the lighthouse, correct to the nearest degree.`,marks:3,
-  sol:[`(a) $x^{2} = ${d}^{2} + ${e}^{2} = ${d*d+e*e}$, so $x \\approx ${D(c,1)}$ km`,`(b) The angle south of east is $\\tan^{-1}\\left(\\dfrac{${e}}{${d}}\\right) \\approx ${Math.round(ph)}^{\\circ}$`,`Bearing $= 90^{\\circ} + ${Math.round(ph)}^{\\circ} = ${t}^{\\circ}$, that is $${bt(t)}$.`],ans:`(a) $${D(c,1)}$ km (b) $${bt(t)}$`,chk:()=>Math.abs(90+Math.atan2(e,d)/rad-(90+ph))<1e-9}});
+  fig:bearFig({n:-e,e:d,corner:'h',lab:{n:`${e} km`,e:`${d} km`,hyp:'?'},arc:'?'}),
+   sol:[`(a) $x^{2} = ${d}^{2} + ${e}^{2} = ${d*d+e*e}$, so $x \\approx ${D(c,1)}$ km`,`(b) The angle south of east is $\\tan^{-1}\\left(\\dfrac{${e}}{${d}}\\right) \\approx ${Math.round(ph)}^{\\circ}$`,`Bearing $= 90^{\\circ} + ${Math.round(ph)}^{\\circ} = ${t}^{\\circ}$, that is $${bt(t)}$.`],ans:`(a) $${D(c,1)}$ km (b) $${bt(t)}$`,chk:()=>Math.abs(90+Math.atan2(e,d)/rad-(90+ph))<1e-9}});
 
 // ================= TOPICS AND LESSONS =================
 const TOPICS=[
