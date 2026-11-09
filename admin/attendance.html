@@ -123,7 +123,7 @@ const FSA = typeof window.showDirectoryPicker === 'function';
 
 // Everything below lives in memory only. Nothing about students is stored in the browser.
 const S = { dir: null, store: C.newStore(), files: [], warnings: [], y11: [], y12: [], index: new Map(), loaded: false, dirty: false,
-  tab: 'overview', through: 4, year: 'all', incRemoved: false, P: Object.assign({}, C.DEFAULTS), ewTerm: null, ewWeek: null, ticked: new Set(), folder: '' };
+  tab: 'overview', tier: 'all', through: 4, year: 'all', incRemoved: false, P: Object.assign({}, C.DEFAULTS), ewTerm: null, ewWeek: null, ticked: new Set(), folder: '' };
 
 function setMsg(t) { $('msg').textContent = t }
 function updateBar() {
@@ -320,8 +320,10 @@ function viewOverview() {
 function viewTiers() {
   const ps = people(), lt = latestTerm();
   const anyShort = ps.some(p => p.hasShort);
-  let h = '';
+  let h = '<div class="row" style="margin-top:0"><label class="f">Show<select data-tiersel>' +
+    [['all', 'All tiers'], ['1', 'Tier 1 · 80–89%'], ['2', 'Tier 2 · 50–79%'], ['3', 'Tier 3 · under 50%']].map(([v, l]) => '<option value="' + v + '"' + (v === S.tier ? ' selected' : '') + '>' + l + '</option>').join('') + '</select></label></div>';
   [[1, 'Tier 1', '80–89%'], [2, 'Tier 2', '50–79%'], [3, 'Tier 3', 'under 50%']].forEach(([t, label, range]) => {
+    if (S.tier !== 'all' && S.tier !== String(t)) return;
     const list = ps.filter(p => C.tierOf(p.rec) === t).sort((a, b) => C.rateOf(a.rec) - C.rateOf(b.rec) || a.name.localeCompare(b.name));
     h += '<h2>' + label + ' <small>' + range + ' · ' + list.length + ' student' + (list.length === 1 ? '' : 's') + '</small></h2>';
     if (!list.length) { h += '<p class="empty">No students in this tier.</p>'; return }
@@ -441,6 +443,7 @@ $('view').addEventListener('change', e => {
   const t = e.target;
   if (t.dataset.p) { const v = parseFloat(t.value); if (v > 0) S.P[t.dataset.p] = v; render() }
   else if (t.dataset.ew) { if (t.dataset.ew === 'term') { S.ewTerm = +t.value; S.ewWeek = null } else S.ewWeek = +t.value; render() }
+  else if (t.dataset.tiersel !== undefined) { S.tier = t.value; render() }
   else if (t.dataset.tick) { t.checked ? S.ticked.add(t.dataset.tick) : S.ticked.delete(t.dataset.tick) }
 });
 $('view').addEventListener('click', async e => {
