@@ -6,7 +6,7 @@
  },
  {
   "file": "tracker.html",
-  "name": "Attendance and catch-up tracker",
-  "desc": "Open your school folder of classes.csv and absences.csv, tap who was away period by period, print catch-up slips and summarise attendance by reason. Names stay on your computer."
+  "name": "Class Tracker",
+  "desc": "Open your school folder of class files, then take attendance, print catch-up slips, track book work, LSQ and assessment results, and log N-awards. Names stay on your computer."
  }
 ]
