@@ -148,7 +148,12 @@ dialog .row{margin-top:12px}
   #printArea .sumPrint .ptitle{font-size:15pt;min-height:9mm;border-bottom:1px solid #000;margin:0 0 5mm;padding-bottom:1mm}
   #printArea .sumPrint table{width:100%;border-collapse:collapse;font-size:10.5pt}
   #printArea .sumPrint th{text-align:left;border-bottom:1.5px solid #000;padding:2mm 2mm}
-  #printArea .sumPrint td{border-bottom:1px solid #000;padding:0 2mm;height:15mm;vertical-align:top}
+  #printArea .sumPrint td{border-bottom:1px solid #000;padding:0 2mm;vertical-align:top}
+  #printArea .sumPrint td{overflow:hidden;white-space:nowrap}
+  #printArea .sumPrint.tight .ptitle{margin-bottom:3mm}
+  #printArea .sumPrint.tight th{padding:1mm 2mm}
+  #printArea .sumPrint.tight td{font-size:9.5pt;line-height:1}
+  #printArea .sumPrint.tight .pct{padding:.4mm 2mm;line-height:1.2}
   #printArea .sumPrint td.n{text-align:center;width:22mm;vertical-align:middle}
   #printArea .sumPrint td.nm{width:48mm;vertical-align:middle}
   #printArea .sumPrint th.rsn,#printArea .sumPrint td.rsn{width:34mm;vertical-align:middle;font-size:9.5pt}
@@ -728,8 +733,10 @@ $('sTable').addEventListener('change',ev=>{const i=ev.target.closest('.snrow');i
 $('sPrint').onclick=()=>{
   const d=summaryData(),title='Term '+$('sTerm').value+' Week '+$('sWeek').value;
   const topReason=by=>{let best='',n=0;for(const k in by){if(by[k]>n){n=by[k];best=k}}return n?best+' ('+n+')':''};
-  const body=d.rows.map(r=>'<tr><td class="nm">'+esc(r.name)+'</td><td class="n">'+r.lessons+'</td><td class="n"><span class="pct" style="background:'+attColour(r.pct)+'">'+r.pct+'%</span></td><td class="rsn">'+esc(r.pct<80?topReason(r.by):'')+'</td><td class="cmt"></td></tr>').join('');
-  $('printArea').innerHTML='<div class="sumPrint"><p class="cls">'+esc(d.cls)+'</p><div class="ptitle">'+esc(title)+'</div>'+
+  /* one A4 page: squash rows so a whole class (up to 30+) fits; roomy 15mm rows for small classes */
+  const rowH=Math.max(5.5,Math.min(15,Math.floor(2440/Math.max(1,d.rows.length))/10)).toFixed(1)+'mm';
+  const body=d.rows.map(r=>'<tr style="height:'+rowH+'"><td class="nm">'+esc(r.name)+'</td><td class="n">'+r.lessons+'</td><td class="n"><span class="pct" style="background:'+attColour(r.pct)+'">'+r.pct+'%</span></td><td class="rsn">'+esc(r.pct<80?topReason(r.by):'')+'</td><td class="cmt"></td></tr>').join('');
+  $('printArea').innerHTML='<div class="sumPrint'+(d.rows.length>18?' tight':'')+'"><p class="cls">'+esc(d.cls)+'</p><div class="ptitle">'+esc(title)+'</div>'+
     '<table><thead><tr><th class="nm">Name</th><th class="n">Lessons</th><th class="n">Attendance</th><th class="rsn">Main reason</th><th class="cmt">Comment</th></tr></thead><tbody>'+
     (body||'<tr><td colspan="5">No students.</td></tr>')+'</tbody></table></div>';
   window.print();
