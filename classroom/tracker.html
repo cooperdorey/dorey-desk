@@ -183,9 +183,9 @@ dialog .row{margin-top:12px}
   <div class="tabs" role="tablist" id="tabs">
     <button role="tab" aria-selected="false" data-t="dash">Dashboard</button>
     <button role="tab" aria-selected="true" data-t="entry">Quick entry</button>
-    <button role="tab" aria-selected="false" data-t="catch">Catch-up slips</button>
     <button role="tab" aria-selected="false" data-t="sum">Attendance summary</button>
     <button role="tab" aria-selected="false" data-t="book">Book work</button>
+    <button role="tab" aria-selected="false" data-t="catch">Catch-up slips</button>
     <button role="tab" aria-selected="false" data-t="lsq">LSQ results</button>
     <button role="tab" aria-selected="false" data-t="asm">Assessments</button>
     <button role="tab" aria-selected="false" data-t="naw">N-awards</button>
@@ -535,7 +535,7 @@ document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>{
   showGroup(groupOf(b.dataset.t));
   refreshAll();
 });
-const GROUPS={over:['dash'],att:['entry','catch','sum'],work:['book','lsq','asm','naw'],setup:['cls']};
+const GROUPS={over:['dash'],att:['entry','sum'],work:['book','catch','lsq','asm','naw'],setup:['cls']};
 const groupOf=t=>Object.keys(GROUPS).find(g=>GROUPS[g].includes(t));
 function showGroup(g){
   document.querySelectorAll('#groups button').forEach(x=>x.setAttribute('aria-selected',x.dataset.g===g));
