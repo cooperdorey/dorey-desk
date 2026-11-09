@@ -53,6 +53,15 @@ select.overridden{border-color:var(--brand);box-shadow:0 0 0 1px var(--brand)}
 .tabs button{border:0;border-bottom:3px solid transparent;border-radius:6px 6px 0 0;padding:8px 14px;background:none;color:var(--muted);margin-bottom:-1px}
 .tabs button:hover:not(:disabled){background:var(--tint);color:var(--ink)}
 .tabs button[aria-selected=true]{color:var(--brand);border-bottom-color:var(--brand);font-weight:600;background:none}
+.fr{overflow:hidden}
+.fr th{background:var(--paper);padding:10px 14px;color:var(--muted)}
+.fr td{padding:9px 14px;border-bottom:0;vertical-align:middle}
+.fr tbody tr:nth-child(even){background:var(--paper)}
+.fr tfoot th,.fr tfoot td{background:var(--paper);border-top:1px solid var(--line);border-bottom:0;padding:10px 14px;color:var(--ink);font-weight:600}
+.abar{display:flex;align-items:center;gap:10px}
+.abar .trk{flex:1;height:6px;border-radius:3px;background:var(--line);overflow:hidden;min-width:80px}
+.abar .trk i{display:block;height:100%;border-radius:3px}
+.abar b{font-size:13px;min-width:38px;text-align:right}
 .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:0 0 14px}
 .tile{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--brand);border-radius:12px;padding:12px 14px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
 .tile b{display:block;font-family:var(--card);font-size:28px;line-height:1.1}
@@ -203,7 +212,8 @@ dialog .row{margin-top:12px}
       <label class="f">Lessons<input type="number" id="dN" min="1" value="8" style="width:72px"></label>
     </div>
     <div class="tiles" id="dTiles"></div>
-    <div class="card" style="padding:6px 10px"><h2 style="margin:8px 4px 2px">Fortnight attendance</h2><div id="dFort"></div></div>
+    <h2 style="margin:0 0 8px">Fortnight attendance</h2>
+    <div class="card fr" style="padding:0"><div id="dFort"></div></div>
     <div class="card" style="padding:6px 10px"><div id="dList"></div></div>
   </section>
 
@@ -1179,11 +1189,11 @@ function drawFortnight(cls,students){
     const by={};abs.forEach(r=>{const k=reasons.includes(r.reason)?r.reason:(r.reason||'Other');by[k]=(by[k]||0)+1});
     return {name:fullName(st),away,by,pct:Math.max(0,Math.round((1-away/n)*100))};
   });
-  const pill=p=>'<span style="display:inline-block;min-width:46px;padding:2px 8px;border-radius:999px;background:'+attColour(p)+';color:#fff;font-weight:600;text-align:center">'+p+'%</span>';
+  const bar=p=>'<div class="abar"><div class="trk"><i style="width:'+p+'%;background:'+attColour(p)+'"></i></div><b style="color:'+attColour(p)+'">'+p+'%</b></div>';
   const avg=Math.round(meanOf(rows.map(r=>r.pct)));
-  $('dFort').innerHTML='<table><thead><tr><th>Student</th><th class="n">Away</th><th class="n">Attendance</th><th>Reasons</th></tr></thead><tbody>'+
-    rows.map(r=>'<tr><td>'+esc(r.name)+'</td><td class="n">'+r.away+'</td><td class="n">'+pill(r.pct)+'</td><td>'+Object.keys(r.by).map(k=>'<span class="tag">'+esc(k)+(r.by[k]>1?' ×'+r.by[k]:'')+'</span>').join('')+'</td></tr>').join('')+
-    '</tbody><tfoot><tr><th>Class</th><th class="n">'+rows.reduce((a,r)=>a+r.away,0)+'</th><th class="n">'+pill(avg)+'</th><th></th></tr></tfoot></table>';
+  $('dFort').innerHTML='<table><thead><tr><th>Student</th><th class="n">Away</th><th style="width:40%">Attendance</th><th>Reasons</th></tr></thead><tbody>'+
+    rows.map(r=>'<tr><td>'+esc(r.name)+'</td><td class="n">'+r.away+'</td><td>'+bar(r.pct)+'</td><td>'+Object.keys(r.by).map(k=>'<span class="tag">'+esc(k)+(r.by[k]>1?' ×'+r.by[k]:'')+'</span>').join('')+'</td></tr>').join('')+
+    '</tbody><tfoot><tr><th>Class</th><th class="n">'+rows.reduce((a,r)=>a+r.away,0)+'</th><td>'+bar(avg)+'</td><td></td></tr></tfoot></table>';
 }
 function drawDash(){
   const box=$('dList');
