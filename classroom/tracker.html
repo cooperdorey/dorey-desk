@@ -1181,10 +1181,10 @@ function drawDashTiles(cls,students){
   const open=S.naw.filter(r=>ids.has(r.id)&&r.status!=='resolved').length;
   const act=new Set();
   S.book.forEach((v,k)=>{const i=k.indexOf('|');if(ids.has(k.slice(0,i)))act.add(k.slice(i+1))});
-  const owing=students.filter(s=>[...act].some(l=>!S.book.has(bKey(s.id,l)))).length;
+  const owing=students.filter(s=>[...act].filter(l=>!S.book.has(bKey(s.id,l))).length>=4).length;
   const lsq=lsqAverage(cls,students);
   const tile=(n,l,c)=>'<div class="tile'+(c?' '+c:'')+'"><b>'+n+'</b><span>'+l+'</span></div>';
-  $('dTiles').innerHTML=tile(students.length,'Students')+tile(fmt(away/Math.max(1,+$('dN').value||8),1),'Average absences per lesson',away?'warn':'good')+tile(open,'Unresolved N-awards',open?'bad':'good')+tile(owing,'Students owing book work',owing?'warn':'good')+tile(lsq==null?'–':fmt(lsq,0)+'%','LSQ average');
+  $('dTiles').innerHTML=tile(students.length,'Students')+tile(fmt(away/Math.max(1,+$('dN').value||8),1),'Average absences per lesson',away?'warn':'good')+tile(open,'Unresolved N-awards',open?'bad':'good')+tile(owing,'Students owing 4+ lessons',owing?'warn':'good')+tile(lsq==null?'–':fmt(lsq,0)+'%','LSQ average');
 }
 function drawFortnight(cls,students){
   const to=$('dEnd').value||todayISO(),from=addDays(to,-13),n=Math.max(1,+$('dN').value||8);
