@@ -101,6 +101,7 @@ function route(){
   if (parts[0]==='lessons') return showYears();
   if (parts[0]==='generators') return showGenerators();
   if (parts[0]==='classroom') return showClassroom();
+  if (parts[0]==='admin') return showAdmin();
   showStart();
 }
 function showHome(){ $('lesson').hidden = true; $('drb').hidden = true; $('home').hidden = false; $('status').hidden = true; window.scrollTo(0,0) }
@@ -136,12 +137,40 @@ async function showStart(){
   const room = document.createElement('a'); room.className = 'choice room'; room.href = '#classroom';
   room.innerHTML = `<span class="desk-icon" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>
     <span class="big">Classroom</span><span class="small" id="roomCount">The classroom plan and seating chart</span>`;
-  tiles.replaceChildren(lessons, gens, room);
+  const adm = document.createElement('a'); adm.className = 'choice admin'; adm.href = '#admin';
+  adm.innerHTML = `<span class="admin-icon" aria-hidden="true"><i></i><i></i><i></i></span>
+    <span class="big">Admin</span><span class="small" id="adminCount">Whole-school tools</span>`;
+  tiles.replaceChildren(lessons, gens, room, adm);
   document.title = 'Dorey Desk';
   const g = await loadGenerators();
   const c = $('genCount'); if (c && g.length) c.textContent = `Random questions with worked solutions · ${plural(g.length,'generator')}`;
   const k = await loadClassroom();
   const r = $('roomCount'); if (r && k.length) r.textContent = `The classroom plan and seating chart · ${plural(k.length,'tool')}`;
+  const ad = await loadAdmin();
+  const q = $('adminCount'); if (q && ad.length) q.textContent = `Whole-school tools · ${plural(ad.length,'tool')}`;
+}
+
+// ---------- home: admin ----------
+let ADMIN = null;
+async function loadAdmin(){
+  if (ADMIN) return ADMIN;
+  try { const r = await fetch('admin/admin.json',{cache:'no-store'}); ADMIN = r.ok ? await r.json() : [] }
+  catch(e){ ADMIN = [] }
+  return ADMIN;
+}
+async function showAdmin(){
+  showHome(); crumbs([{label:'Home',href:'#'},{label:'Admin'}]); paint($('home'), null);
+  $('prompt').textContent = 'Choose an admin tool';
+  $('promptSub').textContent = 'Each opens in its own page.';
+  const tiles = $('tiles'); tiles.className = 'tiles gens'; tiles.replaceChildren();
+  document.title = 'Admin – Dorey Desk';
+  const k = await loadAdmin();
+  if (!k.length){ tiles.innerHTML = '<p class="empty-note">No admin tools yet.</p>'; return }
+  tiles.replaceChildren(...k.map(x=>{
+    const a = document.createElement('a'); a.className = 'generator'; a.href = 'admin/' + encodeURI(x.file);
+    a.innerHTML = `<span class="t">${esc(x.name)}</span><span class="d">${esc(x.desc||'')}</span>`;
+    return a;
+  }));
 }
 
 // ---------- home: classroom ----------

@@ -78,6 +78,12 @@ a{color:inherit}
   grid-template-rows:repeat(2,1fr);gap:8px;padding:8px 0}
 .choice .desk-icon i{border:3px solid var(--ink);border-radius:5px}
 .choice.room{border-left:14px solid var(--ink)}
+/* three ruled lines, top right of the Admin tile */
+.choice .admin-icon{position:absolute;top:26px;right:26px;width:64px;height:64px;display:flex;flex-direction:column;justify-content:space-between;
+  border:3px solid var(--ink);border-radius:8px;padding:11px 9px}
+.choice .admin-icon i{display:block;height:3px;border-radius:2px;background:var(--ink)}
+.choice .admin-icon i:nth-child(2){width:72%}.choice .admin-icon i:nth-child(3){width:48%}
+.choice.admin{border-left:14px solid #5B6B82}
 
 /* Topic: Lessons or DRB. Both take the course colour. */
 .pick{position:relative;display:flex;flex-direction:column;justify-content:flex-end;min-height:260px;padding:26px;

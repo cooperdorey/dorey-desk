@@ -1,0 +1,462 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Attendance – Dorey Desk</title>
+<link rel="icon" href="../assets/icons/icon.svg" type="image/svg+xml">
+<link rel="icon" href="../assets/icons/icon-32.png" sizes="32x32" type="image/png">
+<meta name="theme-color" content="#0F766E">
+<style>
+:root{--paper:#F2F3F5;--panel:#FFFFFF;--ink:#1D232B;--muted:#5E6672;--line:#D9DDE3;--brand:#0F766E;--brand-ink:#FFFFFF;--tint:#E3F2F0;--bad:#B42318;--badbg:#FDECEA;--warn:#8A5A00;--warnbg:#FFF4D6;--good:#2E9E6B;
+ --ui:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+ --card:"Palatino Linotype",Palatino,"Book Antiqua","URW Palladio L",Georgia,serif}
+@media (prefers-color-scheme:dark){:root{--paper:#16191E;--panel:#20242B;--ink:#ECEEF1;--muted:#A5ACB7;--line:#343A43;--brand:#5FCFC2;--brand-ink:#062A26;--tint:#1B3A37;--bad:#F4A39B;--badbg:#4A2420;--warn:#F2CB7A;--warnbg:#44361A;color-scheme:dark}}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0}
+body{background:var(--paper);color:var(--ink);font-family:var(--ui);font-size:15px;line-height:1.5}
+:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.wrap{max-width:1180px;margin:0 auto;padding:18px clamp(16px,4vw,48px) 64px}
+.home{font-family:var(--card);font-weight:700;font-size:16px;color:var(--brand);text-decoration:none}
+.crumbs{margin-top:4px;font-size:13px;color:var(--muted);display:flex;flex-wrap:wrap}
+.crumbs a{color:var(--muted);text-decoration:none}
+.crumbs a:hover{color:var(--ink);text-decoration:underline}
+.crumbs>*+*::before{content:"›";margin:0 6px;color:var(--line)}
+h1{font-family:var(--card);font-weight:700;font-size:clamp(28px,4.5vw,42px);line-height:1.05;margin:14px 0 4px}
+h2{font-family:var(--card);font-size:19px;margin:22px 0 8px;display:flex;align-items:baseline;gap:10px}
+h2 small{font-family:var(--ui);font-size:13px;font-weight:400;color:var(--muted)}
+button,select,input{font:inherit;font-size:14px}
+button{padding:8px 14px;border-radius:8px;border:1px solid var(--brand);background:transparent;color:var(--brand);cursor:pointer}
+button:hover:not(:disabled){background:var(--tint)}
+button:disabled{opacity:.5;cursor:default}
+button.solid{background:var(--brand);color:var(--brand-ink);font-weight:600}
+button.solid:hover:not(:disabled){background:var(--brand);filter:brightness(1.08)}
+button.quiet{border-color:var(--line);color:var(--ink)}
+button.sm{padding:3px 9px;font-size:13px}
+input[type=number],select{padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--ink)}
+input[type=number]{width:78px}
+input[type=checkbox]{accent-color:var(--brand);width:16px;height:16px;vertical-align:middle}
+label.f{display:flex;flex-direction:column;gap:3px;font-size:12.5px;color:var(--muted)}
+label.inl{display:inline-flex;align-items:center;gap:6px;font-size:14px}
+.bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:10px 12px;margin-top:14px;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+.bar.on{border-color:var(--brand);background:var(--tint)}
+.bar .msg{flex:1 1 260px;color:var(--muted);font-size:14px}
+.bar.on .msg{color:var(--ink)}
+.bar.dirty .msg{color:var(--warn);font-weight:600}
+.bar.alert{border-color:#C9850A;background:var(--warnbg);margin:0 0 14px}
+.bar.alert .msg{color:var(--ink)}
+.row{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:flex-end;margin:16px 0 0}
+.tabs{display:flex;flex-wrap:wrap;gap:2px;margin:16px 0 16px;border-bottom:1px solid var(--line)}
+.tabs button{border:0;border-bottom:3px solid transparent;border-radius:6px 6px 0 0;padding:8px 14px;background:none;color:var(--muted);margin-bottom:-1px}
+.tabs button:hover:not(:disabled){background:var(--tint);color:var(--ink)}
+.tabs button[aria-selected=true]{color:var(--brand);border-bottom-color:var(--brand);font-weight:600;background:none}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:0 0 14px}
+.tile{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--brand);border-radius:12px;padding:12px 14px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.tile b{display:block;font-family:var(--card);font-size:30px;line-height:1.1}
+.tile span{font-size:12.5px;color:var(--muted)}
+.tile.good{border-left-color:var(--good)}
+.tile.warn{border-left-color:#C9850A}
+.tile.bad{border-left-color:var(--bad)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:6px 14px 10px;margin:0 0 14px;box-shadow:0 1px 3px rgba(0,0,0,.05);overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
+th{font-size:12.5px;color:var(--muted);font-weight:600;white-space:nowrap}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+td small,.muted{color:var(--muted)}
+tbody tr:last-child td,tbody tr:last-child th{border-bottom:0}
+tbody th{color:var(--ink);font-size:14px;font-weight:600}
+tr.total td,tr.total th{border-top:2px solid var(--line);font-weight:600}
+.tag{display:inline-block;padding:1px 8px;border-radius:999px;background:var(--tint);color:var(--ink);font-size:12.5px;margin:1px 3px 1px 0;border:1px solid var(--line);white-space:nowrap}
+.tag.bad{background:var(--badbg);color:var(--bad);border-color:transparent}
+.tag.warn{background:var(--warnbg);color:var(--warn);border-color:transparent}
+.pill{display:inline-block;min-width:54px;text-align:center;padding:1px 8px;border-radius:999px;font-weight:600;font-size:13px}
+.pill.g{background:rgba(46,158,107,.2)}
+.pill.t1{background:var(--warnbg);color:var(--warn)}
+.pill.t2,.pill.t3{background:var(--badbg);color:var(--bad)}
+.empty{color:var(--muted);padding:10px 0}
+details summary{cursor:pointer;color:var(--muted);margin:8px 0}
+.acts{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="home" href="../#">Dorey Desk</a>
+  <nav class="crumbs" aria-label="Where you are"><a href="../#">Home</a><a href="../#admin">Admin</a><span>Attendance</span></nav>
+  <h1>Attendance</h1>
+
+  <div class="bar" id="fileBar">
+    <button class="solid" id="openDir" type="button">Open folder…</button>
+    <button class="quiet" id="openFiles" type="button">Open files…</button>
+    <input type="file" id="fileIn" multiple accept=".xlsx,.csv" hidden>
+    <span class="msg" id="msg">Open your year folder (the one holding the term folders and yr11.csv / yr12.csv).</span>
+    <button class="quiet" id="dlRosters" type="button" hidden>Download rosters</button>
+  </div>
+
+  <div class="row" id="controls" hidden>
+    <label class="f">Through term<select id="through"></select></label>
+    <label class="f">Year<select id="year"><option value="all">All students</option><option value="11">Year 11</option><option value="12">Year 12</option></select></label>
+    <label class="inl"><input type="checkbox" id="incRemoved"> Include removed students</label>
+  </div>
+
+  <div class="tabs" id="tabs" role="tablist" hidden>
+    <button type="button" role="tab" data-tab="overview">Overview</button>
+    <button type="button" role="tab" data-tab="tiers">Tiers</button>
+    <button type="button" role="tab" data-tab="unexplained">Unexplained</button>
+    <button type="button" role="tab" data-tab="warning">Early warning</button>
+    <button type="button" role="tab" data-tab="setup">Setup</button>
+  </div>
+
+  <main id="view"></main>
+</div>
+
+<script src="attendance-core.js?v=dev"></script>
+<script>
+'use strict';
+const C = AttCore;
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const RE_EXPORT = /^t([1-4])w(\d{1,2})(_short)?\.(xlsx|csv)$/i;
+const RE_ROSTER = /^yr(11|12)\.(csv|xlsx)$/i;
+const FSA = typeof window.showDirectoryPicker === 'function';
+
+// Everything below lives in memory only. Nothing about students is stored in the browser.
+const S = { dir: null, store: C.newStore(), files: [], warnings: [], y11: [], y12: [], index: new Map(), loaded: false, dirty: false,
+  tab: 'overview', through: 4, year: 'all', incRemoved: false, P: Object.assign({}, C.DEFAULTS), ewTerm: null, ewWeek: null, ticked: new Set(), folder: '' };
+
+function setMsg(t) { $('msg').textContent = t }
+function updateBar() {
+  const bar = $('fileBar');
+  bar.classList.toggle('on', S.loaded); bar.classList.toggle('dirty', S.dirty);
+  $('dlRosters').hidden = !(S.loaded && (S.dirty || !S.dir));
+}
+
+/* ---------- loading ---------- */
+async function readRows(entry) {
+  const f = await entry.getFile();
+  return /\.xlsx$/i.test(entry.name) ? C.readXlsx(await f.arrayBuffer()) : C.readCsv(await f.text());
+}
+async function loadEntries(entries) {
+  S.store = C.newStore(); S.files = []; S.warnings = []; S.ticked = new Set();
+  const roster = {};
+  let exportsRead = 0;
+  for (const e of entries) {
+    let m = RE_EXPORT.exec(e.name);
+    if (m) {
+      const term = +m[1], week = +m[2], wantShort = !!m[3];
+      setMsg('Reading ' + e.name + '…');
+      let ing;
+      try { ing = C.ingestRows(await readRows(e)) } catch (err) { S.warnings.push(e.name + ' couldn’t be read.'); continue }
+      if (ing.kind === 'other') { S.warnings.push(e.name + ' isn’t one of the school-system attendance exports, so it was skipped.'); continue }
+      if ((ing.kind === 'short') !== wantShort) S.warnings.push(e.name + ' looks like the ' + (ing.kind === 'short' ? 'short-partials' : 'main') + ' export, so it was read as that.');
+      if (C.addSnapshot(S.store, ing.kind, term, week, ing, e.name)) S.warnings.push('More than one file for term ' + term + ' week ' + week + ' (' + ing.kind + '); using ' + e.name + '.');
+      if (ing.bad) S.warnings.push(e.name + ': ' + ing.bad + ' row' + (ing.bad === 1 ? '' : 's') + ' without a valid SRN skipped.');
+      if (ing.dup) S.warnings.push(e.name + ': ' + ing.dup + ' repeated SRN' + (ing.dup === 1 ? '' : 's') + ' added together.');
+      exportsRead++;
+      continue;
+    }
+    m = RE_ROSTER.exec(e.name);
+    if (m) { const k = m[1], cur = roster[k]; if (!cur || /\.csv$/i.test(e.name)) roster[k] = e }
+  }
+  for (const k of ['11', '12']) {
+    S['y' + k] = [];
+    if (roster[k]) {
+      try {
+        const r = C.parseRosterRows(await readRows(roster[k]));
+        S['y' + k] = r.list;
+        if (r.skipped) S.warnings.push(roster[k].name + ': ' + r.skipped + ' row' + (r.skipped === 1 ? '' : 's') + ' without a valid SRN skipped.');
+      } catch (err) { S.warnings.push(roster[k].name + ' couldn’t be read.') }
+    }
+  }
+  if (roster['11'] && /\.xlsx$/i.test(roster['11'].name) || roster['12'] && /\.xlsx$/i.test(roster['12'].name)) S.warnings.push('A roster is an .xlsx file. Changes are saved as .csv, which is then used instead.');
+  S.files = [];
+  for (const kind of ['main', 'short']) for (const t of C.termsOf(S.store, kind)) for (const w of C.weeksOf(S.store, kind, t)) S.files.push(S.store[kind][t][w]);
+  S.loaded = true; S.dirty = false;
+  const terms = C.termsOf(S.store, 'main');
+  S.through = terms.length ? terms[terms.length - 1] : 4;
+  S.ewTerm = S.through; const ws = C.weeksOf(S.store, 'main', S.ewTerm); S.ewWeek = ws.length ? ws[ws.length - 1] : null;
+  rebuildIndex();
+  $('controls').hidden = false; $('tabs').hidden = false;
+  fillThrough();
+  updateBar();
+  setMsg((S.folder ? 'Folder open: ' + S.folder + ' · ' : 'Files loaded · ') + exportsRead + ' export file' + (exportsRead === 1 ? '' : 's') + ', ' + (S.y11.length + S.y12.length) + ' on the rosters' + (S.warnings.length ? ' · ' + S.warnings.length + ' note' + (S.warnings.length === 1 ? '' : 's') + ' on Setup' : ''));
+  if (!exportsRead) setMsg('No term exports found. Name them T1W10.xlsx, T4W05.xlsx… and put them in the folder or in T1…T4 folders inside it.');
+  render();
+}
+async function walk(dir, depth, out) {
+  for await (const [name, h] of dir.entries()) {
+    if (h.kind === 'directory') { if (depth < 2 && !name.startsWith('.')) await walk(h, depth + 1, out) }
+    else out.push({ name, getFile: () => h.getFile() });
+  }
+}
+$('openDir').onclick = async () => {
+  if (!FSA) { setMsg('This browser can’t open folders. Use Open files… instead (Chrome or Edge can do both).'); return }
+  try {
+    const dir = await window.showDirectoryPicker({ mode: 'readwrite' });
+    S.dir = dir; S.folder = dir.name;
+    const out = []; await walk(dir, 0, out);
+    await loadEntries(out);
+  } catch (e) { if (!e || e.name !== 'AbortError') setMsg('Couldn’t open that folder. ' + (e && e.message ? e.message : '')) }
+};
+$('openFiles').onclick = () => $('fileIn').click();
+$('fileIn').onchange = async ev => {
+  const files = [...ev.target.files]; ev.target.value = '';
+  if (!files.length) return;
+  S.dir = null; S.folder = '';
+  await loadEntries(files.map(f => ({ name: f.name, getFile: async () => f })));
+  S.dirty = false; updateBar();
+};
+
+/* ---------- people and rosters ---------- */
+function rebuildIndex() { S.index = C.rosterIndex(S.y11, S.y12) }
+function vis(srn) {                                         // null = hidden by the current filters
+  const ro = S.index.get(srn), removed = !!(ro && ro.removed);
+  if (removed && !S.incRemoved) return null;
+  const year = ro && !ro.conflict ? ro.year : null;
+  if (S.year === '11' && year !== '11') return null;
+  if (S.year === '12' && year !== '12') return null;
+  return { year, removed, unassigned: !ro, conflict: !!(ro && ro.conflict) };
+}
+function people() {
+  const out = [];
+  for (const e of C.scopeRecs(S.store, S.through).values()) {
+    const v = vis(e.srn); if (!v) continue;
+    out.push(Object.assign({ srn: e.srn, name: e.name, rec: e.rec, byTerm: e.byTerm, hasShort: e.hasShort }, v));
+  }
+  return out.sort((a, b) => a.name.localeCompare(b.name));
+}
+const yearTxt = p => p.conflict ? 'Both lists' : p.unassigned ? '—' : 'Year ' + p.year;
+function allStudents() {                                    // every SRN in any main export, with its latest name
+  const m = new Map();
+  for (const t of C.termsOf(S.store, 'main')) for (const w of C.weeksOf(S.store, 'main', t))
+    for (const [srn, r] of S.store.main[t][w].students) m.set(srn, r.name);
+  return m;
+}
+async function persist(note) {
+  rebuildIndex();
+  const sort = l => l.slice().sort((a, b) => a.raw.localeCompare(b.raw));
+  if (S.dir) {
+    try {
+      for (const [n, l] of [['yr11.csv', S.y11], ['yr12.csv', S.y12]]) {
+        const h = await S.dir.getFileHandle(n, { create: true });
+        const w = await h.createWritable(); await w.write(C.rosterCSV(sort(l))); await w.close();
+      }
+      S.dirty = false; setMsg((note || 'Saved') + ' · rosters saved to ' + S.folder);
+    } catch (e) { S.dirty = true; setMsg('Couldn’t save to the folder: ' + (e && e.message ? e.message : e) + '. Use Download rosters instead.') }
+  } else { S.dirty = true; setMsg((note || 'Changed') + ' · download the rosters and save them over the originals') }
+  updateBar(); render();
+}
+function dl(name, text) {
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], { type: 'text/csv' })); a.download = name;
+  document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove() }, 500);
+}
+$('dlRosters').onclick = () => {
+  const sort = l => l.slice().sort((a, b) => a.raw.localeCompare(b.raw));
+  dl('yr11.csv', C.rosterCSV(sort(S.y11))); setTimeout(() => dl('yr12.csv', C.rosterCSV(sort(S.y12))), 300);
+};
+function rosterOp(act, srn, year) {
+  const names = allStudents();
+  const find = l => l.findIndex(r => r.srn === srn);
+  const i11 = find(S.y11), i12 = find(S.y12);
+  if (act === 'assign') {
+    const list = year === '11' ? S.y11 : S.y12;
+    if (S.index.has(srn)) return;
+    const nm = names.get(srn) || srn; list.push({ raw: nm + ' - ' + srn, name: nm, srn, removed: false });
+  } else if (act === 'move') {
+    if (i11 >= 0) S.y12.push(S.y11.splice(i11, 1)[0]); else if (i12 >= 0) S.y11.push(S.y12.splice(i12, 1)[0]);
+  } else if (act === 'keep') {
+    if (year === '11' && i12 >= 0) S.y12.splice(i12, 1); if (year === '12' && i11 >= 0) S.y11.splice(i11, 1);
+  } else if (act === 'remove' || act === 'restore') {
+    for (const l of [S.y11, S.y12]) { const i = find(l); if (i >= 0) l[i].removed = act === 'remove' }
+  }
+}
+
+/* ---------- views ---------- */
+const nameOf = s => esc(s);
+function pill(r) {
+  const t = C.tierOf(r), cls = t === 0 ? 'g' : 't' + t;
+  return '<span class="pill ' + cls + '">' + C.pctText(r) + '</span>';
+}
+const cnt = (n, of) => n + (of ? ' <small>' + Math.round(100 * n / of) + '%</small>' : '');
+const num1 = x => (Math.round(x * 10) / 10).toString();
+function latestTerm() { const t = C.termsOf(S.store, 'main').filter(t => t <= S.through); return t.length ? t[t.length - 1] : null }
+
+function viewOverview() {
+  const ps = people();
+  if (!ps.length) return '<p class="empty">No students to show' + (S.loaded ? ' for these settings.' : '.') + '</p>';
+  const s = C.summarise(ps.map(p => p.rec));
+  if (!s.n) return '<p class="empty">No attendance data for these settings.</p>';
+  const unassigned = ps.filter(p => p.unassigned || p.conflict).length;
+  let h = '';
+  if (unassigned && S.year === 'all') h += '<div class="bar alert"><span class="msg"><b>' + unassigned + '</b> student' + (unassigned === 1 ? ' isn’t' : 's aren’t') + ' on a Year 11 or Year 12 list.</span><button class="solid" data-go="setup" type="button">Sort them in Setup</button></div>';
+  h += '<div class="tiles">' +
+    '<div class="tile"><b>' + s.n + '</b><span>Students</span></div>' +
+    '<div class="tile"><b>' + (s.rate == null ? '' : C.pctOf(s.rate)) + '</b><span>Attendance rate</span></div>' +
+    '<div class="tile good"><b>' + s.g90 + '</b><span>90% or above · ' + Math.round(100 * s.g90 / s.n) + '%</span></div>' +
+    '<div class="tile good"><b>' + s.g95 + '</b><span>95% or above · ' + Math.round(100 * s.g95 / s.n) + '%</span></div>' +
+    '<div class="tile good"><b>' + s.p100 + '</b><span>100% · ' + Math.round(100 * s.p100 / s.n) + '%</span></div>' +
+    '<div class="tile warn"><b>' + s.t1 + '</b><span>Tier 1 · 80–89%</span></div>' +
+    '<div class="tile bad"><b>' + s.t2 + '</b><span>Tier 2 · 50–79%</span></div>' +
+    '<div class="tile bad"><b>' + s.t3 + '</b><span>Tier 3 · under 50%</span></div></div>';
+  const groups = S.year === 'all'
+    ? [['Year 11', ps.filter(p => p.year === '11')], ['Year 12', ps.filter(p => p.year === '12')], ['Not on a list', ps.filter(p => p.unassigned || p.conflict)], ['All students', ps]]
+    : [[S.year === '11' ? 'Year 11' : 'Year 12', ps]];
+  h += '<div class="card"><table><thead><tr><th></th><th class="n">Students</th><th class="n">Attendance</th><th class="n">90%+</th><th class="n">95%+</th><th class="n">100%</th><th class="n">Tier 1</th><th class="n">Tier 2</th><th class="n">Tier 3</th></tr></thead><tbody>';
+  groups.forEach(([label, list], i) => {
+    if (!list.length && label === 'Not on a list') return;
+    const g = C.summarise(list.map(p => p.rec));
+    h += '<tr' + (i === groups.length - 1 && groups.length > 1 ? ' class="total"' : '') + '><th>' + label + '</th><td class="n">' + g.n + '</td><td class="n">' + (g.rate == null ? '' : C.pctOf(g.rate)) + '</td><td class="n">' + cnt(g.g90, g.n) + '</td><td class="n">' + cnt(g.g95, g.n) + '</td><td class="n">' + cnt(g.p100, g.n) + '</td><td class="n">' + cnt(g.t1, g.n) + '</td><td class="n">' + cnt(g.t2, g.n) + '</td><td class="n">' + cnt(g.t3, g.n) + '</td></tr>';
+  });
+  h += '</tbody></table></div>';
+  const anyShort = ps.some(p => p.hasShort);
+  const rows = [['Sick', s.sick, s.psick, s.ssick], ['Leave', s.leave, s.pleave, s.sleave], ['Unjustified', s.unj, s.punj, s.sunj], ['Unexplained', s.unex, s.punex, s.sunex], ['Suspended', s.susp, null, null]];
+  h += '<h2>Absence reasons <small>whole days, then partial minutes</small></h2><div class="card"><table><thead><tr><th>Reason</th><th class="n">Whole days</th><th class="n">Partial minutes (over 120)</th><th class="n">Short partial minutes (120 or under)</th></tr></thead><tbody>';
+  rows.forEach(r => { h += '<tr><th>' + r[0] + '</th><td class="n">' + r[1] + '</td><td class="n">' + (r[2] == null ? '' : r[2]) + '</td><td class="n">' + (r[3] == null ? '' : anyShort ? r[3] : '—') + '</td></tr>' });
+  h += '<tr class="total"><th>Total</th><td class="n">' + (s.sick + s.leave + s.unj + s.unex + s.susp) + '</td><td class="n">' + (s.psick + s.pleave + s.punj + s.punex) + '</td><td class="n">' + (anyShort ? s.smins : '—') + '</td></tr></tbody></table></div>';
+  return h;
+}
+
+function viewTiers() {
+  const ps = people(), lt = latestTerm();
+  const anyShort = ps.some(p => p.hasShort);
+  let h = '';
+  [[1, 'Tier 1', '80–89%'], [2, 'Tier 2', '50–79%'], [3, 'Tier 3', 'under 50%']].forEach(([t, label, range]) => {
+    const list = ps.filter(p => C.tierOf(p.rec) === t).sort((a, b) => C.rateOf(a.rec) - C.rateOf(b.rec) || a.name.localeCompare(b.name));
+    h += '<h2>' + label + ' <small>' + range + ' · ' + list.length + ' student' + (list.length === 1 ? '' : 's') + '</small></h2>';
+    if (!list.length) { h += '<p class="empty">No students in this tier.</p>'; return }
+    h += '<div class="card"><table><thead><tr><th>Student</th><th>Year</th><th class="n">Attendance</th><th class="n">Days lost</th><th class="n">Enrolled days</th><th class="n">Unexplained</th>' + (lt && C.termsOf(S.store, 'main').filter(x => x <= S.through).length > 1 ? '<th class="n">Term ' + lt + '</th>' : '') + (anyShort ? '<th class="n">Short partial mins</th>' : '') + '</tr></thead><tbody>';
+    const multi = C.termsOf(S.store, 'main').filter(x => x <= S.through).length > 1;
+    list.forEach(p => {
+      const r = p.rec, lr = p.byTerm[lt];
+      h += '<tr><td>' + esc(p.name) + (p.removed ? ' <span class="tag">removed</span>' : '') + '</td><td>' + yearTxt(p) + '</td><td class="n">' + pill(r) + '</td><td class="n">' + num1(C.lostDays(r)) + '</td><td class="n">' + r.enr + '</td><td class="n">' + r.unex + '</td>' + (multi ? '<td class="n">' + (lr ? C.pctText(lr) : '—') + '</td>' : '') + (anyShort ? '<td class="n">' + (p.hasShort ? r.smins : '—') + '</td>' : '') + '</tr>';
+    });
+    h += '</tbody></table></div>';
+  });
+  return h;
+}
+
+function viewUnexplained() {
+  const ps = people();
+  const hit = ps.filter(p => C.unexGe(p.rec, S.P.unexPct)).sort((a, b) => b.rec.unex / b.rec.enr - a.rec.unex / a.rec.enr);
+  const list = hit.filter(p => p.rec.enr >= S.P.unexMinDays), few = hit.filter(p => p.rec.enr < S.P.unexMinDays);
+  let h = '<div class="row" style="margin-top:0"><label class="f">Unexplained days at least (% of enrolled)<input type="number" min="1" max="100" data-p="unexPct" value="' + S.P.unexPct + '"></label>' +
+    '<label class="f">Only students enrolled at least (days)<input type="number" min="1" max="400" data-p="unexMinDays" value="' + S.P.unexMinDays + '"></label></div>';
+  h += '<h2>Unexplained days <small>' + list.length + ' student' + (list.length === 1 ? '' : 's') + '</small></h2>';
+  const table = l => '<div class="card"><table><thead><tr><th>Student</th><th>Year</th><th class="n">Enrolled days</th><th class="n">Unexplained days</th><th class="n">Share</th><th class="n">Attendance</th></tr></thead><tbody>' +
+    l.map(p => '<tr><td>' + esc(p.name) + '</td><td>' + yearTxt(p) + '</td><td class="n">' + p.rec.enr + '</td><td class="n">' + p.rec.unex + '</td><td class="n">' + Math.floor(1000 * p.rec.unex / p.rec.enr) / 10 + '%</td><td class="n">' + pill(p.rec) + '</td></tr>').join('') + '</tbody></table></div>';
+  h += list.length ? table(list) : '<p class="empty">No students at or above ' + S.P.unexPct + '%.</p>';
+  if (few.length) h += '<h2>Fewer than ' + S.P.unexMinDays + ' enrolled days <small>' + few.length + '</small></h2>' + table(few);
+  return h;
+}
+
+function viewWarning() {
+  const terms = C.termsOf(S.store, 'main');
+  if (!terms.length) return '<p class="empty">No exports loaded.</p>';
+  if (!terms.includes(S.ewTerm)) S.ewTerm = terms[terms.length - 1];
+  const weeks = C.weeksOf(S.store, 'main', S.ewTerm);
+  if (!weeks.includes(S.ewWeek)) S.ewWeek = weeks[weeks.length - 1];
+  const P = S.P;
+  let h = '<div class="row" style="margin-top:0"><label class="f">Term<select data-ew="term">' + terms.map(t => '<option value="' + t + '"' + (t === S.ewTerm ? ' selected' : '') + '>Term ' + t + '</option>').join('') + '</select></label>' +
+    '<label class="f">Week<select data-ew="week">' + weeks.map(w => '<option value="' + w + '"' + (w === S.ewWeek ? ' selected' : '') + '>Week ' + w + '</option>').join('') + '</select></label>' +
+    '<label class="f">Drop (points)<input type="number" min="1" max="100" data-p="drop" value="' + P.drop + '"></label>' +
+    '<label class="f">Days lost at least<input type="number" min="0.5" step="0.5" data-p="minLost" value="' + P.minLost + '"></label>' +
+    '<label class="f">Unexplained days at least<input type="number" min="1" data-p="unex" value="' + P.unex + '"></label>' +
+    '<label class="f">Short partial mins at least<input type="number" min="1" data-p="shortMins" value="' + P.shortMins + '"></label></div>';
+  const ev = C.earlyWarning(S.store, S.ewTerm, S.ewWeek, P);
+  const flagged = ev.flagged.filter(r => vis(r.srn));
+  const bits = ['Week ' + ev.week + ' against ' + (ev.baseWeek != null ? 'week ' + ev.baseWeek : ev.prevTermBaseline ? 'the start of term (compared with last term)' : 'the start of term') + ' · up to ' + ev.windowDays + ' school days'];
+  if (!ev.shortOK) bits.push('no short-partials file for this week, so that signal is off');
+  h += '<p class="muted" style="margin:12px 0 0">' + bits.join(' · ') + '</p>';
+  h += '<h2>Flagged <small>' + flagged.length + ' student' + (flagged.length === 1 ? '' : 's') + '</small></h2>';
+  const names = { drop: ['Sudden drop', 'bad'], band: ['Out of regular band', 'bad'], unex: ['Unexplained days', 'warn'], short: ['Short partials', 'warn'] };
+  if (!flagged.length) h += '<p class="empty">Nobody is flagged.</p>';
+  else {
+    h += '<div class="card"><table><thead><tr><th>Student</th><th>Year</th><th class="n">Before</th><th class="n">Recent</th><th class="n">Drop</th><th class="n">Days lost</th><th class="n">Unexplained</th><th class="n">Short mins</th><th>Why</th><th class="n">Weeks in a row</th></tr></thead><tbody>';
+    flagged.forEach(r => {
+      const v = vis(r.srn), pre = x => x == null ? '—' : C.pctOf(x);
+      h += '<tr><td>' + esc(r.name) + (v.removed ? ' <span class="tag">removed</span>' : '') + '</td><td>' + (v.conflict ? 'Both lists' : v.unassigned ? '—' : 'Year ' + v.year) + '</td><td class="n">' + pre(r.baseline) + '</td><td class="n">' + pre(r.winRate) + '</td><td class="n">' + (r.drop == null ? '—' : num1(r.drop * 100) + ' pts') + '</td><td class="n">' + num1(r.lostW) + '</td><td class="n">' + r.unexW + '</td><td class="n">' + (r.shortW == null ? '—' : r.shortW) + '</td><td>' + r.flags.map(f => '<span class="tag ' + names[f][1] + '">' + names[f][0] + '</span>').join('') + '</td><td class="n">' + r.streak + (r.streak >= 2 ? ' ⚠' : '') + '</td></tr>';
+    });
+    h += '</tbody></table></div>';
+  }
+  const near = people().filter(p => C.tierOf(p.rec) === 0 && C.spareDays(p.rec) < 2).sort((a, b) => C.spareDays(a.rec) - C.spareDays(b.rec));
+  h += '<h2>Close to 90% <small>under 2 days to spare · ' + near.length + '</small></h2>';
+  if (!near.length) h += '<p class="empty">Nobody.</p>';
+  else h += '<div class="card"><table><thead><tr><th>Student</th><th>Year</th><th class="n">Attendance</th><th class="n">Days lost</th><th class="n">Days to spare</th></tr></thead><tbody>' +
+    near.map(p => '<tr><td>' + esc(p.name) + '</td><td>' + yearTxt(p) + '</td><td class="n">' + pill(p.rec) + '</td><td class="n">' + num1(C.lostDays(p.rec)) + '</td><td class="n">' + num1(C.spareDays(p.rec)) + '</td></tr>').join('') + '</tbody></table></div>';
+  return h;
+}
+
+function viewSetup() {
+  const names = allStudents();
+  const un = [...names].filter(([srn]) => !S.index.has(srn)).sort((a, b) => a[1].localeCompare(b[1]));
+  const conf = [...S.index].filter(([, v]) => v.conflict);
+  let h = '<h2>Not on a list <small>' + un.length + '</small></h2>';
+  if (!un.length) h += '<p class="empty">Everyone in the exports is on the Year 11 or Year 12 list.</p>';
+  else {
+    h += '<div class="acts"><button class="quiet sm" data-act="tickall" type="button">Tick all</button><button class="quiet sm" data-act="tickno" type="button">Clear</button>' +
+      '<button class="solid sm" data-act="addticked" data-year="11" type="button">Add ticked to Year 11</button><button class="solid sm" data-act="addticked" data-year="12" type="button">Add ticked to Year 12</button></div>' +
+      '<div class="card"><table><thead><tr><th></th><th>Student</th><th>SRN</th><th></th></tr></thead><tbody>' +
+      un.map(([srn, n]) => '<tr><td><input type="checkbox" data-tick="' + srn + '"' + (S.ticked.has(srn) ? ' checked' : '') + '></td><td>' + esc(n) + '</td><td class="muted">' + srn + '</td><td class="n"><button class="sm" data-act="assign" data-year="11" data-srn="' + srn + '" type="button">Year 11</button> <button class="sm" data-act="assign" data-year="12" data-srn="' + srn + '" type="button">Year 12</button></td></tr>').join('') + '</tbody></table></div>';
+  }
+  if (conf.length) h += '<h2>On both lists <small>' + conf.length + '</small></h2><div class="card"><table><tbody>' +
+    conf.map(([srn, v]) => '<tr><td>' + esc(v.name) + '</td><td class="muted">' + srn + '</td><td class="n"><button class="sm" data-act="keep" data-year="11" data-srn="' + srn + '" type="button">Keep in Year 11</button> <button class="sm" data-act="keep" data-year="12" data-srn="' + srn + '" type="button">Keep in Year 12</button></td></tr>').join('') + '</tbody></table></div>';
+  const rosterTable = (list, y) => {
+    const cur = list.filter(r => !r.removed).sort((a, b) => a.name.localeCompare(b.name));
+    return '<h2>Year ' + y + ' <small>' + cur.length + ' student' + (cur.length === 1 ? '' : 's') + '</small></h2>' + (cur.length ? '<div class="card"><table><tbody>' +
+      cur.map(r => '<tr><td>' + esc(r.name) + '</td><td class="muted">' + r.srn + '</td><td class="n"><button class="sm" data-act="move" data-srn="' + r.srn + '" type="button">Move to Year ' + (y === '11' ? '12' : '11') + '</button> <button class="sm quiet" data-act="remove" data-srn="' + r.srn + '" type="button">Remove</button></td></tr>').join('') + '</tbody></table></div>' : '<p class="empty">Nobody yet.</p>');
+  };
+  h += rosterTable(S.y11, '11') + rosterTable(S.y12, '12');
+  const rem = [...S.y11.map(r => [r, '11']), ...S.y12.map(r => [r, '12'])].filter(([r]) => r.removed).sort((a, b) => a[0].name.localeCompare(b[0].name));
+  if (rem.length) h += '<details><summary>Removed students (' + rem.length + ')</summary><div class="card"><table><tbody>' +
+    rem.map(([r, y]) => '<tr><td>' + esc(r.name) + '</td><td class="muted">' + r.srn + '</td><td>Year ' + y + '</td><td class="n"><button class="sm" data-act="restore" data-srn="' + r.srn + '" type="button">Restore</button></td></tr>').join('') + '</tbody></table></div></details>';
+  h += '<details><summary>Files read (' + S.files.length + ')</summary>' + (S.files.length ? '<div class="card"><table><thead><tr><th>File</th><th>Term</th><th>Week</th><th>Report</th><th class="n">Students</th><th>Total row</th></tr></thead><tbody>' +
+    S.files.map(f => {
+      const bad = C.checkTotals(f);
+      return '<tr><td>' + esc(f.file) + '</td><td>' + f.term + '</td><td>' + f.week + '</td><td>' + (f.kind === 'main' ? 'Main' : 'Short partials') + '</td><td class="n">' + f.students.size + '</td><td>' + (!f.total ? '<span class="muted">none</span>' : bad.length ? '<span class="tag bad">doesn’t match: ' + bad.map(b => b.key + ' ' + b.rows + ' vs ' + b.total).join(', ') + '</span>' : 'matches') + '</td></tr>';
+    }).join('') + '</tbody></table></div>' : '<p class="empty">None.</p>') + '</details>';
+  const tm = C.termsOf(S.store, 'main'), missing = [];
+  for (let t = 1; t <= (tm.length ? tm[tm.length - 1] : 0); t++) if (!tm.includes(t)) missing.push('Term ' + t + ' has no main export, so it isn’t in the year figures.');
+  const notes = S.warnings.concat(missing);
+  if (notes.length) h += '<details open><summary>Notes (' + notes.length + ')</summary><ul>' + notes.map(n => '<li>' + esc(n) + '</li>').join('') + '</ul></details>';
+  return h;
+}
+
+const VIEWS = { overview: viewOverview, tiers: viewTiers, unexplained: viewUnexplained, warning: viewWarning, setup: viewSetup };
+function render() {
+  document.querySelectorAll('#tabs button').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === S.tab)));
+  $('view').innerHTML = S.loaded ? VIEWS[S.tab]() : '';
+}
+function fillThrough() {
+  const ts = C.termsOf(S.store, 'main'), all = [1, 2, 3, 4];
+  $('through').innerHTML = all.map(t => '<option value="' + t + '"' + (t === S.through ? ' selected' : '') + '>Term ' + (t === 1 ? '1' : '1 to ' + t) + (ts.includes(t) ? '' : ' (no file)') + '</option>').join('');
+}
+
+/* ---------- events ---------- */
+$('tabs').onclick = e => { const b = e.target.closest('button[data-tab]'); if (b) { S.tab = b.dataset.tab; render() } };
+$('through').onchange = e => { S.through = +e.target.value; render() };
+$('year').onchange = e => { S.year = e.target.value; render() };
+$('incRemoved').onchange = e => { S.incRemoved = e.target.checked; render() };
+$('view').addEventListener('change', e => {
+  const t = e.target;
+  if (t.dataset.p) { const v = parseFloat(t.value); if (v > 0) S.P[t.dataset.p] = v; render() }
+  else if (t.dataset.ew) { if (t.dataset.ew === 'term') { S.ewTerm = +t.value; S.ewWeek = null } else S.ewWeek = +t.value; render() }
+  else if (t.dataset.tick) { t.checked ? S.ticked.add(t.dataset.tick) : S.ticked.delete(t.dataset.tick) }
+});
+$('view').addEventListener('click', async e => {
+  const go = e.target.closest('[data-go]'); if (go) { S.tab = go.dataset.go; render(); return }
+  const b = e.target.closest('button[data-act]'); if (!b) return;
+  const act = b.dataset.act, srn = b.dataset.srn, year = b.dataset.year;
+  if (act === 'tickall') { for (const [s] of allStudents()) if (!S.index.has(s)) S.ticked.add(s); render(); return }
+  if (act === 'tickno') { S.ticked.clear(); render(); return }
+  if (act === 'addticked') {
+    const n = S.ticked.size; if (!n) { setMsg('Tick some students first.'); return }
+    for (const s of [...S.ticked]) rosterOp('assign', s, year);
+    S.ticked.clear(); await persist('Added ' + n + ' to Year ' + year); return;
+  }
+  rosterOp(act, srn, year);
+  await persist({ assign: 'Added to Year ' + year, move: 'Moved', keep: 'Kept in Year ' + year, remove: 'Removed', restore: 'Restored' }[act]);
+});
+</script>
+</body>
+</html>
