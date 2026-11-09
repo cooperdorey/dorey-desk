@@ -52,7 +52,7 @@ We Do levels) live in the Lesson Creator project; this file covers the repo form
 - Standard 1 LSQ (`generators/lsq-std1.html`): a copy of the LSQ page with its own bank, `generators/std1-bank.js`
   (global `S1`; text-only questions for Std 1 topics 1 to 3; borrows only the RNG and fraction helpers from engine.js).
   Its `CODE_ORDER` is append-only too (checked by `build_manifest.py`). Sheet codes end `.s1.<lessons>` so the Advanced
-  pages reject them. Money inside maths is written `\$`. Triangle questions (topic 3, except 3.01 true/false, 3.06 angle conversions and 3.09) carry an inline-SVG diagram in `fig` (helpers `triFig`, `rectFig`, `eyeFig`, `bearFig` in std1-bank.js, no `$` inside), shown beside the question and checked by `check_std1.js`. Run `node scripts/check_std1.js` before committing.
+  pages reject them. Money inside maths is written `\$`. Triangle questions (topic 3, except 3.01 true/false, 3.06 angle conversions and 3.09) carry an inline-SVG diagram in `fig` (helpers `triFig`, `rectFig`, `eyeFig`, `bearFig` in std1-bank.js, no `$` inside), shown beside the question and checked by `check_std1.js`. Quizzes are capped at 20 minutes / 20 marks (diagrams make questions tall). Run `node scripts/check_std1.js` before committing.
 - Tutorial generator (`generators/tutorial.html`): hard, unfamiliar questions for a 20, 25 or 30 minute tutorial. Its bank is
   `generators/tutorial-bank.js` (loads after engine.js; independent of lesson ids and `CODE_ORDER`). Each template has a topic id
   from `TOPICS`, a (now ignored) minutes value, level (2 Hard, 3 Very hard), a hint and `gen(R)`, which must return a `chk()` that tests the printed
