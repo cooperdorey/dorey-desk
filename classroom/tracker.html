@@ -164,17 +164,15 @@ dialog .row{margin-top:12px}
   <a class="home" href="../#">Dorey Desk</a>
   <nav class="crumbs" aria-label="Where you are"><a href="../#">Home</a><a href="../#classroom">Classroom</a><span>Class Tracker</span></nav>
   <h1>Class Tracker</h1>
-  <p class="lead">Attendance, catch-up, book work, LSQ and assessment results and N-awards for your classes, in one place. Student names stay on your computer: they are read from your own files and never uploaded.</p>
 
   <div class="bar" id="fileBar">
     <button class="solid" id="openDir">Open folder</button>
     <button class="quiet" id="openFiles">Open files…</button>
-    <span class="msg" id="fileMsg">Open the folder that holds classes.csv and absences.csv (for example your school OneDrive folder).</span>
+    <span class="msg" id="fileMsg">No folder open.</span>
     <button id="saveAll" disabled>Save</button>
     <button class="quiet" id="dlAll" disabled>Download both</button>
   </div>
   <input type="file" id="fileIn" accept=".csv,text/csv" multiple hidden>
-  <p class="note">The folder you open must be somewhere approved for student information. The page keeps nothing after you close it: no names are stored in the browser or sent anywhere.</p>
 
   <div class="groups" role="tablist" id="groups">
     <button role="tab" aria-selected="false" data-g="over"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>Overview</button>
@@ -200,7 +198,6 @@ dialog .row{margin-top:12px}
     </div>
     <div class="tiles" id="dTiles"></div>
     <div class="card" style="padding:6px 10px"><div id="dList"></div></div>
-    <p class="note">Every student in the class with their N-award warnings (resolved and unresolved) and the book work they still owe, in lesson order. Owed lessons come from the Book work tab (a lesson counts once someone in the class has it ticked).</p>
   </section>
 
   <section id="t-entry">
@@ -219,7 +216,6 @@ dialog .row{margin-top:12px}
     </div>
     <p class="note" id="eMsg"></p>
     <details class="card"><summary>Reasons</summary>
-      <p class="note">Reasons come from <code>classroom/reasons.json</code> in the repo, so they're the same on every device. Edit that file to change them. Every absence with a lesson recorded owes catch-up.</p>
       <div id="reasonList" class="note" style="margin:6px 0 0"></div>
     </details>
   </section>
@@ -231,7 +227,6 @@ dialog .row{margin-top:12px}
       <button class="solid" id="cPrint">Print slips for ticked students</button>
     </div>
     <div class="card" style="padding:6px 10px"><div id="cList"></div></div>
-    <p class="note">Owed book work comes from the Book work tab: a student is listed for any lesson the class has started ticking that they haven't completed. Tick the students you want slips for and print — four to an A4 page. Choose "Save as PDF" or a printer in the print window, and turn off headers and footers.</p>
   </section>
 
   <section id="t-book" hidden>
@@ -246,7 +241,6 @@ dialog .row{margin-top:12px}
       <span id="bApplyMsg" class="note" style="margin:0"></span>
     </div>
     <div class="card" style="padding:0;overflow:auto;max-height:70vh"><div id="bGrid"></div></div>
-    <p class="note">Tick a cell when a student has completed that lesson's book work. Click a lesson heading to tick or clear the whole column. Saved in bookwork.csv, which holds only IDs and lesson codes, no names.</p>
   </section>
 
   <section id="t-lsq" hidden>
@@ -279,7 +273,6 @@ dialog .row{margin-top:12px}
       <button class="quiet" id="sCsv">Download as CSV</button>
     </div>
     <div class="card" style="padding:6px 10px"><div id="sTable"></div></div>
-    <p class="note">Set "Lessons in this range" for the whole class, then adjust the Lessons box for any individual student (for example one who joined late). Attendance is the share of that student's lessons they were not away for, colour-coded: dark green &gt;95%, green &gt;90%, orange 80–90%, red below 80%. Removed students are left out.</p>
   </section>
 
   <section id="t-naw" hidden>
@@ -305,7 +298,6 @@ dialog .row{margin-top:12px}
         </div>
       </div>
       <div class="row" style="margin-top:8px"><button class="solid" id="nAdd">Add warning</button><button class="quiet" id="nSheet" type="button">Print tracker sheets (ticked students)</button><span id="nMsg" class="note" style="margin:0"></span></div>
-      <p class="note">Tick one or more students, pick a topic and the two boxes prefill from the topic's lessons and outcomes — edit them if you like before logging. The warning number fills in automatically. Outcomes and classroom codes come from <code>classroom/naward.json</code>; edit that file to change them. Saved to nawards.csv (IDs only, no names). In the list below, click a warning to switch it between Unresolved (red) and Resolved (green); right-click it to delete.</p>
     </div>
     <div class="card" style="padding:6px 10px"><div id="nList"></div></div>
   </section>
@@ -328,7 +320,6 @@ dialog .row{margin-top:12px}
       </label>
       <div class="row" style="margin-top:8px"><button class="solid" id="aAdd">Add to class</button><span id="aMsg" class="note" style="margin:0"></span></div>
       <datalist id="classCodes"></datalist>
-      <p class="note">Each student gets a permanent ID such as 12MS16B-07, made from the class code and the next free number. IDs never change and are never reused. Absences are stored against the ID, so moving or removing a student never disturbs the history.</p>
     </div>
   </section>
 </div>
