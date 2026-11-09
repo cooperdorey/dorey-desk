@@ -43,7 +43,9 @@ label.f{display:flex;flex-direction:column;gap:3px;font-size:12.5px;color:var(--
 .bar .msg{flex:1 1 260px;color:var(--muted);font-size:14px}
 .bar.on .msg{color:var(--ink)}
 .bar.dirty .msg{color:var(--warn);font-weight:600}
-.groups{display:flex;flex-wrap:wrap;gap:8px;margin:20px 0 16px}
+.groups{display:flex;flex-wrap:wrap;align-items:flex-end;gap:8px;margin:20px 0 16px}
+.groups .gc{margin-left:auto}
+select.overridden{border-color:var(--brand);box-shadow:0 0 0 1px var(--brand)}
 .groups button{display:flex;align-items:center;gap:8px;padding:10px 18px;border-radius:12px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.05)}
 .groups button[aria-selected=true]{background:var(--brand);border-color:var(--brand);color:var(--brand-ink);box-shadow:0 3px 10px rgba(15,118,110,.28)}
 .groups svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
@@ -180,6 +182,7 @@ dialog .row{margin-top:12px}
     <button role="tab" aria-selected="false" data-g="work"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/></svg>Coursework</button>
     <button role="tab" aria-selected="false" data-g="assess"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4h6v3H9z"/><path d="m9 14 2 2 4-4"/></svg>Assessment</button>
     <button role="tab" aria-selected="false" data-g="setup"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Setup</button>
+    <label class="f gc">Class<select id="gClass"></select></label>
   </div>
   <div class="tabs" role="tablist" id="tabs">
     <button role="tab" aria-selected="false" data-t="dash">Dashboard</button>
@@ -1200,13 +1203,28 @@ function drawDash(){
 }
 $('dClass').onchange=drawDash;$('dEnd').oninput=drawDash;$('dN').oninput=drawDash;
 
+/* ---------- one class for every tab (each tab can still override) ---------- */
+const CLS_SELECTS=['eClass','cClass','sClass','bClass','lClass','mClass','nClass','dClass','kClass'];
+const OVR=new Set();
+function syncClass(){
+  const g=$('gClass').value;
+  CLS_SELECTS.forEach(id=>{
+    const el=$(id);
+    if(g&&!OVR.has(id)&&[...el.options].some(o=>o.value===g))el.value=g;
+    el.classList.toggle('overridden',!!g&&el.value!==g);
+  });
+}
+CLS_SELECTS.forEach(id=>$(id).addEventListener('change',()=>{OVR.add(id);syncClass()}));
+$('gClass').onchange=()=>{OVR.clear();refreshAll()};
+
 /* ---------- refresh ---------- */
 function refreshAll(){
   refreshReasons();
   const d=$('eDate').value||todayISO();
   if(!$('eDate').value)$('eDate').value=d;
-  fillSelect($('eClass'),activeClasses());
   const active=activeClasses(),any=allClassesAny();
+  fillSelect($('gClass'),active);
+  fillSelect($('eClass'),active);
   fillSelect($('cClass'),['all'].concat(active),true,v=>v==='all'?'All classes':v);
   fillSelect($('sClass'),active);
   fillSelect($('bClass'),active);
@@ -1215,6 +1233,7 @@ function refreshAll(){
   fillSelect($('nClass'),active);
   fillSelect($('dClass'),active);
   fillSelect($('kClass'),any);
+  syncClass();
   $('classCodes').innerHTML=any.map(c=>'<option value="'+esc(c)+'">').join('');
   if(!$('sTo').value){$('sTo').value=todayISO();$('sFrom').value=addDays(todayISO(),-13)}
   if(!$('nDate').value)$('nDate').value=todayISO();
