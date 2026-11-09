@@ -125,7 +125,7 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
 dialog .row{margin-top:12px}
 .err{color:var(--bad);font-size:13px;margin:6px 0 0}
 #printArea{display:none}
-.slipPage{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;width:190mm;height:277mm;gap:0;page-break-after:always;break-after:page;margin:0 auto}
+.slipPage{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:minmax(0,1fr) minmax(0,1fr);width:190mm;height:276mm;gap:0;page-break-after:always;break-after:page;margin:0 auto}
 .slipPage:last-child{page-break-after:auto;break-after:auto}
 .slip{border:1px dashed #888;padding:7mm 8mm;font-family:Arial,Helvetica,sans-serif;font-size:11pt;color:#000;overflow:hidden}
 .slip h3{margin:0 0 1mm;font-size:15pt}
@@ -133,6 +133,9 @@ dialog .row{margin-top:12px}
 .slip ul{margin:1mm 0 4mm;padding-left:5mm}
 .slip li{margin:1mm 0}
 .slip .box{display:inline-block;width:3.5mm;height:3.5mm;border:1px solid #000;margin-right:2mm;vertical-align:-0.5mm}
+.slip.wide{grid-column:1/-1}
+.slip.wide ul{columns:2;column-gap:8mm;font-size:10pt}
+.slip.wide li{break-inside:avoid}
 .slip .todo{font-size:10pt;margin-top:3mm}
 .slip .hand{margin-top:4mm;font-size:10pt}
 @media print{
@@ -685,18 +688,29 @@ $('cPrint').onclick=()=>{
   const ids=ticked();
   if(!ids.length){alert('Tick the students whose slips you want to print.');return}
   const g=catchupGroups().filter(x=>ids.includes(x.id));
-  const dl=$('cDeadline').value,CAP=12;
+  const dl=$('cDeadline').value,NORM=10,CAP=24;
   const slips=g.map(x=>{
-    const cls=x.cls;
-    const shown=x.lessons.slice(0,CAP),extra=x.lessons.length-shown.length;
-    return '<div class="slip"><h3>'+esc(x.name)+'</h3><p class="cls">'+esc(cls)+'</p><strong>Book work to catch up:</strong><ul>'+
+    const cls=x.cls,wide=x.lessons.length>NORM;
+    const shown=wide?x.lessons.slice(0,CAP):x.lessons,extra=x.lessons.length-shown.length;
+    const cc=NAWARD.classroomCodes[cls]||NAWARD.classroomCodes[classCourse(cls)]||'';
+    const h='<div class="slip'+(wide?' wide':'')+'"><h3>'+esc(x.name)+'</h3><p class="cls">'+esc(cls)+'</p><strong>Book work to catch up:</strong><ul>'+
       shown.map(l=>{const t=lessonTitle(cls,l);return '<li><span class="box"></span><strong>'+esc(l)+'</strong>'+(t?' '+esc(t):'')+'</li>'}).join('')+
       (extra>0?'<li style="list-style:none;color:#444">+ '+extra+' more — see your teacher</li>':'')+
-      '</ul><div class="todo">These lessons can be found on OneNote or Google Classroom. Work through them and show your teacher when you are done.</div>'+
+      '</ul><div class="todo">These lessons can be found on OneNote or Google Classroom'+(cc?' (code: <strong>'+esc(cc)+'</strong>)':'')+'. Work through them and show your teacher when you are done.</div>'+
       '<div class="hand">Hand in by: '+(dl?esc(showDate(dl)):'____________')+'</div></div>';
+    return {h,wide};
   });
+  /* pack into A4 pages of two rows: a normal slip takes one cell, a wide slip (over 10 lessons) a whole row;
+     a gap beside a wide slip is filled by the next normal slip */
+  const rows=[],q=slips.slice();
+  while(q.length){
+    const f=q.shift();
+    if(f.wide){rows.push([f]);continue}
+    const j=q.findIndex(z=>!z.wide);
+    rows.push(j<0?[f]:[f,q.splice(j,1)[0]]);
+  }
   let html='';
-  for(let i=0;i<slips.length;i+=4)html+='<div class="slipPage">'+slips.slice(i,i+4).join('')+'</div>';
+  for(let i=0;i<rows.length;i+=2)html+='<div class="slipPage">'+rows.slice(i,i+2).map(r=>r.map(z=>z.h).join('')+(r.length===1&&!r[0].wide?'<div></div>':'')).join('')+'</div>';
   $('printArea').innerHTML=html;
   window.print();
 };
