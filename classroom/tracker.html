@@ -195,8 +195,11 @@ dialog .row{margin-top:12px}
   <section id="t-dash" hidden>
     <div class="row">
       <label class="f">Class<select id="dClass"></select></label>
+      <label class="f">Fortnight ending<input type="date" id="dEnd"></label>
+      <label class="f">Lessons<input type="number" id="dN" min="1" value="8" style="width:72px"></label>
     </div>
     <div class="tiles" id="dTiles"></div>
+    <div class="card" style="padding:6px 10px"><h2 style="margin:8px 4px 2px">Fortnight attendance</h2><div id="dFort"></div></div>
     <div class="card" style="padding:6px 10px"><div id="dList"></div></div>
   </section>
 
@@ -1153,23 +1156,38 @@ function lsqAverage(cls,students){
   return meanOf(avgs);
 }
 function drawDashTiles(cls,students){
-  const ids=new Set(students.map(s=>s.id)),since=addDays(todayISO(),-13);
-  const away=S.abs.filter(r=>r.class===cls&&ids.has(r.id)&&r.date>=since).length;
+  const ids=new Set(students.map(s=>s.id)),to=$('dEnd').value||todayISO(),since=addDays(to,-13);
+  const away=S.abs.filter(r=>r.class===cls&&ids.has(r.id)&&r.date>=since&&r.date<=to).length;
   const open=S.naw.filter(r=>ids.has(r.id)&&r.status!=='resolved').length;
   const act=new Set();
   S.book.forEach((v,k)=>{const i=k.indexOf('|');if(ids.has(k.slice(0,i)))act.add(k.slice(i+1))});
   const owing=students.filter(s=>[...act].some(l=>!S.book.has(bKey(s.id,l)))).length;
   const lsq=lsqAverage(cls,students);
   const tile=(n,l,c)=>'<div class="tile'+(c?' '+c:'')+'"><b>'+n+'</b><span>'+l+'</span></div>';
-  $('dTiles').innerHTML=tile(students.length,'Students')+tile(away,'Absences, last 14 days',away?'warn':'good')+tile(open,'Open N-awards',open?'bad':'good')+tile(owing,'Students owing book work',owing?'warn':'good')+tile(lsq==null?'–':fmt(lsq,0)+'%','LSQ average');
+  $('dTiles').innerHTML=tile(students.length,'Students')+tile(away,'Absences this fortnight',away?'warn':'good')+tile(open,'Open N-awards',open?'bad':'good')+tile(owing,'Students owing book work',owing?'warn':'good')+tile(lsq==null?'–':fmt(lsq,0)+'%','LSQ average');
+}
+function drawFortnight(cls,students){
+  const to=$('dEnd').value||todayISO(),from=addDays(to,-13),n=Math.max(1,+$('dN').value||8);
+  const reasons=getReasons().map(rName);
+  const rows=students.map(st=>{
+    const abs=S.abs.filter(r=>r.id===st.id&&r.class===cls&&r.date>=from&&r.date<=to);
+    const away=new Set(abs.map(r=>r.date+'|'+r.period)).size;
+    const by={};abs.forEach(r=>{const k=reasons.includes(r.reason)?r.reason:(r.reason||'Other');by[k]=(by[k]||0)+1});
+    return {name:fullName(st),away,by,pct:Math.max(0,Math.round((1-away/n)*100))};
+  });
+  const pill=p=>'<span style="display:inline-block;min-width:46px;padding:2px 8px;border-radius:999px;background:'+attColour(p)+';color:#fff;font-weight:600;text-align:center">'+p+'%</span>';
+  const avg=Math.round(meanOf(rows.map(r=>r.pct)));
+  $('dFort').innerHTML='<table><thead><tr><th>Student</th><th class="n">Away</th><th class="n">Attendance</th><th>Reasons</th></tr></thead><tbody>'+
+    rows.map(r=>'<tr><td>'+esc(r.name)+'</td><td class="n">'+r.away+'</td><td class="n">'+pill(r.pct)+'</td><td>'+Object.keys(r.by).map(k=>'<span class="tag">'+esc(k)+(r.by[k]>1?' ×'+r.by[k]:'')+'</span>').join('')+'</td></tr>').join('')+
+    '</tbody><tfoot><tr><th>Class</th><th class="n">'+rows.reduce((a,r)=>a+r.away,0)+'</th><th class="n">'+pill(avg)+'</th><th></th></tr></tfoot></table>';
 }
 function drawDash(){
   const box=$('dList');
-  if(!S.loaded){$('dTiles').innerHTML='';box.innerHTML='<p class="empty">Open your folder or files first.</p>';return}
+  if(!S.loaded){$('dTiles').innerHTML='';$('dFort').innerHTML='';box.innerHTML='<p class="empty">Open your folder or files first.</p>';return}
   const cls=$('dClass').value,students=studentsIn(cls);
-  if(!students.length){$('dTiles').innerHTML='';box.innerHTML='<p class="empty">No students in this class.</p>';return}
+  if(!students.length){$('dTiles').innerHTML='';$('dFort').innerHTML='';box.innerHTML='<p class="empty">No students in this class.</p>';return}
   const idset=new Set(students.map(s=>s.id)),active=new Set();
-  drawDashTiles(cls,students);
+  drawDashTiles(cls,students);drawFortnight(cls,students);
   S.book.forEach((v,k)=>{const i=k.indexOf('|');if(idset.has(k.slice(0,i)))active.add(k.slice(i+1))});
   const lessons=[...active].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));
   box.innerHTML='<table><thead><tr><th>Student</th><th>N-awards resolved</th><th>N-awards unresolved</th><th>Total missed</th><th>Missed lessons</th></tr></thead><tbody>'+
@@ -1179,7 +1197,7 @@ function drawDash(){
       return '<tr><td>'+esc(s.last)+', '+esc(s.first)+'</td><td style="text-align:center;color:#15803D;font-weight:600">'+res+'</td><td style="text-align:center;color:'+(un?'#C0392B':'inherit')+';font-weight:600">'+un+'</td><td style="text-align:center">'+missPill(owed.length)+'</td><td>'+
         (owed.map(l=>'<span class="tag">'+esc(l)+'</span>').join('')||'<span class="note" style="margin:0">None</span>')+'</td></tr>'}).join('')+'</tbody></table>';
 }
-$('dClass').onchange=drawDash;
+$('dClass').onchange=drawDash;$('dEnd').oninput=drawDash;$('dN').oninput=drawDash;
 
 /* ---------- refresh ---------- */
 function refreshAll(){
@@ -1199,6 +1217,7 @@ function refreshAll(){
   $('classCodes').innerHTML=any.map(c=>'<option value="'+esc(c)+'">').join('');
   if(!$('sTo').value){$('sTo').value=todayISO();$('sFrom').value=addDays(todayISO(),-13)}
   if(!$('nDate').value)$('nDate').value=todayISO();
+  if(!$('dEnd').value)$('dEnd').value=todayISO();
   if(S.loaded)loadMarks();else drawRoll();
   drawCatch();drawSummary();fillBookTopics();fillNTopics();drawNaw();drawDash();drawClasses();drawResults('lsq');drawResults('task');
 }
