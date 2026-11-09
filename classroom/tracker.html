@@ -75,6 +75,22 @@ td.n,th.n{text-align:right}
 .bgrid .done{background:var(--tint)}
 .tag.owed{background:var(--warnbg);color:var(--warn);border-color:transparent}
 .empty{color:var(--muted);padding:10px 0}
+.rgrid{border-collapse:collapse;font-size:13px}
+.rgrid th,.rgrid td{border:1px solid var(--line);padding:4px 5px;text-align:center;vertical-align:middle}
+.rgrid .st{position:sticky;left:0;z-index:1;background:var(--panel);text-align:left;white-space:nowrap;min-width:150px}
+.rgrid thead th{background:var(--tint);font-weight:600;color:var(--ink)}
+.rgrid thead th.st,.rgrid tfoot th.st{z-index:2;background:var(--tint)}
+.rgrid tfoot th,.rgrid tfoot td{background:var(--tint)}
+.rgrid tfoot td{font-weight:600}
+.rgrid .rname{width:96px;text-align:center;font-weight:600}
+.rgrid .rnum{width:64px;text-align:center}
+.rgrid .rmk{width:60px;text-align:center;padding:4px 4px}
+.rgrid .rmk.over{border-color:var(--bad);color:var(--bad)}
+.rgrid .rp{display:block;font-size:11px;color:var(--muted);min-height:15px}
+.rgrid .rdel{padding:0 6px;font-size:12px;margin-left:3px}
+.rgrid td.ravg{font-weight:700;min-width:62px}
+.rgrid .rrow th{font-weight:500;color:var(--muted);font-size:12px}
+
 dialog{border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--ink);padding:18px 20px;max-width:420px;width:92vw}
 dialog::backdrop{background:rgba(0,0,0,.4)}
 dialog .row{margin-top:12px}
@@ -153,6 +169,8 @@ dialog .row{margin-top:12px}
     <button role="tab" aria-selected="true" data-t="entry">Quick entry</button>
     <button role="tab" aria-selected="false" data-t="catch">Catch-up slips</button>
     <button role="tab" aria-selected="false" data-t="book">Book work</button>
+    <button role="tab" aria-selected="false" data-t="lsq">LSQ results</button>
+    <button role="tab" aria-selected="false" data-t="asm">Assessments</button>
     <button role="tab" aria-selected="false" data-t="sum">Attendance summary</button>
     <button role="tab" aria-selected="false" data-t="naw">N-awards</button>
     <button role="tab" aria-selected="false" data-t="cls">Classes</button>
@@ -210,6 +228,26 @@ dialog .row{margin-top:12px}
     </div>
     <div class="card" style="padding:0;overflow:auto;max-height:70vh"><div id="bGrid"></div></div>
     <p class="note">Tick a cell when a student has completed that lesson's book work. Click a lesson heading to tick or clear the whole column. Saved in bookwork.csv, which holds only IDs and lesson codes, no names.</p>
+  </section>
+
+  <section id="t-lsq" hidden>
+    <div class="row">
+      <label class="f">Class<select id="lClass"></select></label>
+      <button class="solid" id="lAdd">Add LSQ</button>
+      <span id="lMsg" class="note" style="margin:0"></span>
+    </div>
+    <div class="card" style="padding:0;overflow:auto;max-height:75vh"><div id="lGrid"></div></div>
+    <p class="note">Set what each LSQ is marked out of in its header, then type each student's mark (leave it blank if they were away). The percentage shows under every mark and shades from red to green, so growth is easy to see across the row. The Average column is the mean of that student's percentages; the bottom rows give the class average. Saved in results.csv and resultitems.csv, which hold only student IDs, marks and LSQ settings, no names. Press Enter to move down a column.</p>
+  </section>
+
+  <section id="t-asm" hidden>
+    <div class="row">
+      <label class="f">Class<select id="mClass"></select></label>
+      <button class="solid" id="mAdd">Add task</button>
+      <span id="mMsg" class="note" style="margin:0"></span>
+    </div>
+    <div class="card" style="padding:0;overflow:auto;max-height:75vh"><div id="mGrid"></div></div>
+    <p class="note">Same layout as the LSQ tab, with two extra header rows: type the course average and course standard deviation (in marks, on the same scale as the task) once you have them. The bottom rows compare your class with the course, in marks and as a percentage of the task total. The class standard deviation is the population SD (every student in the class). Course figures are stored per class, so enter them for each class. Saved in results.csv and resultitems.csv, no names.</p>
   </section>
 
   <section id="t-sum" hidden>
@@ -291,9 +329,11 @@ const CC=['id','last','first','class','course','left'];
 const AC=['date','period','class','id','reason','lesson','status','notes'];
 const BC=['id','lesson','done'];
 const NC=['id','date','number','topic','outcomes','detail','status','crt','ht','dp'];
+const IC=['class','kind','item','name','outof','cmean','csd'];
+const RC=['class','kind','item','id','mark'];
 let NAWARD={classroomCodes:{},outcomes:{}};
 const DEFAULT_REASONS=['Explained','Learning Enrichment','SBAT','School Business','Sick','Suspension','Tafe','Truant','Unexplained','Wellbeing','Work Placement'];
-const S={classes:[],abs:[],book:new Map(),naw:[],dir:null,handles:{},loaded:false,dirty:false};
+const S={classes:[],abs:[],book:new Map(),naw:[],ritems:[],res:new Map(),dir:null,handles:{},loaded:false,dirty:false};
 const E={marks:{},reason:''};
 const TOPICS=[];
 const COURSES=[];
@@ -393,8 +433,11 @@ function updateBar(){
     setMsg(S.dirty?where+' · unsaved changes':where+' · '+S.classes.length+' enrolments, '+S.abs.length+' absence rows');
   }
 }
-function loadFromText(ct,at,bt,nt){
-  const c=parseCSV(ct),a=parseCSV(at),b=parseCSV(bt),nw=parseCSV(nt);
+function loadFromText(ct,at,bt,nt,it,rt){
+  const c=parseCSV(ct),a=parseCSV(at),b=parseCSV(bt),nw=parseCSV(nt),ri=parseCSV(it),rr=parseCSV(rt);
+  S.ritems=ri.rows.filter(r=>r.class&&r.kind&&r.item).map(r=>{const o={};IC.forEach(k=>o[k]=r[k]||'');return o});
+  S.res=new Map();
+  rr.rows.filter(r=>r.id&&r.kind&&r.item&&r.mark!=='').forEach(r=>setRes(r.kind,r.class,r.item,r.id,r.mark));
   S.classes=c.rows.filter(r=>r.id&&r.class).map(r=>{
     const o={};CC.forEach(k=>o[k]=r[k]||'');
     if(!o.first&&!o.last&&r.name){const s=splitName(r.name);o.last=s.last;o.first=s.first}
@@ -417,8 +460,8 @@ $('openDir').onclick=async()=>{
   try{
     const dir=await window.showDirectoryPicker({mode:'readwrite'});
     S.dir=dir;S.handles={};
-    const ct=await readHandle(dir,'classes.csv'),at=await readHandle(dir,'absences.csv'),bt=await readHandle(dir,'bookwork.csv'),nt=await readHandle(dir,'nawards.csv');
-    loadFromText(ct,at,bt,nt);
+    const ct=await readHandle(dir,'classes.csv'),at=await readHandle(dir,'absences.csv'),bt=await readHandle(dir,'bookwork.csv'),nt=await readHandle(dir,'nawards.csv'),it=await readHandle(dir,'resultitems.csv'),rt=await readHandle(dir,'results.csv');
+    loadFromText(ct,at,bt,nt,it,rt);
     if(!ct&&!at){S.dirty=true;updateBar();setMsg('Folder open: '+dir.name+' · no files found yet, starting empty. Add a class on the Classes tab.')}
   }catch(e){ if(!e||e.name!=='AbortError') setMsg('Couldn’t open that folder. '+(e&&e.message?e.message:'')) }
 };
@@ -426,16 +469,18 @@ $('openFiles').onclick=()=>$('fileIn').click();
 $('fileIn').onchange=async ev=>{
   const files=[...ev.target.files];ev.target.value='';
   if(!files.length)return;
-  let ct='',at='',bt='',nt='';
+  let ct='',at='',bt='',nt='',it='',rt='';
   for(const f of files){
     const t=await f.text(),p=parseCSV(t);
-    if(/naward/i.test(f.name)||p.head.includes('task')) nt=t;
+    if(/resultitem/i.test(f.name)||p.head.includes('outof')) it=t;
+    else if(/^results/i.test(f.name)||(p.head.includes('mark')&&p.head.includes('kind'))) rt=t;
+    else if(/naward/i.test(f.name)||p.head.includes('task')) nt=t;
     else if(/book/i.test(f.name)||(p.head.includes('lesson')&&p.head.includes('done'))) bt=t;
     else if(p.head.includes('date')||/absen/i.test(f.name)) at=t;
     else if(p.head.includes('last')||p.head.includes('name')||/class/i.test(f.name)) ct=t;
   }
   S.dir=null;S.handles={};
-  loadFromText(ct,at,bt,nt);
+  loadFromText(ct,at,bt,nt,it,rt);
   setMsg('Files loaded'+(ct?'':' (no classes file chosen)')+(at?'':' (no absences file chosen)')+'. Save by downloading the files back over the originals.');
 };
 async function writeFile(name,text){
@@ -450,6 +495,8 @@ async function saveAll(){
     await writeFile('absences.csv',toCSV(AC,S.abs));
     await writeFile('bookwork.csv',toCSV(BC,bookRows()));
     await writeFile('nawards.csv',toCSV(NC,S.naw));
+    await writeFile('resultitems.csv',toCSV(IC,S.ritems));
+    await writeFile('results.csv',toCSV(RC,resRows()));
     S.dirty=false;updateBar();return true;
   }catch(e){setMsg('Couldn’t save to the folder: '+(e&&e.message?e.message:e)+'. Use Download both instead.');return false}
 }
@@ -463,6 +510,8 @@ $('dlAll').onclick=()=>{
   setTimeout(()=>download('absences.csv',toCSV(AC,S.abs)),300);
   setTimeout(()=>download('bookwork.csv',toCSV(BC,bookRows())),600);
   setTimeout(()=>download('nawards.csv',toCSV(NC,S.naw)),900);
+  setTimeout(()=>download('resultitems.csv',toCSV(IC,S.ritems)),1200);
+  setTimeout(()=>download('results.csv',toCSV(RC,resRows())),1500);
   S.dirty=false;updateBar();
 };
 window.addEventListener('beforeunload',e=>{if(S.dirty){e.preventDefault();e.returnValue=''}});
@@ -471,7 +520,7 @@ async function persist(){markDirty();if(S.dir)await saveAll()}
 /* ---------- tabs ---------- */
 document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('#tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));
-  ['dash','entry','catch','book','sum','naw','cls'].forEach(t=>$('t-'+t).hidden=(t!==b.dataset.t));
+  ['dash','entry','catch','book','lsq','asm','sum','naw','cls'].forEach(t=>$('t-'+t).hidden=(t!==b.dataset.t));
   refreshAll();
 });
 
@@ -805,6 +854,147 @@ $('bGrid').onclick=async ev=>{
 };
 $('bClass').onchange=fillBookTopics;$('bTopic').onchange=drawBook;
 
+
+/* ---------- results: LSQs and assessment tasks ---------- */
+const RES_KINDS={
+  lsq:{box:'lGrid',cls:'lClass',msg:'lMsg',label:'LSQ',course:false},
+  task:{box:'mGrid',cls:'mClass',msg:'mMsg',label:'Task',course:true}
+};
+const rKey=(kind,cls,item,id)=>kind+'|'+cls+'|'+item+'|'+id;
+function setRes(kind,cls,item,id,mark){
+  const k=rKey(kind,cls,item,id);
+  if(mark===''||mark==null)S.res.delete(k);else S.res.set(k,{class:cls,kind,item:String(item),id,mark:String(mark)});
+}
+function getRes(kind,cls,item,id){const r=S.res.get(rKey(kind,cls,item,id));return r?r.mark:''}
+function resRows(){return [...S.res.values()]}
+function itemsFor(kind,cls){return S.ritems.filter(r=>r.kind===kind&&r.class===cls).sort((a,b)=>(+a.item)-(+b.item))}
+const numOrNull=v=>{if(v==null||String(v).trim()==='')return null;const n=Number(v);return isFinite(n)?n:null};
+const meanOf=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null;
+const sdOf=a=>{if(!a.length)return null;const m=meanOf(a);return Math.sqrt(a.reduce((s,x)=>s+(x-m)*(x-m),0)/a.length)};
+const fmt=(v,d)=>v==null?'':String(Math.round(v*Math.pow(10,d))/Math.pow(10,d));
+const fmtP=(v,d)=>v==null?'':fmt(v,d)+'%';
+const fmtS=(v,d)=>v==null?'':(v>0?'+':'')+fmt(v,d)+'%';
+function pctBg(p){return p==null?'':'hsla('+Math.max(0,Math.min(100,p))*1.2+',65%,50%,.22)'}
+function drawResults(kind){
+  const K=RES_KINDS[kind],box=$(K.box);
+  const say=t=>{box.innerHTML='<p class="empty" style="padding:10px 12px;margin:0">'+t+'</p>'};
+  if(!S.loaded)return say('Open your folder or files first.');
+  const cls=$(K.cls).value;
+  if(!cls)return say('No classes yet. Add students on the Classes tab.');
+  const students=studentsIn(cls),items=itemsFor(kind,cls);
+  if(!students.length)return say('Nobody in this class. Add students on the Classes tab.');
+  if(!items.length)return say('No '+K.label+'s for this class yet. Use the Add button above.');
+  const th=(h)=>'<th>'+h+'</th>';
+  const row=(label,cells,cls2)=>'<tr'+(cls2?' class="'+cls2+'"':'')+'><th class="st">'+label+'</th>'+cells+'<th></th></tr>';
+  let head=row('Student',items.map(it=>'<th><input type="text" class="rname" data-f="name" data-item="'+esc(it.item)+'" value="'+esc(it.name)+'" aria-label="Name"><button class="quiet sm rdel" data-del="'+esc(it.item)+'" title="Delete this '+K.label+'" aria-label="Delete">×</button></th>').join(''));
+  head=head.replace(/<th><\/th><\/tr>$/,'<th>Average</th></tr>');
+  head+=row('Out of',items.map(it=>'<th><input type="number" class="rnum" data-f="outof" data-item="'+esc(it.item)+'" value="'+esc(it.outof)+'" min="0" step="any" aria-label="Marks out of"></th>').join(''),'rrow');
+  if(K.course){
+    head+=row('Course average (marks)',items.map(it=>'<th><input type="number" class="rnum" data-f="cmean" data-item="'+esc(it.item)+'" value="'+esc(it.cmean)+'" step="any" aria-label="Course average"></th>').join(''),'rrow');
+    head+=row('Course SD (marks)',items.map(it=>'<th><input type="number" class="rnum" data-f="csd" data-item="'+esc(it.item)+'" value="'+esc(it.csd)+'" min="0" step="any" aria-label="Course standard deviation"></th>').join(''),'rrow');
+  }
+  const body=students.map(s=>'<tr><td class="st">'+esc(fullName(s))+'</td>'+items.map(it=>
+    '<td class="rc" data-id="'+esc(s.id)+'" data-item="'+esc(it.item)+'"><input type="number" class="rmk" min="0" step="any" value="'+esc(getRes(kind,cls,it.item,s.id))+'" data-id="'+esc(s.id)+'" data-item="'+esc(it.item)+'" aria-label="'+esc(fullName(s))+' '+esc(it.name)+'"><span class="rp"></span></td>').join('')+
+    '<td class="ravg" data-id="'+esc(s.id)+'"></td></tr>').join('');
+  const sumRow=(label,key,end)=>'<tr><th class="st">'+label+'</th>'+items.map(it=>'<td data-s="'+key+'" data-item="'+esc(it.item)+'"></td>').join('')+'<td data-s="'+key+'-all">'+(end||'')+'</td></tr>';
+  let foot=sumRow('Class average (marks)','cm')+(K.course?sumRow('Class SD (marks)','csd'):'')+sumRow('Class average (%)','cp');
+  if(K.course)foot+=sumRow('Course average (%)','crp')+sumRow('Class vs course (% pts)','dif')+sumRow('Class SD (% of total)','csp')+sumRow('Course SD (% of total)','crsp');
+  box.innerHTML='<table class="rgrid"><thead>'+head+'</thead><tbody>'+body+'</tbody><tfoot>'+foot+'</tfoot></table>';
+  calcResults(kind);
+  $(K.msg).textContent=students.length+' students · '+items.length+' '+K.label+(items.length===1?'':'s');
+}
+function calcResults(kind){
+  const K=RES_KINDS[kind],box=$(K.box),cls=$(K.cls).value;
+  if(!box.querySelector('table'))return;
+  const students=studentsIn(cls),items=itemsFor(kind,cls);
+  const setS=(key,item,txt)=>{const el=box.querySelector('[data-s="'+key+'"][data-item="'+item+'"]');if(el)el.textContent=txt};
+  const pctByStudent=new Map(students.map(s=>[s.id,[]]));
+  const classPcts=[];
+  items.forEach(it=>{
+    const out=numOrNull(it.outof),okOut=out!=null&&out>0;
+    const marks=[];
+    students.forEach(s=>{
+      const m=numOrNull(getRes(kind,cls,it.item,s.id));
+      const td=box.querySelector('td.rc[data-id="'+CSS.escape(s.id)+'"][data-item="'+it.item+'"]');
+      const p=(m!=null&&okOut)?m/out*100:null;
+      if(m!=null)marks.push(m);
+      if(p!=null)pctByStudent.get(s.id).push(p);
+      if(td){
+        td.querySelector('.rp').textContent=fmtP(p,0);
+        td.style.background=pctBg(p);
+        td.querySelector('.rmk').classList.toggle('over',m!=null&&okOut&&m>out);
+      }
+    });
+    const cm=meanOf(marks),cs=sdOf(marks);
+    const cp=(cm!=null&&okOut)?cm/out*100:null;
+    if(cp!=null)classPcts.push(cp);
+    setS('cm',it.item,fmt(cm,1));
+    setS('cp',it.item,fmtP(cp,1));
+    if(K.course){
+      const km=numOrNull(it.cmean),ks=numOrNull(it.csd);
+      const crp=(km!=null&&okOut)?km/out*100:null;
+      setS('csd',it.item,fmt(cs,2));
+      setS('crp',it.item,fmtP(crp,1));
+      setS('dif',it.item,(cp!=null&&crp!=null)?fmtS(cp-crp,1):'');
+      setS('csp',it.item,(cs!=null&&okOut)?fmtP(cs/out*100,1):'');
+      setS('crsp',it.item,(ks!=null&&okOut)?fmtP(ks/out*100,1):'');
+    }
+  });
+  const avgs=[];
+  students.forEach(s=>{
+    const a=meanOf(pctByStudent.get(s.id));
+    if(a!=null)avgs.push(a);
+    const td=box.querySelector('td.ravg[data-id="'+CSS.escape(s.id)+'"]');
+    if(td){td.textContent=fmtP(a,0);td.style.background=pctBg(a)}
+  });
+  const all=box.querySelector('[data-s="cp-all"]');
+  if(all)all.textContent=fmtP(meanOf(avgs),1);
+}
+function resultsFor(kind){
+  const K=RES_KINDS[kind];
+  $(K.cls).onchange=()=>drawResults(kind);
+  const box=$(K.box);
+  const itemOf=el=>S.ritems.find(r=>r.kind===kind&&r.class===$(K.cls).value&&r.item===el.dataset.item);
+  box.addEventListener('input',ev=>{
+    const el=ev.target;
+    if(el.classList.contains('rmk')){
+      setRes(kind,$(K.cls).value,el.dataset.item,el.dataset.id,el.value.trim());
+      calcResults(kind);
+    }else if(el.dataset.f){
+      const it=itemOf(el);if(it){it[el.dataset.f]=el.value;calcResults(kind)}
+    }
+  });
+  box.addEventListener('change',()=>{persist()});
+  box.addEventListener('keydown',ev=>{
+    if(ev.key!=='Enter'||!ev.target.classList.contains('rmk'))return;
+    ev.preventDefault();
+    const col=[...box.querySelectorAll('.rmk[data-item="'+ev.target.dataset.item+'"]')];
+    const nxt=col[col.indexOf(ev.target)+1];
+    if(nxt){nxt.focus();nxt.select()}
+  });
+  box.addEventListener('click',async ev=>{
+    const b=ev.target.closest('[data-del]');if(!b)return;
+    const cls=$(K.cls).value,it=S.ritems.find(r=>r.kind===kind&&r.class===cls&&r.item===b.dataset.del);
+    if(!it)return;
+    const n=[...S.res.values()].filter(r=>r.kind===kind&&r.class===cls&&r.item===it.item).length;
+    if(!confirm('Delete '+(it.name||K.label)+' for '+cls+(n?' and its '+n+' mark'+(n===1?'':'s'):'')+'?'))return;
+    S.ritems=S.ritems.filter(r=>r!==it);
+    [...S.res].forEach(([k,r])=>{if(r.kind===kind&&r.class===cls&&r.item===it.item)S.res.delete(k)});
+    drawResults(kind);await persist();
+  });
+  $(kind==='lsq'?'lAdd':'mAdd').onclick=async()=>{
+    const cls=$(K.cls).value;
+    if(!S.loaded){$(K.msg).textContent='Open your folder or files first.';return}
+    if(!cls){$(K.msg).textContent='Choose a class first.';return}
+    const items=itemsFor(kind,cls);
+    const n=items.reduce((m,r)=>Math.max(m,+r.item||0),0)+1;
+    const last=items[items.length-1];
+    S.ritems.push({class:cls,kind,item:String(n),name:K.label+' '+n,outof:last?last.outof:(kind==='lsq'?'10':''),cmean:'',csd:''});
+    drawResults(kind);await persist();
+  };
+}
+resultsFor('lsq');resultsFor('task');
+
 /* ---------- N-awards ---------- */
 async function loadNawardConfig(){
   try{const r=await fetch('./naward.json',{cache:'no-store'});
@@ -958,6 +1148,8 @@ function refreshAll(){
   fillSelect($('cClass'),['all'].concat(active),true,v=>v==='all'?'All classes':v);
   fillSelect($('sClass'),active);
   fillSelect($('bClass'),active);
+  fillSelect($('lClass'),active);
+  fillSelect($('mClass'),active);
   fillSelect($('nClass'),active);
   fillSelect($('dClass'),active);
   fillSelect($('kClass'),any);
@@ -965,7 +1157,7 @@ function refreshAll(){
   if(!$('sTo').value){$('sTo').value=todayISO();$('sFrom').value=addDays(todayISO(),-13)}
   if(!$('nDate').value)$('nDate').value=todayISO();
   if(S.loaded)loadMarks();else drawRoll();
-  drawCatch();drawSummary();fillBookTopics();fillNTopics();drawNaw();drawDash();drawClasses();
+  drawCatch();drawSummary();fillBookTopics();fillNTopics();drawNaw();drawDash();drawClasses();drawResults('lsq');drawResults('task');
 }
 $('eDate').value=todayISO();
 refreshAll();
