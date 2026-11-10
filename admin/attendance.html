@@ -78,6 +78,30 @@ tr.total td,tr.total th{border-top:2px solid var(--line);font-weight:600}
 .empty{color:var(--muted);padding:10px 0}
 details summary{cursor:pointer;color:var(--muted);margin:8px 0}
 .acts{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0}
+.printhead{display:none}
+.po{display:none}
+@media print{
+ :root{--paper:#fff;--panel:#fff;--ink:#000;--muted:#444;--line:#aaa;--brand:#0F766E;--tint:#E3F2F0;--bad:#B42318;--badbg:#FDECEA;--warn:#8A5A00;--warnbg:#FFF4D6;color-scheme:light}
+ html,body{background:#fff}
+ body{font-size:11px}
+ .wrap{max-width:none;padding:0}
+ .home,.crumbs,h1,#fileBar,#controls,#tabs,.row,.bar,button,details{display:none!important}
+ .printhead{display:block;margin:0 0 6px;font-size:12px}
+ .printhead b{font-family:var(--card);font-size:19px}
+ .card{box-shadow:none;border:0;border-radius:0;padding:0;margin:0 0 10px;overflow:visible}
+ table{font-size:10.5px}
+ th,td{padding:5px 4px;border-bottom:1px solid #bbb}
+ thead{display:table-header-group}
+ tr{break-inside:avoid}
+ h2{font-size:14px;margin:12px 0 4px;break-after:avoid}
+ .po{display:table-cell}
+ th.chk,td.chk{width:9mm;text-align:center}
+ td.chk::before{content:"";display:inline-block;width:11px;height:11px;border:1px solid #000;vertical-align:middle}
+ td,th{white-space:nowrap}
+ td.why{white-space:normal}
+ td.notes,th.notes{width:38mm;min-width:38mm}
+ .pill,.tag{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
 </style>
 </head>
 <body>
@@ -327,11 +351,21 @@ function viewOverview() {
   return h;
 }
 
+const scopeText = () => S.through === 1 ? 'Term 1' : 'Terms 1 to ' + S.through;
+const yearText = () => (S.year === 'all' ? 'All students' : 'Year ' + S.year) + (S.incRemoved ? ' (including removed students)' : '');
+function printHead(title, bits) {
+  return '<div class="printhead"><b>' + esc(title) + '</b><br>' + bits.map(esc).join(' · ') + ' · printed ' + new Date().toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' }) + '</div>';
+}
+const printBtn = orient => '<button class="quiet" data-print="' + orient + '" type="button">Print</button>';
+// print-only tick box and notes space at the end of every row, for going through the list on paper
+const withNotes = html => html.replace(/<\/tr><\/thead>/g, '<th class="po chk"></th><th class="po notes">Notes</th></tr></thead>').replace(/<\/td><\/tr>/g, '</td><td class="po chk"></td><td class="po notes"></td></tr>');
+
 function viewTiers() {
   const ps = people(), lt = latestTerm();
   const anyShort = ps.some(p => p.hasShort);
   let h = '<div class="row" style="margin-top:0"><label class="f">Show<select data-tiersel>' +
-    [['all', 'All tiers'], ['1', 'Tier 1 · 80–89%'], ['2', 'Tier 2 · 50–79%'], ['3', 'Tier 3 · under 50%']].map(([v, l]) => '<option value="' + v + '"' + (v === S.tier ? ' selected' : '') + '>' + l + '</option>').join('') + '</select></label></div>';
+    [['all', 'All tiers'], ['1', 'Tier 1 · 80–89%'], ['2', 'Tier 2 · 50–79%'], ['3', 'Tier 3 · under 50%']].map(([v, l]) => '<option value="' + v + '"' + (v === S.tier ? ' selected' : '') + '>' + l + '</option>').join('') + '</select></label>' + printBtn('portrait') + '</div>' +
+    printHead('Tiers', [scopeText(), yearText(), S.tier === 'all' ? 'All tiers' : 'Tier ' + S.tier]);
   [[1, 'Tier 1', '80–89%'], [2, 'Tier 2', '50–79%'], [3, 'Tier 3', 'under 50%']].forEach(([t, label, range]) => {
     if (S.tier !== 'all' && S.tier !== String(t)) return;
     const list = ps.filter(p => C.tierOf(p.rec) === t).sort((a, b) => C.rateOf(a.rec) - C.rateOf(b.rec) || a.name.localeCompare(b.name));
@@ -345,7 +379,7 @@ function viewTiers() {
     });
     h += '</tbody></table></div>';
   });
-  return h;
+  return withNotes(h);
 }
 
 function viewUnexplained() {
@@ -374,11 +408,12 @@ function viewWarning() {
     '<label class="f">Drop (points)<input type="number" min="1" max="100" data-p="drop" value="' + P.drop + '"></label>' +
     '<label class="f">Days lost at least<input type="number" min="0.5" step="0.5" data-p="minLost" value="' + P.minLost + '"></label>' +
     '<label class="f">Unexplained days at least<input type="number" min="1" data-p="unex" value="' + P.unex + '"></label>' +
-    '<label class="f">Short partial mins at least<input type="number" min="1" data-p="shortMins" value="' + P.shortMins + '"></label></div>';
+    '<label class="f">Short partial mins at least<input type="number" min="1" data-p="shortMins" value="' + P.shortMins + '"></label>' + printBtn('landscape') + '</div>';
   const ev = C.earlyWarning(S.store, S.ewTerm, S.ewWeek, P);
   const flagged = ev.flagged.filter(r => vis(r.srn));
   const bits = ['Week ' + ev.week + ' against ' + (ev.baseWeek != null ? 'week ' + ev.baseWeek : ev.prevTermBaseline ? 'the start of term (compared with last term)' : 'the start of term') + ' · up to ' + ev.windowDays + ' school days'];
   if (!ev.shortOK) bits.push('no short-partials file for this week, so that signal is off');
+  h += printHead('Early warning', ['Term ' + ev.term, yearText(), 'drop of ' + P.drop + ' points or more and ' + P.minLost + ' days lost, ' + P.unex + ' unexplained days, ' + P.shortMins + ' short-partial minutes']);
   h += '<p class="muted" style="margin:12px 0 0">' + bits.join(' · ') + '</p>';
   h += '<h2>Flagged <small>' + flagged.length + ' student' + (flagged.length === 1 ? '' : 's') + '</small></h2>';
   const names = { drop: ['Sudden drop', 'bad'], band: ['Out of regular band', 'bad'], unex: ['Unexplained days', 'warn'], short: ['Short partials', 'warn'] };
@@ -387,7 +422,7 @@ function viewWarning() {
     h += '<div class="card"><table><thead><tr><th>Student</th><th>Year</th><th class="n">Before</th><th class="n">Recent</th><th class="n">Drop</th><th class="n">Days lost</th><th class="n">Unexplained</th><th class="n">Short mins</th><th>Why</th><th class="n">Weeks in a row</th></tr></thead><tbody>';
     flagged.forEach(r => {
       const v = vis(r.srn), pre = x => x == null ? '—' : C.pctOf(x);
-      h += '<tr><td>' + esc(r.name) + (v.removed ? ' <span class="tag">removed</span>' : '') + '</td><td>' + (v.conflict ? 'Both lists' : v.unassigned ? '—' : 'Year ' + v.year) + '</td><td class="n">' + pre(r.baseline) + '</td><td class="n">' + pre(r.winRate) + '</td><td class="n">' + (r.drop == null ? '—' : num1(r.drop * 100) + ' pts') + '</td><td class="n">' + num1(r.lostW) + '</td><td class="n">' + r.unexW + '</td><td class="n">' + (r.shortW == null ? '—' : r.shortW) + '</td><td>' + r.flags.map(f => '<span class="tag ' + names[f][1] + '">' + names[f][0] + '</span>').join('') + '</td><td class="n">' + r.streak + (r.streak >= 2 ? ' ⚠' : '') + '</td></tr>';
+      h += '<tr><td>' + esc(r.name) + (v.removed ? ' <span class="tag">removed</span>' : '') + '</td><td>' + (v.conflict ? 'Both lists' : v.unassigned ? '—' : 'Year ' + v.year) + '</td><td class="n">' + pre(r.baseline) + '</td><td class="n">' + pre(r.winRate) + '</td><td class="n">' + (r.drop == null ? '—' : num1(r.drop * 100) + ' pts') + '</td><td class="n">' + num1(r.lostW) + '</td><td class="n">' + r.unexW + '</td><td class="n">' + (r.shortW == null ? '—' : r.shortW) + '</td><td class="why">' + r.flags.map(f => '<span class="tag ' + names[f][1] + '">' + names[f][0] + '</span>').join('') + '</td><td class="n">' + r.streak + (r.streak >= 2 ? ' ⚠' : '') + '</td></tr>';
     });
     h += '</tbody></table></div>';
   }
@@ -396,7 +431,7 @@ function viewWarning() {
   if (!near.length) h += '<p class="empty">Nobody.</p>';
   else h += '<div class="card"><table><thead><tr><th>Student</th><th>Year</th><th class="n">Attendance</th><th class="n">Days lost</th><th class="n">Days to spare</th></tr></thead><tbody>' +
     near.map(p => '<tr><td>' + esc(p.name) + '</td><td>' + yearTxt(p) + '</td><td class="n">' + pill(p.rec) + '</td><td class="n">' + num1(C.lostDays(p.rec)) + '</td><td class="n">' + num1(C.spareDays(p.rec)) + '</td></tr>').join('') + '</tbody></table></div>';
-  return h;
+  return withNotes(h);
 }
 
 function viewSetup() {
@@ -464,6 +499,12 @@ $('view').addEventListener('change', e => {
   else if (t.dataset.tick) { t.checked ? S.ticked.add(t.dataset.tick) : S.ticked.delete(t.dataset.tick) }
 });
 $('view').addEventListener('click', async e => {
+  const pr = e.target.closest('[data-print]');
+  if (pr) {
+    let st = $('pgsz'); if (!st) { st = document.createElement('style'); st.id = 'pgsz'; document.head.appendChild(st) }
+    st.textContent = '@page{size:A4 ' + pr.dataset.print + ';margin:12mm}';
+    window.print(); return;
+  }
   const go = e.target.closest('[data-go]'); if (go) { S.tab = go.dataset.go; render(); return }
   const b = e.target.closest('button[data-act]'); if (!b) return;
   const act = b.dataset.act, srn = b.dataset.srn, year = b.dataset.year;
