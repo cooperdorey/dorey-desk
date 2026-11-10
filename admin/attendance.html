@@ -231,6 +231,10 @@ function leftList() {
   const roster = S.y11.map(r => Object.assign({ year: '11' }, r)).concat(S.y12.map(r => Object.assign({ year: '12' }, r)));
   return C.possiblyLeft(S.store, roster);
 }
+function whyLeft(r) {
+  if (r.why === 'stalled') return 'Enrolled days stopped at ' + r.enr + ' of ' + r.ref + (r.since ? ' (since week ' + r.since + ')' : '');
+  return r.last == null ? 'Not in any export' : 'Not in term ' + r.latest + ' (last in term ' + r.last + ')';
+}
 function allStudents() {                                    // every SRN in any main export, with its latest name
   const m = new Map();
   for (const t of C.termsOf(S.store, 'main')) for (const w of C.weeksOf(S.store, 'main', t))
@@ -411,10 +415,10 @@ function viewSetup() {
     conf.map(([srn, v]) => '<tr><td>' + esc(v.name) + '</td><td class="muted">' + srn + '</td><td class="n"><button class="sm" data-act="keep" data-year="11" data-srn="' + srn + '" type="button">Keep in Year 11</button> <button class="sm" data-act="keep" data-year="12" data-srn="' + srn + '" type="button">Keep in Year 12</button></td></tr>').join('') + '</tbody></table></div>';
   const gone = leftList();
   h += '<h2>Possibly left <small>' + gone.length + '</small></h2>';
-  if (!gone.length) h += '<p class="empty">Everyone on the rosters is in the latest term’s export.</p>';
+  if (!gone.length) h += '<p class="empty">Nobody on the rosters looks like they’ve left.</p>';
   else h += '<div class="acts"><button class="quiet sm" data-act="lefttickall" type="button">Tick all</button><button class="quiet sm" data-act="lefttickno" type="button">Clear</button><button class="solid sm" data-act="removeticked" type="button">Remove ticked</button></div>' +
-    '<div class="card"><table><thead><tr><th></th><th>Student</th><th>Year</th><th>Last seen</th><th></th></tr></thead><tbody>' +
-    gone.map(r => '<tr><td><input type="checkbox" data-tickleft="' + r.srn + '"' + (S.tickedLeft.has(r.srn) ? ' checked' : '') + '></td><td>' + esc(r.name) + '</td><td>Year ' + r.year + '</td><td>' + (r.last == null ? 'Not in any export' : 'Term ' + r.last) + '</td><td class="n"><button class="sm quiet" data-act="remove" data-srn="' + r.srn + '" type="button">Remove</button></td></tr>').join('') + '</tbody></table></div>';
+    '<div class="card"><table><thead><tr><th></th><th>Student</th><th>Year</th><th>Why</th><th></th></tr></thead><tbody>' +
+    gone.map(r => '<tr><td><input type="checkbox" data-tickleft="' + r.srn + '"' + (S.tickedLeft.has(r.srn) ? ' checked' : '') + '></td><td>' + esc(r.name) + '</td><td>Year ' + r.year + '</td><td>' + whyLeft(r) + '</td><td class="n"><button class="sm quiet" data-act="remove" data-srn="' + r.srn + '" type="button">Remove</button></td></tr>').join('') + '</tbody></table></div>';
   const rosterTable = (list, y) => {
     const cur = list.filter(r => !r.removed).sort((a, b) => a.name.localeCompare(b.name));
     return '<h2>Year ' + y + ' <small>' + cur.length + ' student' + (cur.length === 1 ? '' : 's') + '</small></h2>' + (cur.length ? '<div class="card"><table><tbody>' +

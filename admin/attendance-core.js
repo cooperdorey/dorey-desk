@@ -295,14 +295,35 @@ function rosterIndex(y11, y12) {
   return idx;
 }
 
-// Roster students who were in an earlier term's final export but not the latest term's (or in no export at all)
-// most likely left. roster: [{ srn, name, year, removed }]. Returns the roster rows plus `last`, the last term they appeared in.
+// Roster students who most likely left (roster: [{ srn, name, year, removed }]). Two signs:
+//  absent  - in an earlier term's final export but not the latest term's (or in no export at all);
+//  stalled - still named in the latest term's export, but their enrolled days have stopped going up while everyone else's
+//            keep growing (weekly files), or, with one file for the term, they have fewer enrolled days than the rest and
+//            were already in an earlier term (so they didn't just join late).
 function possiblyLeft(store, roster) {
   const terms = termsOf(store, 'main'); if (!terms.length) return [];
-  const latest = terms[terms.length - 1], seen = new Map();
-  for (const t of terms) for (const srn of finalSnap(store, 'main', t).students.keys()) seen.set(srn, t);
-  return roster.filter(r => !r.removed).map(r => Object.assign({}, r, { last: seen.has(r.srn) ? seen.get(r.srn) : null }))
-    .filter(r => r.last == null || r.last < latest).sort((a, b) => a.name.localeCompare(b.name));
+  const latest = terms[terms.length - 1], fin = finalSnap(store, 'main', latest);
+  const lastSeen = new Map(), before = new Set();
+  for (const t of terms) for (const srn of finalSnap(store, 'main', t).students.keys()) { lastSeen.set(srn, t); if (t < latest) before.add(srn) }
+  const maxEnr = snap => { let m = 0; for (const r of snap.students.values()) m = Math.max(m, r.enr); return m };
+  const ref = maxEnr(fin), weeks = weeksOf(store, 'main', latest), wk = w => store.main[latest][w];
+  const out = [];
+  for (const r of roster) {
+    if (r.removed) continue;
+    const last = lastSeen.has(r.srn) ? lastSeen.get(r.srn) : null;
+    if (last == null || last < latest) { out.push(Object.assign({}, r, { last, why: 'absent', latest })); continue }
+    const cur = fin.students.get(r.srn);
+    if (!(cur.enr < ref)) continue;
+    let since = null, stalled = false;
+    if (weeks.length >= 2) {
+      const prev = wk(weeks[weeks.length - 2]), ep = prev.students.get(r.srn);
+      if (!ep || ep.enr !== cur.enr || !(ref > maxEnr(prev))) continue;
+      stalled = true; since = weeks[weeks.length - 1];
+      for (let i = weeks.length - 2; i >= 0; i--) { const e = wk(weeks[i]).students.get(r.srn); if (e && e.enr === cur.enr) since = weeks[i]; else break }
+    } else if (before.has(r.srn)) stalled = true;
+    if (stalled) out.push(Object.assign({}, r, { last: latest, why: 'stalled', enr: cur.enr, ref, since, latest }));
+  }
+  return out.sort((a, b) => a.name.localeCompare(b.name));
 }
 
 const api = { readXlsx, readCsv, toCSV, splitStudent, ingestRows, newStore, addSnapshot, weeksOf, termsOf, finalSnap,

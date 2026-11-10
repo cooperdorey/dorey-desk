@@ -159,16 +159,32 @@ ok(C.splitStudent('') === null && C.splitStudent(null) === null, 'blank name');
 
 /* ---- students who most likely left ---- */
 {
+  const roster = n => ({ srn: srn(n), name: 'Name' + n, year: '12', removed: false });
+  // (1) not in the latest term's export at all
   const st = C.newStore();
   C.addSnapshot(st, 'main', 2, 10, C.ingestRows(mainRows([{ n: 1, enr: 50, wh: 0 }, { n: 2, enr: 50, wh: 0 }, { n: 3, enr: 50, wh: 0 }])), 'T2W10.xlsx');
   C.addSnapshot(st, 'main', 3, 10, C.ingestRows(mainRows([{ n: 1, enr: 50, wh: 0 }, { n: 3, enr: 50, wh: 0 }])), 'T3W10.xlsx');   // student 2 is gone
-  const roster = [1, 2, 3, 4].map(n => ({ srn: srn(n), name: 'Name' + n, year: '12', removed: false })).concat([{ srn: srn(5), name: 'Name5', year: '11', removed: true }]);
-  const left = C.possiblyLeft(st, roster);
-  eq(left.map(r => [r.srn, r.last]), [[srn(2), 2], [srn(4), null]], 'in term 2 but not term 3, and in no export at all');
+  const rs = [1, 2, 3, 4].map(roster).concat([Object.assign(roster(5), { removed: true })]);
+  const left = C.possiblyLeft(st, rs);
+  eq(left.map(r => [r.srn, r.last, r.why]), [[srn(2), 2, 'absent'], [srn(4), null, 'absent']], 'in term 2 but not term 3, and in no export at all');
   ok(!left.some(r => r.srn === srn(5)), 'already removed students are not suggested again');
-  eq(C.possiblyLeft(C.newStore(), roster), [], 'nothing loaded, nothing suggested');
-  C.addSnapshot(st, 'main', 3, 5, C.ingestRows(mainRows([{ n: 1, enr: 25, wh: 0 }, { n: 2, enr: 25, wh: 0 }])), 'T3W05.xlsx');       // an earlier week doesn't count, only the final file
-  eq(C.possiblyLeft(st, roster).map(r => r.srn)[0], srn(2), 'only the term’s final file counts');
+  eq(C.possiblyLeft(C.newStore(), rs), [], 'nothing loaded, nothing suggested');
+  // (2) still named, but enrolled days stopped going up (weekly files, 5 days a week)
+  const wk = C.newStore();
+  C.addSnapshot(wk, 'main', 2, 10, C.ingestRows(mainRows([1, 2, 3, 4].map(n => ({ n, enr: 50, wh: 0 })))), 'T2W10.xlsx');
+  const enr = { 1: [5, 10, 15, 20], 2: [5, 10, 10, 10], 3: [5, 10, 15, 20], 4: [0, 0, 5, 10] };       // 2 stopped after week 2, 4 joined in week 3
+  for (let w = 1; w <= 4; w++) C.addSnapshot(wk, 'main', 3, w, C.ingestRows(mainRows([1, 2, 3, 4].filter(n => enr[n][w - 1] > 0).map(n => ({ n, enr: enr[n][w - 1], wh: 0 })))), 'T3W0' + w + '.xlsx');
+  const l2 = C.possiblyLeft(wk, [1, 2, 3, 4].map(roster));
+  eq(l2.map(r => [r.srn, r.why, r.enr, r.since]), [[srn(2), 'stalled', 10, 2]], 'enrolled days stopped at 10 since week 2; a late joiner is not flagged');
+  // one file for the term: fewer days than the rest only counts if they were already here last term
+  const one = C.newStore();
+  C.addSnapshot(one, 'main', 2, 10, C.ingestRows(mainRows([{ n: 1, enr: 50, wh: 0 }, { n: 2, enr: 50, wh: 0 }])), 'T2W10.xlsx');
+  C.addSnapshot(one, 'main', 3, 10, C.ingestRows(mainRows([{ n: 1, enr: 50, wh: 0 }, { n: 2, enr: 38, wh: 0 }, { n: 3, enr: 38, wh: 0 }])), 'T3W10.xlsx');
+  eq(C.possiblyLeft(one, [1, 2, 3].map(roster)).map(r => [r.srn, r.why]), [[srn(2), 'stalled']], 'left during the term (was here last term); a new student with fewer days is not flagged');
+  // everybody the same: nobody flagged
+  const same = C.newStore();
+  for (let w = 1; w <= 3; w++) C.addSnapshot(same, 'main', 3, w, C.ingestRows(mainRows([1, 2].map(n => ({ n, enr: w * 5, wh: 0 })))), 'x' + w);
+  eq(C.possiblyLeft(same, [1, 2].map(roster)), [], 'nobody flagged when everyone is still enrolled');
 }
 
 /* ---- days to spare above 90% ---- */
