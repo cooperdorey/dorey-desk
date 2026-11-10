@@ -449,7 +449,12 @@ function rowOf(id){return S.classes.find(x=>x.id===id)}
 function cmpId(ida,idb){return cmpRow(rowOf(ida)||{},rowOf(idb)||{})}
 function studentsIn(cls){return S.classes.filter(r=>r.class===cls&&!isGone(r)).sort(cmpRow)}
 function nameOf(id){const r=rowOf(id);return r?fullName(r):id}
-function classCourse(cls){const r=S.classes.find(x=>x.class===cls&&x.course);return r?r.course:''}
+function classCourse(cls){
+  const r=S.classes.find(x=>x.class===cls&&x.course),v=r?r.course.trim():'';
+  if(!v)return '';
+  const m=COURSES.find(c=>c.key.toLowerCase()===v.toLowerCase());
+  return m?m.key:v;
+}
 function nextId(cls){
   let max=0;const re=new RegExp('^'+cls.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'-(\\d+)$');
   S.classes.forEach(r=>{const m=re.exec(r.id);if(m)max=Math.max(max,+m[1])});
@@ -857,7 +862,9 @@ function buildTopics(data){
   if($('nTopic'))fillNTopics();
 }
 function fillBookTopics(){
-  const cc=classCourse($('bClass').value);
+  let cc=classCourse($('bClass').value);
+  const known=COURSES.some(c=>c.key===cc);
+  if(cc&&!known)cc='';
   const idxs=TOPICS.map((t,i)=>i).filter(i=>!cc||TOPICS[i].course===cc);
   fillSelect($('bTopic'),idxs.map(String),true,v=>TOPICS[+v].label);
   drawBook();
@@ -889,7 +896,8 @@ function drawBook(){
   }).join('')+'</tr>').join('');
   box.innerHTML='<table class="bgrid"><thead>'+head+'</thead><tbody>'+body+'</tbody></table>';
   fillSelect($('bLesson'),topic.lessons.map(l=>l.code),true,c=>{const l=topic.lessons.find(x=>x.code===c);return c+(l?' '+l.title:'')});
-  $('bMsg').textContent=classCourse(cls)?students.length+' students · '+topic.lessons.length+' lessons':'This class has no course set — showing all topics. Set its course on the Classes tab.';
+  const cc0=classCourse(cls),known0=COURSES.some(c=>c.key===cc0);
+  $('bMsg').textContent=known0?students.length+' students · '+topic.lessons.length+' lessons':(cc0?'This class’s course “'+cc0+'” isn’t on the site — showing all topics. Pick its course on the Classes tab.':'This class has no course set — showing all topics. Set its course on the Classes tab.');
 }
 function taughtDates(cls,lesson){return [...new Set(S.abs.filter(r=>r.class===cls&&r.lesson===lesson&&r.date).map(r=>r.date))].sort()}
 $('bApply').onclick=async()=>{
