@@ -157,6 +157,20 @@ ok(C.splitStudent('') === null && C.splitStudent(null) === null, 'blank name');
   ok(!idx.has('4'), 'unknown SRN is unassigned');
 }
 
+/* ---- students who most likely left ---- */
+{
+  const st = C.newStore();
+  C.addSnapshot(st, 'main', 2, 10, C.ingestRows(mainRows([{ n: 1, enr: 50, wh: 0 }, { n: 2, enr: 50, wh: 0 }, { n: 3, enr: 50, wh: 0 }])), 'T2W10.xlsx');
+  C.addSnapshot(st, 'main', 3, 10, C.ingestRows(mainRows([{ n: 1, enr: 50, wh: 0 }, { n: 3, enr: 50, wh: 0 }])), 'T3W10.xlsx');   // student 2 is gone
+  const roster = [1, 2, 3, 4].map(n => ({ srn: srn(n), name: 'Name' + n, year: '12', removed: false })).concat([{ srn: srn(5), name: 'Name5', year: '11', removed: true }]);
+  const left = C.possiblyLeft(st, roster);
+  eq(left.map(r => [r.srn, r.last]), [[srn(2), 2], [srn(4), null]], 'in term 2 but not term 3, and in no export at all');
+  ok(!left.some(r => r.srn === srn(5)), 'already removed students are not suggested again');
+  eq(C.possiblyLeft(C.newStore(), roster), [], 'nothing loaded, nothing suggested');
+  C.addSnapshot(st, 'main', 3, 5, C.ingestRows(mainRows([{ n: 1, enr: 25, wh: 0 }, { n: 2, enr: 25, wh: 0 }])), 'T3W05.xlsx');       // an earlier week doesn't count, only the final file
+  eq(C.possiblyLeft(st, roster).map(r => r.srn)[0], srn(2), 'only the term’s final file counts');
+}
+
 /* ---- days to spare above 90% ---- */
 eq(C.spareDays(rec(50, 4)), 1, '50 days: 5 may be missed, 4 lost, 1 spare'); ok(C.spareDays(rec(50, 6)) < 0, 'below 90% is negative');
 

@@ -295,9 +295,19 @@ function rosterIndex(y11, y12) {
   return idx;
 }
 
+// Roster students who were in an earlier term's final export but not the latest term's (or in no export at all)
+// most likely left. roster: [{ srn, name, year, removed }]. Returns the roster rows plus `last`, the last term they appeared in.
+function possiblyLeft(store, roster) {
+  const terms = termsOf(store, 'main'); if (!terms.length) return [];
+  const latest = terms[terms.length - 1], seen = new Map();
+  for (const t of terms) for (const srn of finalSnap(store, 'main', t).students.keys()) seen.set(srn, t);
+  return roster.filter(r => !r.removed).map(r => Object.assign({}, r, { last: seen.has(r.srn) ? seen.get(r.srn) : null }))
+    .filter(r => r.last == null || r.last < latest).sort((a, b) => a.name.localeCompare(b.name));
+}
+
 const api = { readXlsx, readCsv, toCSV, splitStudent, ingestRows, newStore, addSnapshot, weeksOf, termsOf, finalSnap,
   lost2, lostDays, rateOf, geRate, isPerfect, tierOf, pctText, pctOf, unexGe, scopeRecs, summarise, checkTotals,
-  DEFAULTS, evaluateWeek, earlyWarning, spareDays, parseRosterRows, rosterCSV, rosterIndex, zero };
+  DEFAULTS, evaluateWeek, earlyWarning, spareDays, parseRosterRows, rosterCSV, rosterIndex, possiblyLeft, zero };
 root.AttCore = api;
 if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);

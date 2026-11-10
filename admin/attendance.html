@@ -123,7 +123,7 @@ const FSA = typeof window.showDirectoryPicker === 'function';
 
 // Everything below lives in memory only. Nothing about students is stored in the browser.
 const S = { dir: null, store: C.newStore(), files: [], warnings: [], y11: [], y12: [], index: new Map(), loaded: false, dirty: false,
-  tab: 'overview', tier: 'all', through: 4, year: 'all', incRemoved: false, P: Object.assign({}, C.DEFAULTS), ewTerm: null, ewWeek: null, ticked: new Set(), folder: '' };
+  tab: 'overview', tier: 'all', through: 4, year: 'all', incRemoved: false, P: Object.assign({}, C.DEFAULTS), ewTerm: null, ewWeek: null, ticked: new Set(), tickedLeft: new Set(), folder: '' };
 
 function setMsg(t) { $('msg').textContent = t }
 function updateBar() {
@@ -138,7 +138,7 @@ async function readRows(entry) {
   return /\.xlsx$/i.test(entry.name) ? C.readXlsx(await f.arrayBuffer()) : C.readCsv(await f.text());
 }
 async function loadEntries(entries) {
-  S.store = C.newStore(); S.files = []; S.warnings = []; S.ticked = new Set();
+  S.store = C.newStore(); S.files = []; S.warnings = []; S.ticked = new Set(); S.tickedLeft = new Set();
   const roster = {};
   let exportsRead = 0;
   for (const e of entries) {
@@ -227,6 +227,10 @@ function people() {
   return out.sort((a, b) => a.name.localeCompare(b.name));
 }
 const yearTxt = p => p.conflict ? 'Both lists' : p.unassigned ? '—' : 'Year ' + p.year;
+function leftList() {
+  const roster = S.y11.map(r => Object.assign({ year: '11' }, r)).concat(S.y12.map(r => Object.assign({ year: '12' }, r)));
+  return C.possiblyLeft(S.store, roster);
+}
 function allStudents() {                                    // every SRN in any main export, with its latest name
   const m = new Map();
   for (const t of C.termsOf(S.store, 'main')) for (const w of C.weeksOf(S.store, 'main', t))
@@ -290,6 +294,8 @@ function viewOverview() {
   const unassigned = ps.filter(p => p.unassigned || p.conflict).length;
   let h = '';
   if (unassigned && S.year === 'all') h += '<div class="bar alert"><span class="msg"><b>' + unassigned + '</b> student' + (unassigned === 1 ? ' isn’t' : 's aren’t') + ' on a Year 11 or Year 12 list.</span><button class="solid" data-go="setup" type="button">Sort them in Setup</button></div>';
+  const gone = leftList().length;
+  if (gone) h += '<div class="bar alert"><span class="msg"><b>' + gone + '</b> student' + (gone === 1 ? ' on a roster isn’t' : 's on the rosters aren’t') + ' in the latest term’s export, so they may have left.</span><button class="solid" data-go="setup" type="button">Review in Setup</button></div>';
   h += '<div class="tiles">' +
     '<div class="tile"><b>' + s.n + '</b><span>Students</span></div>' +
     '<div class="tile"><b>' + (s.rate == null ? '' : C.pctOf(s.rate)) + '</b><span>Attendance rate</span></div>' +
@@ -403,6 +409,12 @@ function viewSetup() {
   }
   if (conf.length) h += '<h2>On both lists <small>' + conf.length + '</small></h2><div class="card"><table><tbody>' +
     conf.map(([srn, v]) => '<tr><td>' + esc(v.name) + '</td><td class="muted">' + srn + '</td><td class="n"><button class="sm" data-act="keep" data-year="11" data-srn="' + srn + '" type="button">Keep in Year 11</button> <button class="sm" data-act="keep" data-year="12" data-srn="' + srn + '" type="button">Keep in Year 12</button></td></tr>').join('') + '</tbody></table></div>';
+  const gone = leftList();
+  h += '<h2>Possibly left <small>' + gone.length + '</small></h2>';
+  if (!gone.length) h += '<p class="empty">Everyone on the rosters is in the latest term’s export.</p>';
+  else h += '<div class="acts"><button class="quiet sm" data-act="lefttickall" type="button">Tick all</button><button class="quiet sm" data-act="lefttickno" type="button">Clear</button><button class="solid sm" data-act="removeticked" type="button">Remove ticked</button></div>' +
+    '<div class="card"><table><thead><tr><th></th><th>Student</th><th>Year</th><th>Last seen</th><th></th></tr></thead><tbody>' +
+    gone.map(r => '<tr><td><input type="checkbox" data-tickleft="' + r.srn + '"' + (S.tickedLeft.has(r.srn) ? ' checked' : '') + '></td><td>' + esc(r.name) + '</td><td>Year ' + r.year + '</td><td>' + (r.last == null ? 'Not in any export' : 'Term ' + r.last) + '</td><td class="n"><button class="sm quiet" data-act="remove" data-srn="' + r.srn + '" type="button">Remove</button></td></tr>').join('') + '</tbody></table></div>';
   const rosterTable = (list, y) => {
     const cur = list.filter(r => !r.removed).sort((a, b) => a.name.localeCompare(b.name));
     return '<h2>Year ' + y + ' <small>' + cur.length + ' student' + (cur.length === 1 ? '' : 's') + '</small></h2>' + (cur.length ? '<div class="card"><table><tbody>' +
@@ -444,6 +456,7 @@ $('view').addEventListener('change', e => {
   if (t.dataset.p) { const v = parseFloat(t.value); if (v > 0) S.P[t.dataset.p] = v; render() }
   else if (t.dataset.ew) { if (t.dataset.ew === 'term') { S.ewTerm = +t.value; S.ewWeek = null } else S.ewWeek = +t.value; render() }
   else if (t.dataset.tiersel !== undefined) { S.tier = t.value; render() }
+  else if (t.dataset.tickleft) { t.checked ? S.tickedLeft.add(t.dataset.tickleft) : S.tickedLeft.delete(t.dataset.tickleft) }
   else if (t.dataset.tick) { t.checked ? S.ticked.add(t.dataset.tick) : S.ticked.delete(t.dataset.tick) }
 });
 $('view').addEventListener('click', async e => {
@@ -452,6 +465,13 @@ $('view').addEventListener('click', async e => {
   const act = b.dataset.act, srn = b.dataset.srn, year = b.dataset.year;
   if (act === 'tickall') { for (const [s] of allStudents()) if (!S.index.has(s)) S.ticked.add(s); render(); return }
   if (act === 'tickno') { S.ticked.clear(); render(); return }
+  if (act === 'lefttickall') { leftList().forEach(r => S.tickedLeft.add(r.srn)); render(); return }
+  if (act === 'lefttickno') { S.tickedLeft.clear(); render(); return }
+  if (act === 'removeticked') {
+    const n = S.tickedLeft.size; if (!n) { setMsg('Tick some students first.'); return }
+    for (const s of [...S.tickedLeft]) rosterOp('remove', s);
+    S.tickedLeft.clear(); await persist('Removed ' + n); return;
+  }
   if (act === 'addticked') {
     const n = S.ticked.size; if (!n) { setMsg('Tick some students first.'); return }
     for (const s of [...S.ticked]) rosterOp('assign', s, year);
