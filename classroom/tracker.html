@@ -849,7 +849,7 @@ function buildTopics(data){
       });
       if(lessons.length){TOPICS.push({label:(t.num?t.num+' ':'')+t.name,num:t.num||'',name:t.name||'',course:key,lessons});any=true}
     });
-    if(any&&!COURSES.some(x=>x.key===key))COURSES.push({key,label,name:c.name||label,year:y.name||''});
+    if(!COURSES.some(x=>x.key===key))COURSES.push({key,label,name:c.name||label,year:y.name||''});
   }));
   fillSelect($('aCourse'),[''].concat(COURSES.map(c=>c.key)),false,v=>v?(COURSES.find(c=>c.key===v)||{}).label:'— choose —');
   fillSelect($('kCourse'),[''].concat(COURSES.map(c=>c.key)),true,v=>v?(COURSES.find(c=>c.key===v)||{}).label:'— not set —');
@@ -873,7 +873,12 @@ function drawBook(){
   const box=$('bGrid');
   if(!S.loaded){box.innerHTML='<p class="empty" style="padding:10px 12px;margin:0">Open your folder or files first.</p>';return}
   if(!TOPICS.length){box.innerHTML='<p class="empty" style="padding:10px 12px;margin:0">Lesson list not loaded yet.</p>';return}
-  const cls=$('bClass').value,topic=TOPICS[+$('bTopic').value];
+  const cls=$('bClass').value,tv=$('bTopic').value,topic=tv===''?null:TOPICS[+tv];
+  if(cls&&!topic&&classCourse(cls)){
+    const c=COURSES.find(x=>x.key===classCourse(cls));
+    box.innerHTML='<p class="empty" style="padding:10px 12px;margin:0">There are no lessons on Dorey Desk yet for '+esc(c?c.label:classCourse(cls))+', so there is nothing to tick for '+esc(cls)+'.</p>';
+    $('bMsg').textContent='';return;
+  }
   if(!cls||!topic){box.innerHTML='<p class="empty" style="padding:10px 12px;margin:0">Choose a class and topic.</p>';return}
   const students=studentsIn(cls);
   if(!students.length){box.innerHTML='<p class="empty" style="padding:10px 12px;margin:0">No students in this class.</p>';return}
