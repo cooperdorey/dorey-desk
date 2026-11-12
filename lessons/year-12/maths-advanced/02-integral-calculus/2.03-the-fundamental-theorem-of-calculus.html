@@ -7,112 +7,58 @@ title: The Fundamental Theorem of Calculus
 <div class="title">2.03 – The Fundamental Theorem of Calculus</div>
 </div></div>
 
-<div class="c"><div class="h">Prior knowledge<span>Episode 3 · The Fundamental Theorem</span></div><div class="b" style="min-height:330px">
-<b>1.</b> 
-<div class="g" style="grid-template-columns:repeat(2,1fr);font-size:25px;gap:52px 30px;margin:30px 0 20px 20px"><div>a) Find the primitive of $3x^{2}+2x$<div class="ws">$x^{3}+x^{2}+C$</div></div><div>b) If $F(x)=x^{3}-2x$, find $F(3)-F(1)$<div class="ws">$F(3)=27-6=21$<br>$F(1)=1-2=-1$<br>$21-(-1)=22$</div></div><div>c) Find the primitive of $(2x+1)^{3}$<div class="ws">$\dfrac{(2x+1)^{4}}{8}+C$</div></div><div>d) Simplify $\tfrac{8}{3}-\left(-\tfrac{1}{3}\right)$<div class="ws">$\tfrac{8}{3}+\tfrac{1}{3}=3$</div></div></div>
+<div class="c"><div class="h">Warm-up<span>Episode 3 · Fundamental Theorem</span></div><div class="b" style="min-height:620px">
+Use the graph of $y=2x$.<div class="fig"><svg viewBox="0 0 410 234" width="410" xmlns="http://www.w3.org/2000/svg"><polygon points="60.0,200.0 300.0,200.0 300.0,48.0" fill="#BBDEFB" stroke="none"/><line x1="52" y1="200" x2="368" y2="200" stroke="#333" stroke-width="1.5"/><polygon points="368,196 376,200 368,204" fill="#333"/><line x1="60" y1="208" x2="60" y2="21" stroke="#333" stroke-width="1.5"/><polygon points="56,21 60,13 64,21" fill="#333"/><text x="380" y="205" font-size="16" font-style="italic" font-family="Georgia,serif">x</text><text x="68" y="21" font-size="16" font-style="italic" font-family="Georgia,serif">y</text><line x1="120" y1="196" x2="120" y2="204" stroke="#333"/><text x="120" y="220" font-size="15" text-anchor="middle" font-family="Georgia,serif">1</text><line x1="300" y1="196" x2="300" y2="204" stroke="#333"/><text x="300" y="220" font-size="15" text-anchor="middle" font-family="Georgia,serif">4</text><line x1="56" y1="162" x2="64" y2="162" stroke="#333"/><text x="51" y="167" font-size="15" text-anchor="end" font-family="Georgia,serif">2</text><line x1="56" y1="48" x2="64" y2="48" stroke="#333"/><text x="51" y="53" font-size="15" text-anchor="end" font-family="Georgia,serif">8</text><polyline points="60.0,200.0 330.0,29.0" fill="none" stroke="#1F4E79" stroke-width="3"/><line x1="120" y1="200" x2="120" y2="162" stroke="#555" stroke-dasharray="5 4"/></svg></div><div style="margin:18px 0 0 20px">a) Find the area under $y=2x$ from $x=0$ to $x=4$.<div class="ws">Triangle with base $4$ and height $8$.<br>Area $=\tfrac{1}{2}\times4\times8=16$</div></div><div style="margin:18px 0 0 20px">b) Find the area under $y=2x$ from $x=0$ to $x=1$.<div class="ws">Triangle with base $1$ and height $2$.<br>Area $=\tfrac{1}{2}\times1\times2=1$</div></div><div style="margin:18px 0 0 20px">c) Use (a) and (b) to find the area from $x=1$ to $x=4$.<div class="ws">$16-1=15$</div></div><div style="margin:18px 0 0 20px">d) Write the area from $x=0$ to $x=t$ as a function of $t$.<div class="ws">Base $t$ and height $2t$.<br>Area $=\tfrac{1}{2}\times t\times2t=t^{2}$</div></div><div style="margin:18px 0 0 20px">e) Compare your answers to (a) and (b) with $t^{2}$.<div class="ws">$16=4^{2}$ and $1=1^{2}$.<br>$t^{2}$ is a primitive of $2t$, and the area from $1$ to $4$ is $4^{2}-1^{2}$.</div></div>
 </div></div>
 
-<div class="c"><div class="h">Fact<span>Episode 3 · The Fundamental Theorem</span></div><div class="b">
+<div class="c"><div class="h">Fact<span>Episode 3 · Fundamental Theorem</span></div><div class="b">
 <div class="rule">The Fundamental Theorem of Calculus
-<div class="m">$\displaystyle\int_{a}^{b}f(x)\,dx=[F(x)]_{a}^{b}=F(b)-F(a)$</div>$F(x)$ is any primitive of $f(x)$, and $f$ is continuous from $a$ to $b$.<br>The $+C$ is not needed. It cancels: $(F(b)+C)-(F(a)+C)=F(b)-F(a)$.</div>
-<div class="key">Integrating gives signed area, so we can find areas without any geometry.</div>
+<div class="m">$\displaystyle\int_{a}^{b}f(x)\,dx=F(b)-F(a)$</div><br>where $F$ is any primitive of $f$.<br>We write $\left[F(x)\right]_{a}^{b}=F(b)-F(a)$.</div>
+<div class="key">The $+C$ is not needed, because it cancels in $F(b)-F(a)$.</div>
 </div></div>
 
-<div class="c"><div class="h">Transformation · model<span>Episode 3 · The Fundamental Theorem</span></div><div class="b">
-<div class="cq">Write the primitive in square brackets with the limits</div>
-<div class="g" style="grid-template-columns:repeat(3,1fr);font-size:26px;gap:44px 20px;text-align:center"><div>$\displaystyle\int_{1}^{3}2x\,dx$<div class="ws">$[x^{2}]_{1}^{3}$</div></div><div>$\displaystyle\int_{0}^{2}(x^{2}+1)\,dx$<div class="ws">$\left[\dfrac{x^{3}}{3}+x\right]_{0}^{2}$</div></div><div>$\displaystyle\int_{-1}^{2}x^{3}\,dx$<div class="ws">$\left[\dfrac{x^{4}}{4}\right]_{-1}^{2}$</div></div></div>
+<div class="c"><div class="h">I Do<span>Episode 3 · Fundamental Theorem</span></div><div class="b" style="min-height:360px">
+Evaluate $\displaystyle\int_{1}^{4}2x\,dx$.
+<div class="ws">A primitive of $2x$ is $x^{2}$.<br>$\int_{1}^{4}2x\,dx=\left[x^{2}\right]_{1}^{4}=4^{2}-1^{2}=15$</div>
 </div></div>
 
-<div class="c"><div class="h">Transformation · your turn<span>Episode 3 · The Fundamental Theorem</span></div><div class="b" style="min-height:320px">
-<b>2.</b> Write the primitive in square brackets with the limits. Do not evaluate.
-<div class="g" style="grid-template-columns:repeat(2,1fr);font-size:26px;gap:52px 30px;margin:30px 0 20px 20px"><div>a) $\displaystyle\int_{0}^{4}3x^{2}\,dx$<div class="ws">$[x^{3}]_{0}^{4}$</div></div><div>b) $\displaystyle\int_{1}^{2}(4x-5)\,dx$<div class="ws">$[2x^{2}-5x]_{1}^{2}$</div></div><div>c) $\displaystyle\int_{1}^{9}\sqrt{x}\,dx$<div class="ws">$\left[\tfrac{2}{3}x^{\frac{3}{2}}\right]_{1}^{9}$</div></div><div>d) $\displaystyle\int_{1}^{3}\dfrac{1}{x^{2}}\,dx$<div class="ws">$\left[-\dfrac{1}{x}\right]_{1}^{3}$</div></div></div>
+<div class="c"><div class="h">We Do 1<span>Episode 3 · Fundamental Theorem</span></div><div class="b" style="min-height:380px">
+Evaluate $\displaystyle\int_{1}^{2}\left(x^{2}+\dfrac{1}{x^{2}}\right)dx$.<div class="ws">$\int_{1}^{2}\left(x^{2}+x^{-2}\right)dx=\left[\dfrac{x^{3}}{3}-\dfrac{1}{x}\right]_{1}^{2}$<br>$=\left(\dfrac{8}{3}-\dfrac{1}{2}\right)-\left(\dfrac{1}{3}-1\right)$<br>$=\dfrac{17}{6}$</div>
 </div></div>
 
-<div class="c"><div class="h">Routine · model<span>Episode 3 · The Fundamental Theorem</span></div><div class="b">
-<div class="cq">Evaluate $F(b)-F(a)$</div>
-<div class="g" style="grid-template-columns:repeat(3,1fr);font-size:26px;gap:44px 20px;text-align:center"><div>$\displaystyle\int_{1}^{3}2x\,dx$<div class="ws">$[x^{2}]_{1}^{3}=9-1=8$</div></div><div>$\displaystyle\int_{0}^{2}(3x^{2}+1)\,dx$<div class="ws">$[x^{3}+x]_{0}^{2}=10-0=10$</div></div><div>$\displaystyle\int_{-1}^{2}x^{2}\,dx$<div class="ws">$\left[\dfrac{x^{3}}{3}\right]_{-1}^{2}=\tfrac{8}{3}-\left(-\tfrac{1}{3}\right)=3$</div></div></div>
+<div class="c"><div class="h">Fact<span>Episode 3 · Fundamental Theorem</span></div><div class="b">
+<div class="rule">Rules for limits<br>$\displaystyle\int_{a}^{b}f\,dx+\int_{b}^{c}f\,dx=\int_{a}^{c}f\,dx$<br>$\displaystyle\int_{b}^{a}f\,dx=-\int_{a}^{b}f\,dx\qquad\int_{a}^{a}f\,dx=0$<br>$\displaystyle\int_{a}^{b}kf\,dx=k\int_{a}^{b}f\,dx\qquad\int_{a}^{b}(f+g)\,dx=\int_{a}^{b}f\,dx+\int_{a}^{b}g\,dx$</div>
+<div class="key">These come straight from $F(b)-F(a)$.</div>
 </div></div>
 
-<div class="c"><div class="h">Routine · your turn<span>Episode 3 · The Fundamental Theorem</span></div><div class="b" style="min-height:320px">
-<b>3.</b> Evaluate.
-<div class="g" style="grid-template-columns:repeat(2,1fr);font-size:26px;gap:52px 30px;margin:30px 0 20px 20px"><div>a) $\displaystyle\int_{0}^{3}4x\,dx$<div class="ws">$[2x^{2}]_{0}^{3}=18$</div></div><div>b) $\displaystyle\int_{1}^{2}(6x^{2}-2)\,dx$<div class="ws">$[2x^{3}-2x]_{1}^{2}=12-0=12$</div></div><div>c) $\displaystyle\int_{-2}^{1}x^{3}\,dx$<div class="ws">$\left[\dfrac{x^{4}}{4}\right]_{-2}^{1}=\tfrac{1}{4}-4=-\dfrac{15}{4}$</div></div><div>d) $\displaystyle\int_{1}^{4}\dfrac{1}{x^{2}}\,dx$<div class="ws">$\left[-\dfrac{1}{x}\right]_{1}^{4}=-\tfrac{1}{4}+1=\dfrac{3}{4}$</div></div></div>
+<div class="c"><div class="h">I Do<span>Episode 3 · Fundamental Theorem</span></div><div class="b" style="min-height:360px">
+$\displaystyle\int_{1}^{4}f(x)\,dx=6$ and $\displaystyle\int_{4}^{7}f(x)\,dx=-2$. Find<br>i) $\displaystyle\int_{1}^{7}f(x)\,dx$,<br>ii) $\displaystyle\int_{4}^{1}f(x)\,dx$.
+<div class="ws">i) $\int_{1}^{7}f=\int_{1}^{4}f+\int_{4}^{7}f=6+(-2)=4$<br>ii) Reversing the limits changes the sign.<br>$\int_{4}^{1}f=-\int_{1}^{4}f=-6$</div>
 </div></div>
 
-<div class="c"><div class="h">I Do<span>Episode 3 · The Fundamental Theorem</span></div><div class="b" style="min-height:360px">
-Evaluate $\displaystyle\int_{1}^{3}\left(6x^{2}-4x+3\right)dx$.
-<div class="ws">$\int_{1}^{3}\left(6x^{2}-4x+3\right)dx=[2x^{3}-2x^{2}+3x]_{1}^{3}$<br>$F(3)=54-18+9=45$<br>$F(1)=2-2+3=3$<br>$=45-3=42$</div>
+<div class="c"><div class="h">We Do 2<span>Episode 3 · Fundamental Theorem</span></div><div class="b" style="min-height:480px">
+$\displaystyle\int_{0}^{3}f(x)\,dx=5,\ \int_{3}^{8}f(x)\,dx=-2$ and $\displaystyle\int_{0}^{8}g(x)\,dx=4$. Find<div style="margin:18px 0 0 20px">a) $\displaystyle\int_{0}^{8}f(x)\,dx$<div class="ws">$5+(-2)=3$</div></div><div style="margin:18px 0 0 20px">b) $\displaystyle\int_{8}^{3}f(x)\,dx$<div class="ws">$-\int_{3}^{8}f=2$</div></div><div style="margin:18px 0 0 20px">c) $\displaystyle\int_{0}^{8}\left(2f(x)-g(x)\right)dx$<div class="ws">$2\times3-4=2$</div></div>
 </div></div>
 
-<div class="c"><div class="h">We Do 1<span>Episode 3 · The Fundamental Theorem</span></div><div class="b" style="min-height:360px">
-Evaluate $\displaystyle\int_{1}^{2}\left(12x^{3}+6x-7\right)dx$.<div class="ws">$[3x^{4}+3x^{2}-7x]_{1}^{2}$<br>$F(2)=48+12-14=46$ and $F(1)=3+3-7=-1$<br>$=46-(-1)=47$</div>
+<div class="c"><div class="h">Fact<span>Episode 3 · Fundamental Theorem</span></div><div class="b">
+<div class="rule">Variable upper limit
+<div class="m">$\dfrac{d}{dx}\displaystyle\int_{a}^{x}f(t)\,dt=f(x)$</div><br>$A(x)=\displaystyle\int_{a}^{x}f(t)\,dt$ is the area from $a$ up to $x$.<br>Differentiating undoes integrating.</div>
+<div class="key">The letter $t$ stands in for the variable, so it does not clash with the limit $x$.</div>
 </div></div>
 
-<div class="c"><div class="h">We Do 2<span>Episode 3 · The Fundamental Theorem</span></div><div class="b" style="min-height:340px">
-Evaluate $\displaystyle\int_{1}^{4}\left(\sqrt{x}+\dfrac{1}{\sqrt{x}}\right)dx$.<div class="ws">$\left[\tfrac{2}{3}x^{\frac{3}{2}}+2x^{\frac{1}{2}}\right]_{1}^{4}$<br>$F(4)=\tfrac{16}{3}+4=\tfrac{28}{3}$ and $F(1)=\tfrac{2}{3}+2=\tfrac{8}{3}$<br>$=\tfrac{20}{3}$</div>
+<div class="c"><div class="h">I Do<span>Episode 3 · Fundamental Theorem</span></div><div class="b" style="min-height:360px">
+Find $A(x)=\displaystyle\int_{1}^{x}(2t+3)\,dt$, then find $A'(x)$.
+<div class="ws">$A(x)=\left[t^{2}+3t\right]_{1}^{x}=\left(x^{2}+3x\right)-4=x^{2}+3x-4$<br>$A'(x)=2x+3$<br>This is $f(x)$, the function inside the integral.</div>
 </div></div>
 
-<div class="c"><div class="h">We Do 3<span>Episode 3 · The Fundamental Theorem</span></div><div class="b" style="min-height:360px">
-Evaluate $\displaystyle\int_{-2}^{0}\sqrt{2x+4}\,dx$.<div class="ws">$\sqrt{2x+4}=(2x+4)^{\frac{1}{2}}$, with $a=2$ and $n+1=\tfrac{3}{2}$<br>$\left[\dfrac{(2x+4)^{\frac{3}{2}}}{3}\right]_{-2}^{0}=\dfrac{4^{\frac{3}{2}}}{3}-0=\dfrac{8}{3}$</div><div style="font-size:16px;color:#777;margin-top:8px">Modelled on HSC 2021 Q15.</div>
+<div class="c"><div class="h">We Do 3<span>Episode 3 · Fundamental Theorem</span></div><div class="b" style="min-height:360px">
+Find $A(x)=\displaystyle\int_{0}^{x}\left(t^{2}-4\right)dt$, then find $A'(x)$.<div class="ws">$A(x)=\left[\dfrac{t^{3}}{3}-4t\right]_{0}^{x}=\dfrac{x^{3}}{3}-4x$<br>$A'(x)=x^{2}-4$</div>
 </div></div>
 
-<div class="c"><div class="h">Fact<span>Episode 3 · The Fundamental Theorem</span></div><div class="b">
-<div class="rule">Adding and reversing limits
-<div class="m">$\displaystyle\int_{a}^{b}f\,dx+\int_{b}^{c}f\,dx=\int_{a}^{c}f\,dx\qquad\int_{a}^{b}f\,dx=-\int_{b}^{a}f\,dx$</div>$f$ is continuous from $a$ to $c$. The first rule joins neighbouring areas. The second comes from $F(b)-F(a)=-(F(a)-F(b))$.</div>
-<div class="key">Swapping the limits changes the sign.</div>
+<div class="c"><div class="h">We Do 4<span>Episode 3 · Fundamental Theorem</span></div><div class="b" style="min-height:460px">
+$g(x)=\displaystyle\int_{x}^{3}\left(t^{2}+1\right)dt$. Let $F(t)$ be a primitive of $t^{2}+1$. Do not find $F$.<div style="margin:18px 0 0 20px">a) Write $g(x)$ in terms of $F$.<div class="ws">$g(x)=F(3)-F(x)$</div></div><div style="margin:18px 0 0 20px">b) Find $g'(x)$.<div class="ws">$F(3)$ is a constant, and $F'(x)=x^{2}+1$.<br>$g'(x)=-\left(x^{2}+1\right)$</div></div>
 </div></div>
 
-<div class="c"><div class="h">Transformation · model<span>Episode 3 · The Fundamental Theorem</span></div><div class="b">
-<div class="cq">Write as one integral</div>
-<div class="g" style="grid-template-columns:repeat(3,1fr);font-size:26px;gap:44px 20px;text-align:center"><div>$\displaystyle\int_{0}^{2}f\,dx+\int_{2}^{5}f\,dx$<div class="ws">$\int_{0}^{5}f\,dx$</div></div><div>$\displaystyle\int_{1}^{4}f\,dx-\int_{1}^{3}f\,dx$<div class="ws">$\int_{3}^{4}f\,dx$</div></div><div>$\displaystyle\int_{3}^{1}f\,dx$<div class="ws">$-\int_{1}^{3}f\,dx$</div></div></div>
-</div></div>
-
-<div class="c"><div class="h">Transformation · your turn<span>Episode 3 · The Fundamental Theorem</span></div><div class="b" style="min-height:340px">
-<b>4.</b> Write as one integral.
-<div class="g" style="grid-template-columns:repeat(2,1fr);font-size:26px;gap:52px 30px;margin:30px 0 20px 20px"><div>a) $\displaystyle\int_{1}^{3}f\,dx+\int_{3}^{6}f\,dx$<div class="ws">$\int_{1}^{6}f\,dx$</div></div><div>b) $\displaystyle\int_{0}^{7}f\,dx-\int_{0}^{4}f\,dx$<div class="ws">$\int_{4}^{7}f\,dx$</div></div><div>c) $\displaystyle\int_{5}^{2}f\,dx$<div class="ws">$-\int_{2}^{5}f\,dx$</div></div><div>d) $\displaystyle\int_{2}^{6}f\,dx+\int_{6}^{3}f\,dx$<div class="ws">$\int_{2}^{6}f\,dx-\int_{3}^{6}f\,dx=\int_{2}^{3}f\,dx$</div></div></div>
-</div></div>
-
-<div class="c"><div class="h">We Do 4<span>Episode 3 · The Fundamental Theorem</span></div><div class="b" style="min-height:480px">
-$f$ is continuous, with $\displaystyle\int_{0}^{3}f\,dx=7$ and $\displaystyle\int_{0}^{5}f\,dx=4$. Find:<div style="margin:18px 0 0 20px">a) $\displaystyle\int_{3}^{5}f\,dx$<div class="ws">$\int_{3}^{5}f\,dx=\int_{0}^{5}f\,dx-\int_{0}^{3}f\,dx=4-7=-3$</div></div><div style="margin:18px 0 0 20px">b) $\displaystyle\int_{5}^{3}f\,dx$<div class="ws">$-\int_{3}^{5}f\,dx=3$</div></div><div style="margin:18px 0 0 20px">c) $\displaystyle\int_{0}^{3}\left(2f(x)+1\right)dx$<div class="ws">$2\times7+\int_{0}^{3}1\,dx=14+3=17$</div></div>
-</div></div>
-
-<div class="c"><div class="h">We Do 5<span>Episode 3 · The Fundamental Theorem</span></div><div class="b" style="min-height:320px">
-Evaluate $\displaystyle\int_{2}^{0}\left(3x^{2}+1\right)dx$.<div class="ws">Swap the limits: $-\int_{0}^{2}\left(3x^{2}+1\right)dx$<br>$=-[x^{3}+x]_{0}^{2}=-10$</div>
-</div></div>
-
-<div class="c"><div class="h">Fact<span>Episode 3 · The Fundamental Theorem</span></div><div class="b">
-<div class="rule">The area function $A(x)$
-<div class="m">$A(x)=\displaystyle\int_{a}^{x}f(t)\,dt\ \Longrightarrow\ A'(x)=f(x)$</div>$A(x)$ is the signed area from a fixed point $a$ up to $x$. As $x$ increases by a small step $h$, the area grows by about $f(x)\times h$. So $A$ is a primitive of $f$.</div>
-<div class="key">The variable inside the integral is a dummy: $t$ is used so it is not confused with the upper limit $x$.</div>
-</div></div>
-
-<div class="c"><div class="h">Transformation · model<span>Episode 3 · The Fundamental Theorem</span></div><div class="b">
-<div class="cq">Find $A(x)$</div>
-<div class="g" style="grid-template-columns:repeat(3,1fr);font-size:24px;gap:44px 20px;text-align:center"><div>$A(x)=\displaystyle\int_{1}^{x}2t\,dt$<div class="ws">$[t^{2}]_{1}^{x}=x^{2}-1$</div></div><div>$A(x)=\displaystyle\int_{0}^{x}(3t^{2}+1)\,dt$<div class="ws">$[t^{3}+t]_{0}^{x}=x^{3}+x$</div></div><div>$A(x)=\displaystyle\int_{2}^{x}t^{3}\,dt$<div class="ws">$\left[\dfrac{t^{4}}{4}\right]_{2}^{x}=\dfrac{x^{4}}{4}-4$</div></div></div>
-</div></div>
-
-<div class="c"><div class="h">Transformation · your turn<span>Episode 3 · The Fundamental Theorem</span></div><div class="b" style="min-height:340px">
-<b>5.</b> Find $A(x)$ and check that $A'(x)$ equals the integrand.
-<div class="g" style="grid-template-columns:repeat(1,1fr);font-size:26px;gap:52px 30px;margin:30px 0 20px 20px"><div>a) $\displaystyle\int_{1}^{x}4t^{3}\,dt$<div class="ws">$[t^{4}]_{1}^{x}=x^{4}-1$<br>$A'(x)=4x^{3}$ ✓</div></div><div>b) $\displaystyle\int_{0}^{x}(2t+5)\,dt$<div class="ws">$[t^{2}+5t]_{0}^{x}=x^{2}+5x$<br>$A'(x)=2x+5$ ✓</div></div><div>c) $\displaystyle\int_{3}^{x}(t^{2}-1)\,dt$<div class="ws">$\left[\tfrac{t^{3}}{3}-t\right]_{3}^{x}=\tfrac{x^{3}}{3}-x-6$<br>$A'(x)=x^{2}-1$ ✓</div></div></div>
-</div></div>
-
-<div class="c"><div class="h">We Do 6<span>Episode 3 · The Fundamental Theorem</span></div><div class="b" style="min-height:380px">
-Let $A(x)=\displaystyle\int_{1}^{x}\left(4t^{3}-6t\right)dt$. Find $A(x)$ and show that $A'(x)=4x^{3}-6x$.<div class="ws">$A(x)=[t^{4}-3t^{2}]_{1}^{x}=\left(x^{4}-3x^{2}\right)-(1-3)=x^{4}-3x^{2}+2$<br>$A'(x)=4x^{3}-6x$ ✓</div>
-</div></div>
-
-<div class="c"><div class="h">We Do 7<span>Episode 3 · The Fundamental Theorem</span></div><div class="b" style="min-height:380px">
-Find the value of $k$, where $k\gt 1$, such that $\displaystyle\int_{1}^{k}(4x+1)\,dx=18$.<div class="ws">$[2x^{2}+x]_{1}^{k}=2k^{2}+k-3$<br>$2k^{2}+k-3=18$, so $2k^{2}+k-21=0$<br>$(2k+7)(k-3)=0$, so $k=3$ (as $k\gt 1$)</div>
-</div></div>
-
-<div class="c"><div class="h">We Do 8<span>Episode 3 · The Fundamental Theorem</span></div><div class="b" style="min-height:400px">
-Show that $\displaystyle\int_{-a}^{a}x^{5}\,dx=0$ for every $a$, and explain the result using odd functions.<div class="ws">$\left[\dfrac{x^{6}}{6}\right]_{-a}^{a}=\dfrac{a^{6}}{6}-\dfrac{(-a)^{6}}{6}=\dfrac{a^{6}}{6}-\dfrac{a^{6}}{6}=0$<br>$f(x)=x^{5}$ is odd, so the signed areas on each side of the $y$-axis cancel.</div>
-</div></div>
-
-<div class="c"><div class="h">We Do 9<span>Episode 3 · The Fundamental Theorem</span></div><div class="b" style="min-height:640px">
-The graph of $y=f(x)$ is shown. The point $Q$ at $x=0$ is a horizontal point of inflection, and the graph has a maximum at $x=1$ and a minimum at $x=3$. Let $A(x)=\displaystyle\int_{0}^{x}f(t)\,dt$.<div class="fig"><svg viewBox="0 0 430 312" width="430" xmlns="http://www.w3.org/2000/svg"><line x1="2" y1="200" x2="368" y2="200" stroke="#333" stroke-width="1.5"/><polygon points="368,196 376,200 368,204" fill="#333"/><line x1="80" y1="286" x2="80" y2="23" stroke="#333" stroke-width="1.5"/><polygon points="76,23 80,15 84,23" fill="#333"/><text x="380" y="205" font-size="16" font-style="italic" font-family="Georgia,serif">x</text><text x="88" y="23" font-size="16" font-style="italic" font-family="Georgia,serif">y</text><line x1="150" y1="196" x2="150" y2="204" stroke="#333"/><text x="150" y="220" font-size="15" text-anchor="middle" font-family="Georgia,serif">1</text><line x1="220" y1="196" x2="220" y2="204" stroke="#333"/><text x="220" y="220" font-size="15" text-anchor="middle" font-family="Georgia,serif">2</text><line x1="290" y1="196" x2="290" y2="204" stroke="#333"/><text x="290" y="220" font-size="15" text-anchor="middle" font-family="Georgia,serif">3</text><line x1="360" y1="196" x2="360" y2="204" stroke="#333"/><text x="360" y="220" font-size="15" text-anchor="middle" font-family="Georgia,serif">4</text><polyline points="24.0,212.8 26.1,211.2 28.2,209.7 30.3,208.4 32.4,207.2 34.5,206.2 36.6,205.3 38.7,204.4 40.8,203.7 42.9,203.1 45.0,202.5 47.1,202.0 49.2,201.6 51.3,201.3 53.4,201.0 55.5,200.8 57.6,200.6 59.7,200.4 61.8,200.3 63.9,200.2 66.0,200.1 68.1,200.1 70.2,200.0 72.3,200.0 74.4,200.0 76.5,200.0 78.6,200.0 80.7,200.0 82.8,200.0 84.9,200.0 87.0,200.0 89.1,200.0 91.2,200.0 93.3,199.9 95.4,199.9 97.5,199.8 99.6,199.8 101.7,199.7 103.8,199.7 105.9,199.6 108.0,199.5 110.1,199.4 112.2,199.3 114.3,199.1 116.4,199.0 118.5,198.9 120.6,198.8 122.7,198.6 124.8,198.5 126.9,198.4 129.0,198.2 131.1,198.1 133.2,198.0 135.3,197.9 137.4,197.7 139.5,197.6 141.6,197.6 143.7,197.5 145.8,197.4 147.9,197.4 150.0,197.4 152.1,197.4 154.2,197.4 156.3,197.5 158.4,197.6 160.5,197.7 162.6,197.9 164.7,198.1 166.8,198.3 168.9,198.6 171.0,198.9 173.1,199.3 175.2,199.7 177.3,200.1 179.4,200.6 181.5,201.2 183.6,201.8 185.7,202.4 187.8,203.1 189.9,203.9 192.0,204.7 194.1,205.6 196.2,206.5 198.3,207.5 200.4,208.5 202.5,209.6 204.6,210.7 206.7,211.9 208.8,213.2 210.9,214.5 213.0,215.9 215.1,217.3 217.2,218.8 219.3,220.3 221.4,221.9 223.5,223.5 225.6,225.1 227.7,226.8 229.8,228.5 231.9,230.3 234.0,232.1 236.1,233.9 238.2,235.8 240.3,237.7 242.4,239.5 244.5,241.4 246.6,243.3 248.7,245.2 250.8,247.1 252.9,248.9 255.0,250.8 257.1,252.6 259.2,254.4 261.3,256.1 263.4,257.8 265.5,259.4 267.6,260.9 269.7,262.4 271.8,263.8 273.9,265.0 276.0,266.2 278.1,267.2 280.2,268.1 282.3,268.9 284.4,269.5 286.5,269.9 288.6,270.2 290.7,270.2 292.8,270.0 294.9,269.6 297.0,268.9 299.1,268.0 301.2,266.8 303.3,265.3 305.4,263.5 307.5,261.4 309.6,258.9 311.7,256.0 313.8,252.7 315.9,249.1 318.0,245.0 320.1,240.4 322.2,235.4 324.3,229.8 326.4,223.8 328.5,217.2 330.6,210.0 332.7,202.2 334.8,193.8 336.9,184.7 339.0,175.0 341.1,164.5 343.2,153.3 345.3,141.4 347.4,128.6 349.5,115.1 351.6,100.6 353.7,85.3 355.8,69.0 357.9,51.8 360.0,33.6" fill="none" stroke="#1F4E79" stroke-width="3"/><text x="80.0" y="202.6" font-size="15" text-anchor="middle" fill="#1F4E79" font-family="Georgia,serif"></text><text x="48.5" y="258.5" font-size="15" text-anchor="middle" fill="#333" font-family="Georgia,serif">Q</text><text x="181.5" y="102.5" font-size="17" text-anchor="middle" fill="#1F4E79" font-family="Georgia,serif">y = f(x)</text></svg></div>
-How many points of inflection does the graph $y=A(x)$ have?
-<div class="g" style="grid-template-columns:repeat(4,1fr);font-size:26px;gap:20px 30px;margin:24px 0 10px 20px"><div>A. $1$</div><div>B. $2$</div><div>C. $3$</div><div>D. $4$</div></div><div class="ws">$A'(x)=f(x)$, so $A''(x)=f'(x)$.<br>Inflections of $A$ occur where $f'$ changes sign, that is, at the maximum and minimum of $f$: $x=1$ and $x=3$.<br>At $x=0$, $f'=0$ but does not change sign, so it gives no inflection of $A$.<br>The answer is <b>B</b>.</div><div style="font-size:16px;color:#777;margin-top:8px">Modelled on HSC 2024 Q10.</div>
-</div></div>
-
-<div class="c"><div class="h">We Do 10<span>Episode 3 · The Fundamental Theorem</span></div><div class="b" style="min-height:520px">
-Let $F$ be a primitive of $f(t)=\sin\left(t^{2}\right)$, and let $g(x)=\displaystyle\int_{x^{2}}^{3}\sin\left(t^{2}\right)dt$.<div style="margin:18px 0 0 20px">a) Write $g(x)$ in terms of $F$.<div class="ws">$g(x)=F(3)-F\left(x^{2}\right)$</div></div><div style="margin:18px 0 0 20px">b) Hence find $g'(x)$.<div class="ws">$F(3)$ is a constant, so its derivative is $0$.<br>Chain rule: $\dfrac{d}{dx}F\left(x^{2}\right)=2x\,F'\left(x^{2}\right)=2x\sin\left(x^{4}\right)$<br>$g'(x)=-2x\sin\left(x^{4}\right)$</div></div><div style="font-size:16px;color:#777;margin-top:8px">Modelled on HSC 2026 Q32.</div>
+<div class="c"><div class="h">We Do 5<span>Episode 3 · Fundamental Theorem</span></div><div class="b" style="min-height:480px">
+Let $g(x)=\displaystyle\int_{x^{3}}^{1}\tan(t)\,dt$, and let $F(t)$ be a primitive of $\tan(t)$, where $0\le x\le1$. Do not find $F$.<div style="margin:18px 0 0 20px">a) Find an expression for $g(x)$ in terms of $F$.<div class="ws">$g(x)=F(1)-F\left(x^{3}\right)$</div></div><div style="margin:18px 0 0 20px">b) Hence find $g'(x)$.<div class="ws">$F(1)$ is a constant.<br>By the chain rule, $\dfrac{d}{dx}F\left(x^{3}\right)=F'\left(x^{3}\right)\times3x^{2}=3x^{2}\tan\left(x^{3}\right)$<br>$g'(x)=-3x^{2}\tan\left(x^{3}\right)$</div></div><div style="font-size:16px;color:#777;margin-top:8px">HSC 2026 Q32.</div>
 </div></div>
