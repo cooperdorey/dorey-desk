@@ -183,14 +183,13 @@ dialog .row{margin-top:12px}
   #printArea .sumPrint .pct{display:inline-block;min-width:15mm;padding:1mm 2mm;border-radius:3mm;color:#fff;font-weight:bold;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   #printArea .bwPrint{font-family:Arial,Helvetica,sans-serif;color:#000;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   #printArea .bwPrint .cls{font-size:12pt;font-weight:bold;margin:0 0 2mm}
-  #printArea .bwPrint .ptitle{font-size:15pt;border-bottom:1px solid #000;margin:0 0 4mm;padding-bottom:1mm}
-  #printArea .bwPrint table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:10pt}
-  #printArea .bwPrint th{color:#000;border:1px solid #000;padding:1.5mm 0;text-align:center;font-size:9.5pt}
+  #printArea .bwPrint .ptitle{font-size:14pt;border-bottom:1px solid #000;margin:0 0 3mm;padding-bottom:1mm}
+  #printArea .bwPrint table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:9pt}
+  #printArea .bwPrint th{color:#000;border:1px solid #000;padding:1mm 0;text-align:center;font-size:9.5pt}
   #printArea .bwPrint th.nm,#printArea .bwPrint td.nm{width:48mm;text-align:left;padding-left:2mm;white-space:nowrap;overflow:hidden}
   #printArea .bwPrint td{border:1px solid #000;padding:0}
   #printArea .bwPrint td.on{background:#d9d9d9}
-  #printArea .bwPrint .key{columns:2;column-gap:8mm;font-size:8.5pt;margin-top:4mm}
-  #printArea .bwPrint .key div{break-inside:avoid;margin-bottom:.8mm}
+  #printArea .bwPrint th small{display:block;font-weight:400;font-size:7pt;line-height:1.15;padding:0 1mm}
 }
 </style>
 </head>
@@ -947,13 +946,14 @@ $('bPrint').onclick=()=>{
   if(!S.loaded||!cls||!topic){$('bMsg').textContent='Choose a class and topic to print.';return}
   const students=studentsIn(cls);
   if(!students.length){$('bMsg').textContent='No students in this class.';return}
-  /* one A4 page: row height shrinks so a whole class fits; lesson columns share the rest of the width */
-  const rowH=Math.max(5.5,Math.min(9,Math.floor(2150/Math.max(1,students.length))/10)).toFixed(1)+'mm';
-  const head='<tr><th class="nm">Student</th>'+topic.lessons.map(l=>'<th>'+esc(l.code)+'</th>').join('')+'</tr>';
+  /* one A4 landscape page: row height shrinks so a whole class fits; lesson columns share the rest of the width */
+  const rowH=Math.max(4.6,Math.min(9,Math.floor(1520/Math.max(1,students.length))/10)).toFixed(1)+'mm';
+  const head='<tr><th class="nm">Student</th>'+topic.lessons.map(l=>'<th>'+esc(l.code)+'<small>'+esc(l.title)+'</small></th>').join('')+'</tr>';
   const body=students.map(s=>'<tr style="height:'+rowH+'"><td class="nm">'+esc(fullName(s))+'</td>'+topic.lessons.map(l=>'<td'+(S.book.has(bKey(s.id,l.code))?' class="on"':'')+'></td>').join('')+'</tr>').join('');
-  const key=topic.lessons.map(l=>'<div><b>'+esc(l.code)+'</b> '+esc(l.title)+'</div>').join('');
   $('printArea').innerHTML='<div class="bwPrint"><p class="cls">'+esc(cls)+'</p><div class="ptitle">Book work · '+esc(topic.label)+'</div>'+
-    '<table><thead>'+head+'</thead><tbody>'+body+'</tbody></table><div class="key">'+key+'</div></div>';
+    '<table><thead>'+head+'</thead><tbody>'+body+'</tbody></table></div>';
+  const pg=document.createElement('style');pg.textContent='@media print{@page{size:A4 landscape;margin:10mm}}';document.head.append(pg);
+  window.addEventListener('afterprint',()=>pg.remove(),{once:true});
   window.print();
 };
 $('bClass').onchange=fillBookTopics;$('bTopic').onchange=drawBook;
