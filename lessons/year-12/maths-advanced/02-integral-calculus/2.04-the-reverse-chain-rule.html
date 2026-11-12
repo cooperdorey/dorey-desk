@@ -7,88 +7,48 @@ title: The Reverse Chain Rule
 <div class="title">2.04 – The Reverse Chain Rule</div>
 </div></div>
 
-<div class="c"><div class="h">Prior knowledge<span>Episode 4 · The reverse chain rule</span></div><div class="b" style="min-height:360px">
-<b>1.</b> Differentiate.
-<div class="g" style="grid-template-columns:repeat(2,1fr);font-size:25px;gap:52px 30px;margin:30px 0 20px 20px"><div>a) $(x^{2}+1)^{3}$<div class="ws">$3(x^{2}+1)^{2}\times2x=6x(x^{2}+1)^{2}$</div></div><div>b) $(x^{3}-2)^{4}$<div class="ws">$4(x^{3}-2)^{3}\times3x^{2}=12x^{2}(x^{3}-2)^{3}$</div></div><div>c) If $f(x)=x^{2}+3x$, find $f'(x)$<div class="ws">$2x+3$</div></div><div>d) Write $\dfrac{1}{(x^{2}+1)^{3}}$ and $\sqrt{x^{2}+1}$ as powers<div class="ws">$(x^{2}+1)^{-3}$ and $(x^{2}+1)^{\frac{1}{2}}$</div></div></div>
+<div class="c"><div class="h">Warm-up<span>Episode 4 · Reverse chain rule</span></div><div class="b" style="min-height:520px">
+Differentiate each function.<div style="margin:18px 0 0 20px">a) $y=\left(x^{2}+1\right)^{3}$<div class="ws">$\dfrac{dy}{dx}=3\left(x^{2}+1\right)^{2}\times2x=6x\left(x^{2}+1\right)^{2}$</div></div><div style="margin:18px 0 0 20px">b) $y=\left(x^{2}+1\right)^{4}$<div class="ws">$\dfrac{dy}{dx}=4\left(x^{2}+1\right)^{3}\times2x=8x\left(x^{2}+1\right)^{3}$</div></div><div style="margin:18px 0 0 20px">c) $y=\left(3x^{2}-1\right)^{5}$<div class="ws">$\dfrac{dy}{dx}=5\left(3x^{2}-1\right)^{4}\times6x=30x\left(3x^{2}-1\right)^{4}$</div></div><div style="margin:18px 0 0 20px">d) Use your answer to (b) to write down a function with derivative $x\left(x^{2}+1\right)^{3}$.<div class="ws">Divide (b) by $8$.<br>$y=\dfrac{\left(x^{2}+1\right)^{4}}{8}$ has derivative $x\left(x^{2}+1\right)^{3}$.</div></div>
 </div></div>
 
-<div class="c"><div class="h">Fact<span>Episode 4 · The reverse chain rule</span></div><div class="b">
+<div class="c"><div class="h">Fact<span>Episode 4 · Reverse chain rule</span></div><div class="b">
 <div class="rule">The reverse chain rule
-<div class="m">$\displaystyle\int f'(x)\,[f(x)]^{n}\,dx=\dfrac{1}{n+1}[f(x)]^{n+1}+C,\quad n\neq-1$</div>Proof: by the chain rule, $\dfrac{d}{dx}\left(\dfrac{[f(x)]^{n+1}}{n+1}\right)=\dfrac{(n+1)[f(x)]^{n}\,f'(x)}{n+1}=f'(x)[f(x)]^{n}$.<br>The integrand must contain $f'(x)$: the derivative of the inside, as a factor.</div>
-<div class="key">The inside's derivative is already there, so treat the inside like a single variable.</div>
+<div class="m">$\displaystyle\int f'(x)\,\left[f(x)\right]^{n}dx=\dfrac{\left[f(x)\right]^{n+1}}{n+1}+C,\quad n\neq-1$</div><br>The derivative of the inside function sits outside the bracket.<br>Add one to the power, then divide by the new power.</div>
+<div class="key">Check by differentiating your answer.</div>
 </div></div>
 
-<div class="c"><div class="h">Transformation · model<span>Episode 4 · The reverse chain rule</span></div><div class="b">
-<div class="cq">Write $f(x)$, $f'(x)$ and the constant $k$ in $k\,f'(x)\,[f(x)]^{n}$</div>
-<div class="g" style="grid-template-columns:repeat(3,1fr);font-size:25px;gap:44px 20px;text-align:center"><div>$2x(x^{2}+1)^{4}$<div class="ws">$f=x^{2}+1,\ f'=2x$<br>$k=1$</div></div><div>$x(x^{2}+1)^{4}$<div class="ws">$f=x^{2}+1,\ f'=2x$<br>$x=\tfrac{1}{2}(2x)$, so $k=\tfrac{1}{2}$</div></div><div>$6x^{2}(x^{3}-2)^{5}$<div class="ws">$f=x^{3}-2,\ f'=3x^{2}$<br>$6x^{2}=2(3x^{2})$, so $k=2$</div></div></div>
+<div class="c"><div class="h">I Do<span>Episode 4 · Reverse chain rule</span></div><div class="b" style="min-height:360px">
+Find $\displaystyle\int3x^{2}\left(x^{3}-1\right)^{5}dx$.
+<div class="ws">The inside is $f(x)=x^{3}-1$, and $f'(x)=3x^{2}$ is outside.<br>$\int3x^{2}\left(x^{3}-1\right)^{5}dx=\dfrac{\left(x^{3}-1\right)^{6}}{6}+C$<br>Check: $\dfrac{d}{dx}\dfrac{\left(x^{3}-1\right)^{6}}{6}=\dfrac{6\left(x^{3}-1\right)^{5}\times3x^{2}}{6}=3x^{2}\left(x^{3}-1\right)^{5}$</div>
 </div></div>
 
-<div class="c"><div class="h">Transformation · your turn<span>Episode 4 · The reverse chain rule</span></div><div class="b" style="min-height:340px">
-<b>2.</b> Write $f(x)$, $f'(x)$ and $k$.
-<div class="g" style="grid-template-columns:repeat(2,1fr);font-size:25px;gap:52px 30px;margin:30px 0 20px 20px"><div>a) $3x^{2}(x^{3}+4)^{5}$<div class="ws">$f=x^{3}+4,\ f'=3x^{2},\ k=1$</div></div><div>b) $x(x^{2}-5)^{3}$<div class="ws">$f=x^{2}-5,\ f'=2x,\ k=\tfrac{1}{2}$</div></div><div>c) $x^{2}(x^{3}+1)^{4}$<div class="ws">$f=x^{3}+1,\ f'=3x^{2},\ k=\tfrac{1}{3}$</div></div><div>d) $x^{3}(x^{4}+2)^{5}$<div class="ws">$f=x^{4}+2,\ f'=4x^{3},\ k=\tfrac{1}{4}$</div></div></div>
+<div class="c"><div class="h">We Do 1<span>Episode 4 · Reverse chain rule</span></div><div class="b" style="min-height:340px">
+Find $\displaystyle\int(4x+1)\left(2x^{2}+x\right)^{3}dx$.<div class="ws">The inside is $f(x)=2x^{2}+x$, and $f'(x)=4x+1$ is outside.<br>$=\dfrac{\left(2x^{2}+x\right)^{4}}{4}+C$</div>
 </div></div>
 
-<div class="c"><div class="h">Routine · model<span>Episode 4 · The reverse chain rule</span></div><div class="b">
-<div class="cq">Find the integral</div>
-<div class="g" style="grid-template-columns:repeat(3,1fr);font-size:24px;gap:44px 20px;text-align:center"><div>$\displaystyle\int2x(x^{2}+1)^{4}dx$<div class="ws">$\dfrac{(x^{2}+1)^{5}}{5}+C$</div></div><div>$\displaystyle\int x(x^{2}+1)^{4}dx$<div class="ws">$\tfrac{1}{2}\times\dfrac{(x^{2}+1)^{5}}{5}+C=\dfrac{(x^{2}+1)^{5}}{10}+C$</div></div><div>$\displaystyle\int6x^{2}(x^{3}-2)^{5}dx$<div class="ws">$2\times\dfrac{(x^{3}-2)^{6}}{6}+C=\dfrac{(x^{3}-2)^{6}}{3}+C$</div></div></div>
+<div class="c"><div class="h">Fact<span>Episode 4 · Reverse chain rule</span></div><div class="b">
+<div class="rule">Off by a constant<br>If the outside factor is a constant multiple of $f'(x)$, multiply and divide by that constant.<br>For example, $x$ is $\tfrac{1}{2}$ of $f'(x)=2x$, so $\displaystyle\int x\,[\ldots]\,dx=\tfrac{1}{2}\int2x\,[\ldots]\,dx$.</div>
+<div class="key">Only a constant can be fixed this way. A factor of $x$ cannot.</div>
 </div></div>
 
-<div class="c"><div class="h">Routine · your turn<span>Episode 4 · The reverse chain rule</span></div><div class="b" style="min-height:340px">
-<b>3.</b> Find the integral.
-<div class="g" style="grid-template-columns:repeat(2,1fr);font-size:24px;gap:52px 30px;margin:30px 0 20px 20px"><div>a) $\displaystyle\int3x^{2}(x^{3}+4)^{5}dx$<div class="ws">$\dfrac{(x^{3}+4)^{6}}{6}+C$</div></div><div>b) $\displaystyle\int x(x^{2}-5)^{3}dx$<div class="ws">$\tfrac{1}{2}\times\dfrac{(x^{2}-5)^{4}}{4}+C=\dfrac{(x^{2}-5)^{4}}{8}+C$</div></div><div>c) $\displaystyle\int x^{2}(x^{3}+1)^{4}dx$<div class="ws">$\tfrac{1}{3}\times\dfrac{(x^{3}+1)^{5}}{5}+C=\dfrac{(x^{3}+1)^{5}}{15}+C$</div></div><div>d) $\displaystyle\int x^{3}(x^{4}+2)^{5}dx$<div class="ws">$\tfrac{1}{4}\times\dfrac{(x^{4}+2)^{6}}{6}+C=\dfrac{(x^{4}+2)^{6}}{24}+C$</div></div></div>
+<div class="c"><div class="h">I Do<span>Episode 4 · Reverse chain rule</span></div><div class="b" style="min-height:360px">
+Find $\displaystyle\int x\left(3x^{2}+1\right)^{2}dx$.
+<div class="ws">The inside is $f(x)=3x^{2}+1$, so $f'(x)=6x$.<br>Write $x=\tfrac{1}{6}\times6x$.<br>$\int x\left(3x^{2}+1\right)^{2}dx=\tfrac{1}{6}\int6x\left(3x^{2}+1\right)^{2}dx$<br>$=\tfrac{1}{6}\times\dfrac{\left(3x^{2}+1\right)^{3}}{3}+C$<br>$=\dfrac{\left(3x^{2}+1\right)^{3}}{18}+C$</div>
 </div></div>
 
-<div class="c"><div class="h">I Do<span>Episode 4 · The reverse chain rule</span></div><div class="b" style="min-height:360px">
-Find $\displaystyle\int5x(x^{2}+2)^{4}\,dx$.
-<div class="ws">$f(x)=x^{2}+2$, so $f'(x)=2x$<br>$5x=\tfrac{5}{2}(2x)$, so $k=\tfrac{5}{2}$<br>$\int5x(x^{2}+2)^{4}dx=\tfrac{5}{2}\times\dfrac{(x^{2}+2)^{5}}{5}+C$<br>$=\dfrac{(x^{2}+2)^{5}}{2}+C$</div>
+<div class="c"><div class="h">We Do 2<span>Episode 4 · Reverse chain rule</span></div><div class="b" style="min-height:380px">
+Find $\displaystyle\int x^{2}\left(x^{3}+4\right)^{4}dx$.<div class="ws">The inside is $f(x)=x^{3}+4$, so $f'(x)=3x^{2}$.<br>$=\tfrac{1}{3}\int3x^{2}\left(x^{3}+4\right)^{4}dx$<br>$=\tfrac{1}{3}\times\dfrac{\left(x^{3}+4\right)^{5}}{5}+C$<br>$=\dfrac{\left(x^{3}+4\right)^{5}}{15}+C$</div>
 </div></div>
 
-<div class="c"><div class="h">We Do 1<span>Episode 4 · The reverse chain rule</span></div><div class="b" style="min-height:340px">
-Find $\displaystyle\int4x(x^{2}-3)^{5}\,dx$.<div class="ws">$f=x^{2}-3,\ f'=2x,\ k=2$<br>$2\times\dfrac{(x^{2}-3)^{6}}{6}+C=\dfrac{(x^{2}-3)^{6}}{3}+C$</div>
+<div class="c"><div class="h">I Do<span>Episode 4 · Reverse chain rule</span></div><div class="b" style="min-height:360px">
+Find $\displaystyle\int\dfrac{x}{\left(x^{2}+4\right)^{2}}dx$.
+<div class="ws">Rewrite: $\int x\left(x^{2}+4\right)^{-2}dx$<br>The inside is $f(x)=x^{2}+4$, so $f'(x)=2x$.<br>$=\tfrac{1}{2}\int2x\left(x^{2}+4\right)^{-2}dx$<br>$=\tfrac{1}{2}\times\dfrac{\left(x^{2}+4\right)^{-1}}{-1}+C$<br>$=-\dfrac{1}{2\left(x^{2}+4\right)}+C$</div>
 </div></div>
 
-<div class="c"><div class="h">We Do 2<span>Episode 4 · The reverse chain rule</span></div><div class="b" style="min-height:340px">
-Find $\displaystyle\int x^{2}(2x^{3}+1)^{3}\,dx$.<div class="ws">$f=2x^{3}+1,\ f'=6x^{2},\ k=\tfrac{1}{6}$<br>$\tfrac{1}{6}\times\dfrac{(2x^{3}+1)^{4}}{4}+C=\dfrac{(2x^{3}+1)^{4}}{24}+C$</div>
+<div class="c"><div class="h">We Do 3<span>Episode 4 · Reverse chain rule</span></div><div class="b" style="min-height:380px">
+Find $\displaystyle\int\dfrac{x}{\sqrt{x^{2}+9}}dx$.<div class="ws">Rewrite: $\int x\left(x^{2}+9\right)^{-\frac{1}{2}}dx$<br>$f'(x)=2x$, so $=\tfrac{1}{2}\int2x\left(x^{2}+9\right)^{-\frac{1}{2}}dx$<br>$=\tfrac{1}{2}\times\dfrac{\left(x^{2}+9\right)^{\frac{1}{2}}}{\frac{1}{2}}+C$<br>$=\sqrt{x^{2}+9}+C$</div>
 </div></div>
 
-<div class="c"><div class="h">We Do 3<span>Episode 4 · The reverse chain rule</span></div><div class="b" style="min-height:360px">
-Find $\displaystyle\int(x+1)(x^{2}+2x)^{4}\,dx$.<div class="ws">$f=x^{2}+2x,\ f'=2x+2=2(x+1)$, so $k=\tfrac{1}{2}$<br>$\tfrac{1}{2}\times\dfrac{(x^{2}+2x)^{5}}{5}+C=\dfrac{(x^{2}+2x)^{5}}{10}+C$</div>
-</div></div>
-
-<div class="c"><div class="h">Transformation · model<span>Episode 4 · The reverse chain rule</span></div><div class="b">
-<div class="cq">Write as a power of $f(x)$</div>
-<div class="g" style="grid-template-columns:repeat(3,1fr);font-size:25px;gap:44px 20px;text-align:center"><div>$\sqrt{x^{2}+1}$<div class="ws">$(x^{2}+1)^{\frac{1}{2}}$</div></div><div>$\dfrac{1}{(x^{2}+1)^{3}}$<div class="ws">$(x^{2}+1)^{-3}$</div></div><div>$\dfrac{5}{\sqrt{2x+1}}$<div class="ws">$5(2x+1)^{-\frac{1}{2}}$</div></div></div>
-</div></div>
-
-<div class="c"><div class="h">Transformation · your turn<span>Episode 4 · The reverse chain rule</span></div><div class="b" style="min-height:320px">
-<b>4.</b> Write as a power of $f(x)$.
-<div class="g" style="grid-template-columns:repeat(2,1fr);font-size:25px;gap:52px 30px;margin:30px 0 20px 20px"><div>a) $\sqrt{x^{3}-4}$<div class="ws">$(x^{3}-4)^{\frac{1}{2}}$</div></div><div>b) $\dfrac{1}{(x^{2}+5)^{2}}$<div class="ws">$(x^{2}+5)^{-2}$</div></div><div>c) $\dfrac{3}{\sqrt{x^{2}+4}}$<div class="ws">$3(x^{2}+4)^{-\frac{1}{2}}$</div></div><div>d) $\dfrac{2}{(1-x^{2})^{4}}$<div class="ws">$2(1-x^{2})^{-4}$</div></div></div>
-</div></div>
-
-<div class="c"><div class="h">We Do 4<span>Episode 4 · The reverse chain rule</span></div><div class="b" style="min-height:360px">
-Find $\displaystyle\int\dfrac{x}{\sqrt{x^{2}+4}}\,dx$.<div class="ws">$x(x^{2}+4)^{-\frac{1}{2}}$, with $f=x^{2}+4$, $f'=2x$, $k=\tfrac{1}{2}$<br>$\tfrac{1}{2}\times\dfrac{(x^{2}+4)^{\frac{1}{2}}}{\frac{1}{2}}+C=\sqrt{x^{2}+4}+C$</div>
-</div></div>
-
-<div class="c"><div class="h">We Do 5<span>Episode 4 · The reverse chain rule</span></div><div class="b" style="min-height:360px">
-Find $\displaystyle\int x\sqrt{x^{2}+1}\,dx$.<div class="ws">$x(x^{2}+1)^{\frac{1}{2}}$, with $f=x^{2}+1$, $f'=2x$, $k=\tfrac{1}{2}$<br>$\tfrac{1}{2}\times\dfrac{(x^{2}+1)^{\frac{3}{2}}}{\frac{3}{2}}+C=\tfrac{1}{3}(x^{2}+1)^{\frac{3}{2}}+C$</div><div style="font-size:16px;color:#777;margin-top:8px">Modelled on HSC 2023 Q17.</div>
-</div></div>
-
-<div class="c"><div class="h">We Do 6<span>Episode 4 · The reverse chain rule</span></div><div class="b" style="min-height:360px">
-Find $\displaystyle\int\dfrac{3x}{(x^{2}+1)^{2}}\,dx$.<div class="ws">$3x(x^{2}+1)^{-2}$, with $f'=2x$ and $k=\tfrac{3}{2}$<br>$\tfrac{3}{2}\times\dfrac{(x^{2}+1)^{-1}}{-1}+C=-\dfrac{3}{2(x^{2}+1)}+C$</div>
-</div></div>
-
-<div class="c"><div class="h">We Do 7<span>Episode 4 · The reverse chain rule</span></div><div class="b" style="min-height:340px">
-Evaluate $\displaystyle\int_{0}^{1}x(x^{2}+1)^{3}\,dx$.<div class="ws">$\left[\dfrac{(x^{2}+1)^{4}}{8}\right]_{0}^{1}=\dfrac{16}{8}-\dfrac{1}{8}=\dfrac{15}{8}$</div>
-</div></div>
-
-<div class="c"><div class="h">We Do 8<span>Episode 4 · The reverse chain rule</span></div><div class="b" style="min-height:400px">
-A curve has gradient $\dfrac{dy}{dx}=6x(x^{2}+1)^{2}$ and passes through $(0,\,4)$. Find its equation.<div class="ws">$f'=2x$, $k=3$: $y=3\times\dfrac{(x^{2}+1)^{3}}{3}+C=(x^{2}+1)^{3}+C$<br>$4=1+C$, so $C=3$<br>$y=(x^{2}+1)^{3}+3$</div>
-</div></div>
-
-<div class="c"><div class="h">We Do 9<span>Episode 4 · The reverse chain rule</span></div><div class="b" style="min-height:420px">
-Show that $\displaystyle\int_{0}^{1}x\sqrt{1+3x^{2}}\,dx=\dfrac{7}{9}$.<div class="ws">$f=1+3x^{2},\ f'=6x,\ k=\tfrac{1}{6}$<br>$\int x(1+3x^{2})^{\frac{1}{2}}dx=\tfrac{1}{6}\times\dfrac{(1+3x^{2})^{\frac{3}{2}}}{\frac{3}{2}}=\dfrac{(1+3x^{2})^{\frac{3}{2}}}{9}$<br>$\left[\dfrac{(1+3x^{2})^{\frac{3}{2}}}{9}\right]_{0}^{1}=\dfrac{4^{\frac{3}{2}}}{9}-\dfrac{1}{9}=\dfrac{8-1}{9}=\dfrac{7}{9}$</div>
-</div></div>
-
-<div class="c"><div class="h">We Do 10<span>Episode 4 · The reverse chain rule</span></div><div class="b" style="min-height:340px">
-Prove by differentiation that $\displaystyle\int f'(x)[f(x)]^{n}dx=\dfrac{1}{n+1}[f(x)]^{n+1}+C$ for $n\neq-1$.<div class="ws">$\dfrac{d}{dx}\left(\dfrac{1}{n+1}[f(x)]^{n+1}\right)=\dfrac{1}{n+1}\times(n+1)[f(x)]^{n}\times f'(x)$ (chain rule)<br>$=f'(x)[f(x)]^{n}$ ✓</div>
+<div class="c"><div class="h">We Do 4<span>Episode 4 · Reverse chain rule</span></div><div class="b" style="min-height:380px">
+Find $\displaystyle\int x\sqrt{x^{2}+1}\,dx$.<div class="ws">Rewrite: $\int x\left(x^{2}+1\right)^{\frac{1}{2}}dx$<br>$f'(x)=2x$, so $=\tfrac{1}{2}\int2x\left(x^{2}+1\right)^{\frac{1}{2}}dx$<br>$=\tfrac{1}{2}\times\dfrac{\left(x^{2}+1\right)^{\frac{3}{2}}}{\frac{3}{2}}+C$<br>$=\tfrac{1}{3}\left(x^{2}+1\right)^{\frac{3}{2}}+C$</div><div style="font-size:16px;color:#777;margin-top:8px">HSC 2023 Q17.</div>
 </div></div>
