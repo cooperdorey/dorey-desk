@@ -102,6 +102,7 @@ td.n,th.n{text-align:right}
 .bgrid tbody tr:hover td.st{background:var(--tint)}
 .bgrid input{width:17px;height:17px;margin:0;cursor:pointer;accent-color:var(--brand)}
 .bgrid .done{background:var(--tint)}
+.bgrid .bm{text-align:center;font-weight:600;min-width:52px}
 .tag.owed{background:var(--warnbg);color:var(--warn);border-color:transparent}
 .empty{color:var(--muted);padding:10px 0}
 .rgrid{border-collapse:collapse;font-size:13px}
@@ -189,6 +190,7 @@ dialog .row{margin-top:12px}
   #printArea .bwPrint th.nm,#printArea .bwPrint td.nm{width:48mm;text-align:left;padding-left:2mm;white-space:nowrap;overflow:hidden}
   #printArea .bwPrint td{border:1px solid #000;padding:0}
   #printArea .bwPrint td.on{background:#d9d9d9}
+  #printArea .bwPrint th.bm,#printArea .bwPrint td.bm{width:16mm;text-align:center;font-weight:bold}
   #printArea .bwPrint th small{display:block;font-weight:400;font-size:7pt;line-height:1.15;padding:0 1mm}
 }
 </style>
@@ -886,6 +888,13 @@ async function loadTopics(){
     else $('bMsg').textContent='Couldn’t load the lesson list.';
   }catch(e){$('bMsg').textContent='Couldn’t load the lesson list.'}
 }
+/* missed = lessons in this topic the class has started ticking (>=1 student) that this student hasn't */
+function missedMap(students,topic){
+  const live=topic.lessons.filter(l=>students.some(s=>S.book.has(bKey(s.id,l.code))));
+  const m=new Map();
+  students.forEach(s=>m.set(s.id,live.filter(l=>!S.book.has(bKey(s.id,l.code))).length));
+  return m;
+}
 function drawBook(){
   const box=$('bGrid');
   if(!S.loaded){box.innerHTML='<p class="empty" style="padding:10px 12px;margin:0">Open your folder or files first.</p>';return}
@@ -899,8 +908,9 @@ function drawBook(){
   if(!cls||!topic){box.innerHTML='<p class="empty" style="padding:10px 12px;margin:0">Choose a class and topic.</p>';return}
   const students=studentsIn(cls);
   if(!students.length){box.innerHTML='<p class="empty" style="padding:10px 12px;margin:0">No students in this class.</p>';return}
-  const head='<tr><th class="st">Student</th>'+topic.lessons.map(l=>'<th data-lesson="'+esc(l.code)+'" title="'+esc(l.title)+'">'+esc(l.code)+'<small>'+esc(l.title.length>14?l.title.slice(0,13)+'…':l.title)+'</small></th>').join('')+'</tr>';
-  const body=students.map(s=>'<tr><td class="st">'+esc(fullName(s))+'</td>'+topic.lessons.map(l=>{
+  const mm=missedMap(students,topic);
+  const head='<tr><th class="st">Student</th><th class="bm" title="Missed lessons">Missed</th>'+topic.lessons.map(l=>'<th data-lesson="'+esc(l.code)+'" title="'+esc(l.title)+'">'+esc(l.code)+'<small>'+esc(l.title.length>14?l.title.slice(0,13)+'…':l.title)+'</small></th>').join('')+'</tr>';
+  const body=students.map(s=>'<tr><td class="st">'+esc(fullName(s))+'</td><td class="bm" data-id="'+esc(s.id)+'">'+mm.get(s.id)+'</td>'+topic.lessons.map(l=>{
     const on=S.book.has(bKey(s.id,l.code));
     return '<td class="'+(on?'done':'')+'"><input type="checkbox"'+(on?' checked':'')+' data-id="'+esc(s.id)+'" data-lesson="'+esc(l.code)+'" aria-label="'+esc(fullName(s))+' lesson '+esc(l.code)+'"></td>';
   }).join('')+'</tr>').join('');
@@ -928,10 +938,16 @@ function setBook(id,lesson,on){
   const k=bKey(id,lesson);
   if(on)S.book.set(k,todayISO());else S.book.delete(k);
 }
+function refreshMissed(){
+  const cls=$('bClass').value,tv=$('bTopic').value;if(!cls||tv==='')return;
+  const mm=missedMap(studentsIn(cls),TOPICS[+tv]);
+  $('bGrid').querySelectorAll('td.bm').forEach(td=>{td.textContent=mm.get(td.dataset.id)});
+}
 $('bGrid').onchange=async ev=>{
   const c=ev.target.closest('input[data-id]');if(!c)return;
   setBook(c.dataset.id,c.dataset.lesson,c.checked);
   c.closest('td').classList.toggle('done',c.checked);
+  refreshMissed();
   await persist();
 };
 $('bGrid').onclick=async ev=>{
@@ -948,8 +964,9 @@ $('bPrint').onclick=()=>{
   if(!students.length){$('bMsg').textContent='No students in this class.';return}
   /* one A4 landscape page: row height shrinks so a whole class fits; lesson columns share the rest of the width */
   const rowH=Math.max(4.6,Math.min(9,Math.floor(1520/Math.max(1,students.length))/10)).toFixed(1)+'mm';
-  const head='<tr><th class="nm">Student</th>'+topic.lessons.map(l=>'<th>'+esc(l.code)+'<small>'+esc(l.title)+'</small></th>').join('')+'</tr>';
-  const body=students.map(s=>'<tr style="height:'+rowH+'"><td class="nm">'+esc(fullName(s))+'</td>'+topic.lessons.map(l=>'<td'+(S.book.has(bKey(s.id,l.code))?' class="on"':'')+'></td>').join('')+'</tr>').join('');
+  const mm=missedMap(students,topic);
+  const head='<tr><th class="nm">Student</th><th class="bm">Missed</th>'+topic.lessons.map(l=>'<th>'+esc(l.code)+'<small>'+esc(l.title)+'</small></th>').join('')+'</tr>';
+  const body=students.map(s=>'<tr style="height:'+rowH+'"><td class="nm">'+esc(fullName(s))+'</td><td class="bm">'+(mm.get(s.id)||'')+'</td>'+topic.lessons.map(l=>'<td'+(S.book.has(bKey(s.id,l.code))?' class="on"':'')+'></td>').join('')+'</tr>').join('');
   $('printArea').innerHTML='<div class="bwPrint"><p class="cls">'+esc(cls)+'</p><div class="ptitle">Book work · '+esc(topic.label)+'</div>'+
     '<table><thead>'+head+'</thead><tbody>'+body+'</tbody></table></div>';
   const pg=document.createElement('style');pg.textContent='@media print{@page{size:A4 landscape;margin:10mm}}';document.head.append(pg);
