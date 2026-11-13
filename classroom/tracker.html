@@ -503,8 +503,11 @@ function loadFromText(ct,at,bt,nt,it,rt){
   S.book=new Map();
   b.rows.filter(r=>r.id&&r.lesson).forEach(r=>S.book.set(bKey(r.id,r.lesson),r.done||'yes'));
   S.naw=nw.rows.filter(r=>r.id&&r.date).map(r=>{const o={};NC.forEach(k=>o[k]=r[k]||'');if(!o.topic&&r.task)o.topic=r.task;if(!o.detail&&r.notes)o.detail=r.notes;o.date=isoDate(o.date);o.status=/^resolved/i.test(o.status)?'resolved':'unresolved';['crt','ht','dp'].forEach(k=>{o[k]=o[k]?isoDate(o[k]):''});return o});
-  S.loaded=true;S.dirty=false;
+  let reworded=0;
+  S.naw.forEach(r=>{const m=OLD_BLURB.exec(r.detail||'');if(m){r.detail=nBlurb(m[1],m[2]);reworded++}});
+  S.loaded=true;S.dirty=reworded>0;
   refreshAll();updateBar();
+  if(reworded)setMsg(reworded+' N-award'+(reworded===1?'':'s')+' updated to the new wording · unsaved changes');
 }
 function bookRows(){return [...S.book].map(([k,done])=>{const i=k.indexOf('|');return {id:k.slice(0,i),lesson:k.slice(i+1),done}})}
 async function readHandle(dir,name){
@@ -537,7 +540,7 @@ $('fileIn').onchange=async ev=>{
   }
   S.dir=null;S.handles={};
   loadFromText(ct,at,bt,nt,it,rt);
-  setMsg('Files loaded'+(ct?'':' (no classes file chosen)')+(at?'':' (no absences file chosen)')+'. Save by downloading the files back over the originals.');
+  setMsg('Files loaded'+(ct?'':' (no classes file chosen)')+(at?'':' (no absences file chosen)')+'. '+(S.dirty?'N-awards updated to the new wording. ':'')+'Save by downloading the files back over the originals.');
 };
 async function writeFile(name,text){
   let h=S.handles[name];
@@ -1141,8 +1144,11 @@ function nPrefill(){
   $('nOutcomes').value=(NAWARD.outcomes[key]||[]).join('\n');
   const codes=topic.lessons.map(l=>l.code).join(', ');
   const cc=NAWARD.classroomCodes[cls]||NAWARD.classroomCodes[classCourse(cls)]||'xxxxx';
-  $('nDetail').value='Student must complete at least one question from every tier of the Dorey’s Resource Book (DRB), including the final conceptual tier, for the following lessons: '+codes+'. All lessons and the DRB can be found on OneNote or Google Classroom (code: '+cc+').';
+  $('nDetail').value=nBlurb(codes,cc);
 }
+function nBlurb(codes,cc){return 'Student must complete at least one question from every tier of the Dorey’s Resource Book (DRB), including the final conceptual tier, for the following lessons: '+codes+'. All lessons and the DRB can be found on OneNote or Google Classroom (code: '+cc+').'}
+/* warnings saved with the old template wording (untouched by hand) are re-worded to the current blurb on load */
+const OLD_BLURB=/^Student to complete all lessons and the Dorey’s Resource Book \(DRB\) for .*: ([\w.]+(?:, [\w.]+)*)\. All lessons and the DRB can be found on OneNote or Google Classroom \(code: ([^)]*)\)\.$/;
 function fillNTopics(){
   const cc=classCourse($('nClass').value);
   const idxs=TOPICS.map((t,i)=>i).filter(i=>!cc||TOPICS[i].course===cc);
