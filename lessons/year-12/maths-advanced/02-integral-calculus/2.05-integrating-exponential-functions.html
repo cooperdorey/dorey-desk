@@ -7,123 +7,53 @@ title: Integrating Exponential Functions
 <div class="title">2.05 – Integrating Exponential Functions</div>
 </div></div>
 
-<div class="c"><div class="h">Prior knowledge<span>Episode 5 · Exponential integrals</span></div><div class="b" style="min-height:330px">
-<b>1.</b> 
-<div class="g" style="grid-template-columns:repeat(2,1fr);font-size:25px;gap:52px 30px;margin:30px 0 20px 20px"><div>a) Differentiate $e^{5x}$<div class="ws">$5e^{5x}$</div></div><div>b) Differentiate $2^{x}$<div class="ws">$2^{x}\ln 2$</div></div><div>c) Find the primitive of $4x^{3}$<div class="ws">$x^{4}+C$</div></div><div>d) Write $\dfrac{1}{e^{2x}}$ as a power of $e$<div class="ws">$e^{-2x}$</div></div></div>
+<div class="c"><div class="h">Warm-up<span>Episode 5 · Exponential functions</span></div><div class="b" style="min-height:480px">
+Differentiate each function.<div style="margin:18px 0 0 20px">a) $y=e^{x}$<div class="ws">$\dfrac{dy}{dx}=e^{x}$</div></div><div style="margin:18px 0 0 20px">b) $y=e^{3x}$<div class="ws">$\dfrac{dy}{dx}=3e^{3x}$</div></div><div style="margin:18px 0 0 20px">c) $y=e^{5x-2}$<div class="ws">$\dfrac{dy}{dx}=5e^{5x-2}$</div></div><div style="margin:18px 0 0 20px">d) Write down a function with derivative $e^{3x}$.<div class="ws">Divide (b) by $3$.<br>$y=\dfrac{1}{3}e^{3x}$ has derivative $e^{3x}$.</div></div>
 </div></div>
 
-<div class="c"><div class="h">Fact<span>Episode 5 · Exponential integrals</span></div><div class="b">
-<div class="rule">Integrals of $e^{x}$ and $e^{ax+b}$
-<div class="m">$\displaystyle\int e^{x}\,dx=e^{x}+C\qquad\int e^{ax+b}\,dx=\dfrac{1}{a}\,e^{ax+b}+C$</div>Check: $\dfrac{d}{dx}\left(\dfrac{1}{a}e^{ax+b}\right)=\dfrac{1}{a}\times a\,e^{ax+b}=e^{ax+b}$, with $a\neq0$.</div>
-<div class="key">The power stays the same. Divide by $a$.</div>
+<div class="c"><div class="h">Fact<span>Episode 5 · Exponential functions</span></div><div class="b">
+<div class="rule">Integrating $e^{ax+b}$
+<div class="m">$\displaystyle\int e^{x}\,dx=e^{x}+C\qquad\int e^{ax+b}\,dx=\dfrac{e^{ax+b}}{a}+C$</div><br>The power stays the same. Divide by $a$, the coefficient of $x$.</div>
+<div class="key">Check by differentiating your answer.</div>
 </div></div>
 
-<div class="c"><div class="h">Transformation · model<span>Episode 5 · Exponential integrals</span></div><div class="b">
-<div class="cq">Write $a$, the coefficient of $x$ in the power</div>
-<div class="g" style="grid-template-columns:repeat(3,1fr);font-size:26px;gap:44px 20px;text-align:center"><div>$e^{4x}$<div class="ws">$a=4$</div></div><div>$e^{-x}$<div class="ws">$a=-1$</div></div><div>$e^{2x+5}$<div class="ws">$a=2$</div></div></div>
+<div class="c"><div class="h">I Do<span>Episode 5 · Exponential functions</span></div><div class="b" style="min-height:360px">
+Find $\displaystyle\int e^{3x-1}\,dx$.
+<div class="ws">Here $a=3$, so divide by $3$.<br>$\int e^{3x-1}\,dx=\dfrac{e^{3x-1}}{3}+C$<br>Check: $\dfrac{d}{dx}\dfrac{e^{3x-1}}{3}=\dfrac{3e^{3x-1}}{3}=e^{3x-1}$</div>
 </div></div>
 
-<div class="c"><div class="h">Transformation · your turn<span>Episode 5 · Exponential integrals</span></div><div class="b" style="min-height:300px">
-<b>2.</b> Write $a$.
-<div class="g" style="grid-template-columns:repeat(2,1fr);font-size:26px;gap:52px 30px;margin:30px 0 20px 20px"><div>a) $e^{6x}$<div class="ws">$a=6$</div></div><div>b) $e^{-3x}$<div class="ws">$a=-3$</div></div><div>c) $e^{5x-1}$<div class="ws">$a=5$</div></div><div>d) $e^{\frac{x}{2}}$<div class="ws">$a=\tfrac{1}{2}$</div></div></div>
+<div class="c"><div class="h">We Do 1<span>Episode 5 · Exponential functions</span></div><div class="b" style="min-height:340px">
+Find $\displaystyle\int\left(e^{x}+e^{3x}\right)dx$.<div class="ws">$\int e^{x}\,dx=e^{x}$ and $\int e^{3x}\,dx=\dfrac{e^{3x}}{3}$<br>$=e^{x}+\dfrac{1}{3}e^{3x}+C$</div><div style="font-size:16px;color:#777;margin-top:8px">HSC 2020 Q4 (multiple choice).</div>
 </div></div>
 
-<div class="c"><div class="h">Routine · model<span>Episode 5 · Exponential integrals</span></div><div class="b">
-<div class="cq">Find the integral</div>
-<div class="g" style="grid-template-columns:repeat(3,1fr);font-size:26px;gap:44px 20px;text-align:center"><div>$\displaystyle\int e^{4x}dx$<div class="ws">$\dfrac{e^{4x}}{4}+C$</div></div><div>$\displaystyle\int e^{-x}dx$<div class="ws">$-e^{-x}+C$</div></div><div>$\displaystyle\int3e^{2x+5}dx$<div class="ws">$\dfrac{3}{2}e^{2x+5}+C$</div></div></div>
+<div class="c"><div class="h">I Do<span>Episode 5 · Exponential functions</span></div><div class="b" style="min-height:360px">
+Evaluate $\displaystyle\int_{0}^{1}e^{2x}\,dx$.
+<div class="ws">$\int_{0}^{1}e^{2x}\,dx=\left[\dfrac{e^{2x}}{2}\right]_{0}^{1}=\dfrac{e^{2}}{2}-\dfrac{e^{0}}{2}=\dfrac{e^{2}-1}{2}$</div>
 </div></div>
 
-<div class="c"><div class="h">Routine · your turn<span>Episode 5 · Exponential integrals</span></div><div class="b" style="min-height:320px">
-<b>3.</b> Find the integral.
-<div class="g" style="grid-template-columns:repeat(2,1fr);font-size:26px;gap:52px 30px;margin:30px 0 20px 20px"><div>a) $\displaystyle\int e^{6x}dx$<div class="ws">$\dfrac{e^{6x}}{6}+C$</div></div><div>b) $\displaystyle\int8e^{-2x}dx$<div class="ws">$-4e^{-2x}+C$</div></div><div>c) $\displaystyle\int e^{5x-1}dx$<div class="ws">$\dfrac{e^{5x-1}}{5}+C$</div></div><div>d) $\displaystyle\int e^{\frac{x}{2}}dx$<div class="ws">$2e^{\frac{x}{2}}+C$</div></div></div>
+<div class="c"><div class="h">We Do 2<span>Episode 5 · Exponential functions</span></div><div class="b" style="min-height:340px">
+Evaluate $\displaystyle\int_{0}^{2}e^{-x}\,dx$.<div class="ws">Here $a=-1$, so divide by $-1$.<br>$\int_{0}^{2}e^{-x}\,dx=\left[-e^{-x}\right]_{0}^{2}=-e^{-2}-\left(-e^{0}\right)=1-e^{-2}$</div>
 </div></div>
 
-<div class="c"><div class="h">I Do<span>Episode 5 · Exponential integrals</span></div><div class="b" style="min-height:360px">
-Find $\displaystyle\int\left(6e^{3x}-5e^{-2x}\right)dx$.
-<div class="ws">$\int6e^{3x}dx=\dfrac{6}{3}e^{3x}=2e^{3x}$<br>$\int5e^{-2x}dx=\dfrac{5}{-2}e^{-2x}=-\tfrac{5}{2}e^{-2x}$<br>$\int\left(6e^{3x}-5e^{-2x}\right)dx=2e^{3x}+\tfrac{5}{2}e^{-2x}+C$</div>
+<div class="c"><div class="h">Fact<span>Episode 5 · Exponential functions</span></div><div class="b">
+<div class="rule">Integrating $a^{x}$
+<div class="m">$\displaystyle\int a^{x}\,dx=\dfrac{a^{x}}{\ln a}+C,\quad a\gt 0,\ a\neq1$</div><br>This comes from $\dfrac{d}{dx}a^{x}=a^{x}\ln a$.</div>
+<div class="key">Divide by $\ln a$, not by $a$.</div>
 </div></div>
 
-<div class="c"><div class="h">We Do 1<span>Episode 5 · Exponential integrals</span></div><div class="b" style="min-height:340px">
-Find $\displaystyle\int\left(2e^{3x+1}-e^{-x}\right)dx$.<div class="ws">$\dfrac{2}{3}e^{3x+1}-\dfrac{e^{-x}}{-1}+C$<br>$=\tfrac{2}{3}e^{3x+1}+e^{-x}+C$</div>
+<div class="c"><div class="h">I Do<span>Episode 5 · Exponential functions</span></div><div class="b" style="min-height:360px">
+Find $\displaystyle\int2^{x}\,dx$.
+<div class="ws">$\int2^{x}\,dx=\dfrac{2^{x}}{\ln2}+C$<br>Check: $\dfrac{d}{dx}\dfrac{2^{x}}{\ln2}=\dfrac{2^{x}\ln2}{\ln2}=2^{x}$</div>
 </div></div>
 
-<div class="c"><div class="h">Fact<span>Episode 5 · Exponential integrals</span></div><div class="b">
-<div class="rule">The integral of $a^{x}$
-<div class="m">$\displaystyle\int a^{x}\,dx=\dfrac{a^{x}}{\ln a}+C,\quad a\gt 0,\ a\neq1$</div>Check: $\dfrac{d}{dx}\left(\dfrac{a^{x}}{\ln a}\right)=\dfrac{a^{x}\ln a}{\ln a}=a^{x}$. Here $\ln a$ is just a number.</div>
-<div class="key">For $e^{x}$, $\ln e=1$, so the formula matches the one for $e^{x}$.</div>
+<div class="c"><div class="h">We Do 3<span>Episode 5 · Exponential functions</span></div><div class="b" style="min-height:340px">
+Evaluate $\displaystyle\int_{0}^{2}3^{x}\,dx$.<div class="ws">$\int_{0}^{2}3^{x}\,dx=\left[\dfrac{3^{x}}{\ln3}\right]_{0}^{2}=\dfrac{9}{\ln3}-\dfrac{1}{\ln3}=\dfrac{8}{\ln3}$</div>
 </div></div>
 
-<div class="c"><div class="h">Routine · model<span>Episode 5 · Exponential integrals</span></div><div class="b">
-<div class="cq">Find the integral</div>
-<div class="g" style="grid-template-columns:repeat(3,1fr);font-size:26px;gap:44px 20px;text-align:center"><div>$\displaystyle\int2^{x}dx$<div class="ws">$\dfrac{2^{x}}{\ln2}+C$</div></div><div>$\displaystyle\int5^{x}dx$<div class="ws">$\dfrac{5^{x}}{\ln5}+C$</div></div><div>$\displaystyle\int3\times4^{x}dx$<div class="ws">$\dfrac{3\times4^{x}}{\ln4}+C$</div></div></div>
+<div class="c"><div class="h">We Do 4<span>Episode 5 · Exponential functions</span></div><div class="b" style="min-height:380px">
+Let $P(t)$ be a function such that $\dfrac{dP}{dt}=3000e^{2t}$. When $t=0$, $P=4000$. Find an expression for $P(t)$.<div class="ws">$P(t)=\dfrac{3000e^{2t}}{2}+C=1500e^{2t}+C$<br>$P(0)=4000$: $1500+C=4000$, so $C=2500$.<br>$P(t)=1500e^{2t}+2500$</div><div style="font-size:16px;color:#777;margin-top:8px">HSC 2023 Q13.</div>
 </div></div>
 
-<div class="c"><div class="h">Routine · your turn<span>Episode 5 · Exponential integrals</span></div><div class="b" style="min-height:320px">
-<b>4.</b> Find the integral.
-<div class="g" style="grid-template-columns:repeat(2,1fr);font-size:26px;gap:52px 30px;margin:30px 0 20px 20px"><div>a) $\displaystyle\int10^{x}dx$<div class="ws">$\dfrac{10^{x}}{\ln10}+C$</div></div><div>b) $\displaystyle\int6\times2^{x}dx$<div class="ws">$\dfrac{6\times2^{x}}{\ln2}+C$</div></div><div>c) $\displaystyle\int\left(3^{x}+x\right)dx$<div class="ws">$\dfrac{3^{x}}{\ln3}+\dfrac{x^{2}}{2}+C$</div></div><div>d) $\displaystyle\int\left(2^{x}-2\right)dx$<div class="ws">$\dfrac{2^{x}}{\ln2}-2x+C$</div></div></div>
-</div></div>
-
-<div class="c"><div class="h">We Do 2<span>Episode 5 · Exponential integrals</span></div><div class="b" style="min-height:440px">
-What is $\displaystyle\int\left(e+e^{5x}\right)dx$?
-<div class="g" style="grid-template-columns:1fr 1fr;font-size:26px;gap:20px 30px;margin:24px 0 10px 20px">
-<div>A. $ex+5e^{5x}+C$</div><div>B. $ex+\dfrac{1}{5}e^{5x}+C$</div>
-<div>C. $e+5e^{5x}+C$</div><div>D. $e+\dfrac{1}{5}e^{5x}+C$</div></div><div class="ws">$e$ is a constant (about $2.718$), so $\int e\,dx=ex$.<br>$\int e^{5x}dx=\dfrac{1}{5}e^{5x}$<br>The answer is <b>B</b>.</div><div style="font-size:16px;color:#777;margin-top:8px">Modelled on HSC 2020 Q4.</div>
-</div></div>
-
-<div class="c"><div class="h">We Do 3<span>Episode 5 · Exponential integrals</span></div><div class="b" style="min-height:300px">
-Find $\displaystyle\int\left(5^{x}-x^{5}\right)dx$.<div class="ws">$\dfrac{5^{x}}{\ln5}-\dfrac{x^{6}}{6}+C$</div>
-</div></div>
-
-<div class="c"><div class="h">We Do 4<span>Episode 5 · Exponential integrals</span></div><div class="b" style="min-height:340px">
-Find the exact value of $\displaystyle\int_{0}^{1}\left(e^{2x}+1\right)dx$.<div class="ws">$\left[\dfrac{e^{2x}}{2}+x\right]_{0}^{1}=\left(\dfrac{e^{2}}{2}+1\right)-\left(\dfrac{1}{2}+0\right)=\dfrac{e^{2}+1}{2}$</div>
-</div></div>
-
-<div class="c"><div class="h">We Do 5<span>Episode 5 · Exponential integrals</span></div><div class="b" style="min-height:360px">
-Find the exact value of $\displaystyle\int_{0}^{\ln2}e^{2x}\,dx$.<div class="ws">$\left[\dfrac{e^{2x}}{2}\right]_{0}^{\ln2}=\dfrac{e^{2\ln2}}{2}-\dfrac{1}{2}=\dfrac{4}{2}-\dfrac{1}{2}=\dfrac{3}{2}$<br>since $e^{2\ln2}=e^{\ln4}=4$</div>
-</div></div>
-
-<div class="c"><div class="h">We Do 6<span>Episode 5 · Exponential integrals</span></div><div class="b" style="min-height:360px">
-Find $\displaystyle\int\left(e^{x}+e^{-x}\right)^{2}dx$.<div class="ws">Expand: $\left(e^{x}+e^{-x}\right)^{2}=e^{2x}+2+e^{-2x}$<br>$\int\left(e^{2x}+2+e^{-2x}\right)dx=\tfrac{1}{2}e^{2x}+2x-\tfrac{1}{2}e^{-2x}+C$</div>
-</div></div>
-
-<div class="c"><div class="h">We Do 7<span>Episode 5 · Exponential integrals</span></div><div class="b" style="min-height:400px">
-Let $\dfrac{dQ}{dt}=600e^{3t}$. When $t=0$, $Q=500$. Find an expression for $Q(t)$.<div class="ws">$Q=\dfrac{600}{3}e^{3t}+C=200e^{3t}+C$<br>$500=200+C$, so $C=300$<br>$Q(t)=200e^{3t}+300$</div><div style="font-size:16px;color:#777;margin-top:8px">Modelled on HSC 2023 Q13.</div>
-</div></div>
-
-<div class="c"><div class="h">Transformation · model<span>Episode 5 · Exponential integrals</span></div><div class="b">
-<div class="cq">Write $f(x)$, $f'(x)$ and $k$ in $k\,f'(x)\,e^{f(x)}$</div>
-<div class="g" style="grid-template-columns:repeat(3,1fr);font-size:25px;gap:44px 20px;text-align:center"><div>$xe^{x^{2}}$<div class="ws">$f=x^{2},\ f'=2x$<br>$k=\tfrac{1}{2}$</div></div><div>$6x^{2}e^{x^{3}}$<div class="ws">$f=x^{3},\ f'=3x^{2}$<br>$k=2$</div></div><div>$(2x+1)e^{x^{2}+x}$<div class="ws">$f=x^{2}+x,\ f'=2x+1$<br>$k=1$</div></div></div>
-</div></div>
-
-<div class="c"><div class="h">Transformation · your turn<span>Episode 5 · Exponential integrals</span></div><div class="b" style="min-height:340px">
-<b>5.</b> Write $f(x)$, $f'(x)$ and $k$.
-<div class="g" style="grid-template-columns:repeat(2,1fr);font-size:25px;gap:52px 30px;margin:30px 0 20px 20px"><div>a) $3x^{2}e^{x^{3}}$<div class="ws">$f=x^{3},\ f'=3x^{2},\ k=1$</div></div><div>b) $xe^{3x^{2}}$<div class="ws">$f=3x^{2},\ f'=6x,\ k=\tfrac{1}{6}$</div></div><div>c) $(2x-1)e^{x^{2}-x}$<div class="ws">$f=x^{2}-x,\ f'=2x-1,\ k=1$</div></div><div>d) $x^{2}e^{x^{3}+1}$<div class="ws">$f=x^{3}+1,\ f'=3x^{2},\ k=\tfrac{1}{3}$</div></div></div>
-</div></div>
-
-<div class="c"><div class="h">Fact<span>Episode 5 · Exponential integrals</span></div><div class="b">
-<div class="rule">The integral of $f'(x)\,e^{f(x)}$
-<div class="m">$\displaystyle\int f'(x)\,e^{f(x)}\,dx=e^{f(x)}+C$</div>Proof: $\dfrac{d}{dx}e^{f(x)}=f'(x)\,e^{f(x)}$ by the chain rule. This is on the reference sheet.</div>
-<div class="key">The power's derivative must be there as a factor. Adjust with a constant $k$ if needed.</div>
-</div></div>
-
-<div class="c"><div class="h">Routine · model<span>Episode 5 · Exponential integrals</span></div><div class="b">
-<div class="cq">Find the integral</div>
-<div class="g" style="grid-template-columns:repeat(3,1fr);font-size:25px;gap:44px 20px;text-align:center"><div>$\displaystyle\int xe^{x^{2}}dx$<div class="ws">$\tfrac{1}{2}e^{x^{2}}+C$</div></div><div>$\displaystyle\int6x^{2}e^{x^{3}}dx$<div class="ws">$2e^{x^{3}}+C$</div></div><div>$\displaystyle\int(2x+1)e^{x^{2}+x}dx$<div class="ws">$e^{x^{2}+x}+C$</div></div></div>
-</div></div>
-
-<div class="c"><div class="h">Routine · your turn<span>Episode 5 · Exponential integrals</span></div><div class="b" style="min-height:340px">
-<b>6.</b> Find the integral.
-<div class="g" style="grid-template-columns:repeat(2,1fr);font-size:25px;gap:52px 30px;margin:30px 0 20px 20px"><div>a) $\displaystyle\int3x^{2}e^{x^{3}}dx$<div class="ws">$e^{x^{3}}+C$</div></div><div>b) $\displaystyle\int xe^{3x^{2}}dx$<div class="ws">$\tfrac{1}{6}e^{3x^{2}}+C$</div></div><div>c) $\displaystyle\int(2x-1)e^{x^{2}-x}dx$<div class="ws">$e^{x^{2}-x}+C$</div></div><div>d) $\displaystyle\int x^{2}e^{x^{3}+1}dx$<div class="ws">$\tfrac{1}{3}e^{x^{3}+1}+C$</div></div></div>
-</div></div>
-
-<div class="c"><div class="h">We Do 8<span>Episode 5 · Exponential integrals</span></div><div class="b" style="min-height:340px">
-Evaluate $\displaystyle\int_{0}^{1}(2x+1)\,e^{x^{2}+x}\,dx$.<div class="ws">$f=x^{2}+x,\ f'=2x+1$<br>$[e^{x^{2}+x}]_{0}^{1}=e^{2}-e^{0}=e^{2}-1$</div>
-</div></div>
-
-<div class="c"><div class="h">We Do 9<span>Episode 5 · Exponential integrals</span></div><div class="b" style="min-height:460px">
-Show that the area enclosed by $y=9-3^{x}$ and the coordinate axes is $18-\dfrac{8}{\ln3}$ square units.<div class="ws">$9-3^{x}=0$ when $3^{x}=9$, so $x=2$. The function is positive from $0$ to $2$.<br>$\text{Area}=\int_{0}^{2}\left(9-3^{x}\right)dx=\left[9x-\dfrac{3^{x}}{\ln3}\right]_{0}^{2}$<br>$=\left(18-\dfrac{9}{\ln3}\right)-\left(0-\dfrac{1}{\ln3}\right)=18-\dfrac{8}{\ln3}$</div><div style="font-size:16px;color:#777;margin-top:8px">Modelled on HSC 2021 Q28(a).</div>
-</div></div>
-
-<div class="c"><div class="h">We Do 10<span>Episode 5 · Exponential integrals</span></div><div class="b" style="min-height:440px">
-Prove that $\displaystyle\int e^{ax+b}\,dx=\dfrac{1}{a}e^{ax+b}+C$ for $a\neq0$, and use it to find $\displaystyle\int_{-1}^{1}e^{2x+1}dx$ in exact form.<div class="ws">$\dfrac{d}{dx}\left(\dfrac{1}{a}e^{ax+b}\right)=\dfrac{1}{a}\times a\,e^{ax+b}=e^{ax+b}$ ✓<br>$\left[\dfrac{e^{2x+1}}{2}\right]_{-1}^{1}=\dfrac{e^{3}}{2}-\dfrac{e^{-1}}{2}=\dfrac{e^{3}-e^{-1}}{2}$</div>
+<div class="c"><div class="h">We Do 5<span>Episode 5 · Exponential functions</span></div><div class="b" style="min-height:560px">
+The region bounded by the graph of $f(x)=8-2^{x}$ and the coordinate axes is shown.<div class="fig"><svg viewBox="0 0 390 234" width="390" xmlns="http://www.w3.org/2000/svg"><polygon points="60.0,60.0 61.3,60.3 62.6,60.5 63.9,60.8 65.2,61.1 66.6,61.3 67.9,61.6 69.2,61.9 70.5,62.2 71.8,62.5 73.1,62.8 74.4,63.1 75.8,63.4 77.1,63.7 78.4,64.0 79.7,64.3 81.0,64.6 82.3,64.9 83.6,65.3 84.9,65.6 86.2,65.9 87.6,66.3 88.9,66.6 90.2,67.0 91.5,67.3 92.8,67.7 94.1,68.0 95.4,68.4 96.8,68.8 98.1,69.2 99.4,69.5 100.7,69.9 102.0,70.3 103.3,70.7 104.6,71.1 105.9,71.5 107.2,71.9 108.6,72.3 109.9,72.8 111.2,73.2 112.5,73.6 113.8,74.1 115.1,74.5 116.4,75.0 117.8,75.4 119.1,75.9 120.4,76.4 121.7,76.8 123.0,77.3 124.3,77.8 125.6,78.3 126.9,78.8 128.2,79.3 129.6,79.8 130.9,80.3 132.2,80.9 133.5,81.4 134.8,82.0 136.1,82.5 137.4,83.1 138.8,83.6 140.1,84.2 141.4,84.8 142.7,85.4 144.0,85.9 145.3,86.5 146.6,87.2 147.9,87.8 149.2,88.4 150.6,89.0 151.9,89.7 153.2,90.3 154.5,91.0 155.8,91.6 157.1,92.3 158.4,93.0 159.8,93.7 161.1,94.4 162.4,95.1 163.7,95.8 165.0,96.6 166.3,97.3 167.6,98.1 168.9,98.8 170.2,99.6 171.6,100.4 172.9,101.2 174.2,102.0 175.5,102.8 176.8,103.6 178.1,104.4 179.4,105.3 180.8,106.1 182.1,107.0 183.4,107.9 184.7,108.7 186.0,109.6 187.3,110.6 188.6,111.5 189.9,112.4 191.2,113.4 192.6,114.3 193.9,115.3 195.2,116.3 196.5,117.3 197.8,118.3 199.1,119.3 200.4,120.3 201.8,121.4 203.1,122.5 204.4,123.5 205.7,124.6 207.0,125.7 208.3,126.9 209.6,128.0 210.9,129.2 212.2,130.3 213.6,131.5 214.9,132.7 216.2,133.9 217.5,135.1 218.8,136.4 220.1,137.6 221.4,138.9 222.8,140.2 224.1,141.5 225.4,142.9 226.7,144.2 228.0,145.6 229.3,146.9 230.6,148.3 231.9,149.8 233.2,151.2 234.6,152.6 235.9,154.1 237.2,155.6 238.5,157.1 239.8,158.7 241.1,160.2 242.4,161.8 243.8,163.4 245.1,165.0 246.4,166.6 247.7,168.3 249.0,170.0 250.3,171.7 251.6,173.4 252.9,175.1 254.2,176.9 255.6,178.7 256.9,180.5 258.2,182.3 259.5,184.2 260.8,186.1 262.1,188.0 263.4,189.9 264.8,191.9 266.1,193.9 267.4,195.9 268.7,197.9 270.0,200.0 270.0,200.0 268.7,200.0 267.4,200.0 266.1,200.0 264.8,200.0 263.4,200.0 262.1,200.0 260.8,200.0 259.5,200.0 258.2,200.0 256.9,200.0 255.6,200.0 254.2,200.0 252.9,200.0 251.6,200.0 250.3,200.0 249.0,200.0 247.7,200.0 246.4,200.0 245.1,200.0 243.8,200.0 242.4,200.0 241.1,200.0 239.8,200.0 238.5,200.0 237.2,200.0 235.9,200.0 234.6,200.0 233.2,200.0 231.9,200.0 230.6,200.0 229.3,200.0 228.0,200.0 226.7,200.0 225.4,200.0 224.1,200.0 222.8,200.0 221.4,200.0 220.1,200.0 218.8,200.0 217.5,200.0 216.2,200.0 214.9,200.0 213.6,200.0 212.2,200.0 210.9,200.0 209.6,200.0 208.3,200.0 207.0,200.0 205.7,200.0 204.4,200.0 203.1,200.0 201.8,200.0 200.4,200.0 199.1,200.0 197.8,200.0 196.5,200.0 195.2,200.0 193.9,200.0 192.6,200.0 191.2,200.0 189.9,200.0 188.6,200.0 187.3,200.0 186.0,200.0 184.7,200.0 183.4,200.0 182.1,200.0 180.8,200.0 179.4,200.0 178.1,200.0 176.8,200.0 175.5,200.0 174.2,200.0 172.9,200.0 171.6,200.0 170.2,200.0 168.9,200.0 167.6,200.0 166.3,200.0 165.0,200.0 163.7,200.0 162.4,200.0 161.1,200.0 159.8,200.0 158.4,200.0 157.1,200.0 155.8,200.0 154.5,200.0 153.2,200.0 151.9,200.0 150.6,200.0 149.2,200.0 147.9,200.0 146.6,200.0 145.3,200.0 144.0,200.0 142.7,200.0 141.4,200.0 140.1,200.0 138.8,200.0 137.4,200.0 136.1,200.0 134.8,200.0 133.5,200.0 132.2,200.0 130.9,200.0 129.6,200.0 128.2,200.0 126.9,200.0 125.6,200.0 124.3,200.0 123.0,200.0 121.7,200.0 120.4,200.0 119.1,200.0 117.8,200.0 116.4,200.0 115.1,200.0 113.8,200.0 112.5,200.0 111.2,200.0 109.9,200.0 108.6,200.0 107.2,200.0 105.9,200.0 104.6,200.0 103.3,200.0 102.0,200.0 100.7,200.0 99.4,200.0 98.1,200.0 96.8,200.0 95.4,200.0 94.1,200.0 92.8,200.0 91.5,200.0 90.2,200.0 88.9,200.0 87.6,200.0 86.2,200.0 84.9,200.0 83.6,200.0 82.3,200.0 81.0,200.0 79.7,200.0 78.4,200.0 77.1,200.0 75.8,200.0 74.4,200.0 73.1,200.0 71.8,200.0 70.5,200.0 69.2,200.0 67.9,200.0 66.6,200.0 65.2,200.0 63.9,200.0 62.6,200.0 61.3,200.0 60.0,200.0" fill="#BBDEFB" stroke="none"/><line x1="52" y1="200" x2="348" y2="200" stroke="#333" stroke-width="1.5"/><polygon points="348,196 356,200 348,204" fill="#333"/><line x1="60" y1="208" x2="60" y2="12" stroke="#333" stroke-width="1.5"/><polygon points="56,12 60,4 64,12" fill="#333"/><text x="360" y="205" font-size="16" font-style="italic" font-family="Georgia,serif">x</text><text x="68" y="12" font-size="16" font-style="italic" font-family="Georgia,serif">y</text><line x1="270" y1="196" x2="270" y2="204" stroke="#333"/><text x="270" y="220" font-size="15" text-anchor="middle" font-family="Georgia,serif">3</text><line x1="56" y1="40" x2="64" y2="40" stroke="#333"/><text x="51" y="45" font-size="15" text-anchor="end" font-family="Georgia,serif">8</text><polyline points="60.0,60.0 61.8,60.3 63.5,60.7 65.2,61.1 67.0,61.4 68.8,61.8 70.5,62.2 72.2,62.6 74.0,63.0 75.8,63.4 77.5,63.8 79.2,64.2 81.0,64.6 82.8,65.1 84.5,65.5 86.2,65.9 88.0,66.4 89.8,66.9 91.5,67.3 93.2,67.8 95.0,68.3 96.8,68.8 98.5,69.3 100.2,69.8 102.0,70.3 103.8,70.8 105.5,71.4 107.2,71.9 109.0,72.5 110.8,73.1 112.5,73.6 114.2,74.2 116.0,74.8 117.8,75.4 119.5,76.1 121.2,76.7 123.0,77.3 124.8,78.0 126.5,78.6 128.2,79.3 130.0,80.0 131.8,80.7 133.5,81.4 135.2,82.1 137.0,82.9 138.8,83.6 140.5,84.4 142.2,85.2 144.0,85.9 145.8,86.8 147.5,87.6 149.2,88.4 151.0,89.2 152.8,90.1 154.5,91.0 156.2,91.9 158.0,92.8 159.8,93.7 161.5,94.6 163.2,95.6 165.0,96.6 166.8,97.6 168.5,98.6 170.2,99.6 172.0,100.6 173.8,101.7 175.5,102.8 177.2,103.9 179.0,105.0 180.8,106.1 182.5,107.3 184.2,108.4 186.0,109.6 187.8,110.9 189.5,112.1 191.2,113.4 193.0,114.6 194.8,115.9 196.5,117.3 198.2,118.6 200.0,120.0 201.8,121.4 203.5,122.8 205.2,124.3 207.0,125.7 208.8,127.2 210.5,128.8 212.2,130.3 214.0,131.9 215.8,133.5 217.5,135.1 219.2,136.8 221.0,138.5 222.8,140.2 224.5,142.0 226.2,143.7 228.0,145.6 229.8,147.4 231.5,149.3 233.2,151.2 235.0,153.1 236.8,155.1 238.5,157.1 240.2,159.2 242.0,161.3 243.8,163.4 245.5,165.5 247.2,167.7 249.0,170.0 250.8,172.2 252.5,174.5 254.2,176.9 256.0,179.3 257.8,181.7 259.5,184.2 261.2,186.7 263.0,189.3 264.8,191.9 266.5,194.5 268.2,197.3 270.0,200.0 271.8,202.8 273.5,205.6 275.2,208.5 277.0,211.5 278.8,214.5 280.5,217.5 282.2,220.6 284.0,223.8 285.8,227.0 287.5,230.3 289.2,233.6 291.0,237.0 292.8,240.4 294.5,243.9 296.2,247.5 298.0,251.1 299.8,254.8 301.5,258.6 303.2,262.4 305.0,266.3 306.8,270.2 308.5,274.3 310.2,278.3 312.0,282.5 313.8,286.8 315.5,291.1 317.2,295.5 319.0,299.9 320.8,304.5 322.5,309.1 324.2,313.8 326.0,318.6 327.8,323.4 329.5,328.4 331.2,333.4 333.0,338.6 334.8,343.8 336.5,349.1 338.2,354.5 340.0,360.0" fill="none" stroke="#1F4E79" stroke-width="3"/></svg></div>Show that the exact area of the shaded region is $24-\dfrac{7}{\ln2}$.<div class="ws">The curve meets the $x$-axis where $8-2^{x}=0$, so $2^{x}=8$ and $x=3$.<br>Area $=\int_{0}^{3}\left(8-2^{x}\right)dx$<br>$=\left[8x-\dfrac{2^{x}}{\ln2}\right]_{0}^{3}$<br>$=\left(24-\dfrac{8}{\ln2}\right)-\left(0-\dfrac{1}{\ln2}\right)$<br>$=24-\dfrac{7}{\ln2}$</div><div style="font-size:16px;color:#777;margin-top:8px">HSC 2021 Q28(a).</div>
 </div></div>
