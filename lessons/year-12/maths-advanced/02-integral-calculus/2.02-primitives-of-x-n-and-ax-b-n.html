@@ -17,14 +17,13 @@ Is it the only one?<div style="margin:18px 0 0 20px">a) Differentiate $x^{2}$, $
 
 <div class="c"><div class="h">Fact<span>Episode 2 · Primitive functions</span></div><div class="b">
 <div class="rule">Primitive
-<div class="m">$\displaystyle\int f(x)\,dx=F(x)+c$</div><br>$F(x)$ is a <b>primitive</b> of $f(x)$ if $F'(x)=f(x)$.<br>Any two primitives of $f(x)$ differ by a constant, so the general primitive is $F(x)+c$.</div>
-<div class="key">Read it as “the integral of $f(x)$ with respect to $x$”.</div>
+<div class="m">$\displaystyle\int f(x)\,dx=F(x)+c$</div><br>where $F'(x)=f(x)$.</div>
 </div></div>
 
 <div class="c"><div class="h">Fact<span>Episode 2 · Primitive functions</span></div><div class="b">
 <div class="rule">Reverse power rule
-<div class="m">$\displaystyle\int x^{n}\,dx=\dfrac{1}{n+1}x^{n+1}+c,\quad n\neq-1$</div><br>Add one to the power, then divide by the new power.<br>Rewrite roots and reciprocals as powers first.<br>For a constant, $\displaystyle\int k\,dx=kx+c$.</div>
-<div class="key">Check by differentiating your answer.<br><b>Not on the reference sheet: learn it.</b></div>
+<div class="m">$\displaystyle\int x^{n}\,dx=\dfrac{1}{n+1}x^{n+1}+c,\quad n\neq-1$</div></div>
+<div class="key"><b>Not on the reference sheet: learn it.</b></div>
 </div></div>
 
 <div class="c"><div class="h">I Do<span>Episode 2 · Primitive functions</span></div><div class="b" style="min-height:360px">
@@ -37,8 +36,7 @@ Find $\displaystyle\int\left(\sqrt{x}+x^{2}\right)dx$.<div class="ws">Rewrite: $
 </div></div>
 
 <div class="c"><div class="h">Fact<span>Episode 2 · Primitive functions</span></div><div class="b">
-<div class="rule">Finding the constant<br>If you know $f'(x)$ and one point on $y=f(x)$:<br>1. Find $f(x)=\displaystyle\int f'(x)\,dx$, including $+c$.<br>2. Substitute the point to find $c$.</div>
-<div class="key">One point fixes one curve out of the whole family.</div>
+<div class="rule">Finding the constant<br>Given $f'(x)$ and $f(a)=b$:<br>find $f(x)=\displaystyle\int f'(x)\,dx$, then substitute to find $c$.</div>
 </div></div>
 
 <div class="c"><div class="h">I Do<span>Episode 2 · Primitive functions</span></div><div class="b" style="min-height:360px">
@@ -52,8 +50,12 @@ $f'(x)=3-\dfrac{4}{x^{2}}$ and $f(2)=5$. Find $f(x)$.<div class="ws">$f'(x)=3-4x
 
 <div class="c"><div class="h">Fact<span>Episode 2 · Primitive functions</span></div><div class="b">
 <div class="rule">Linear inside
-<div class="m">$\displaystyle\int(ax+b)^{n}\,dx=\dfrac{1}{a(n+1)}(ax+b)^{n+1}+c,\quad n\neq-1,\ a\neq0$</div><br>Add one to the power, then divide by the new power <b>and</b> by $a$.<br>Dividing by $a$ undoes the factor the chain rule brings out.</div>
-<div class="key">Check by differentiating your answer.<br><b>Not on the reference sheet: learn it.</b></div>
+<div class="m">$\displaystyle\int(ax+b)^{n}\,dx=\dfrac{1}{a(n+1)}(ax+b)^{n+1}+c,\quad n\neq-1,\ a\neq0$</div></div>
+<div class="key"><b>Not on the reference sheet: learn it.</b></div>
+</div></div>
+
+<div class="c"><div class="h">Proof<span>Episode 2 · Primitive functions</span></div><div class="b">
+<div class="rule">Linear inside<br>Differentiate the right-hand side.<br>$\dfrac{d}{dx}\left[\dfrac{1}{a(n+1)}(ax+b)^{n+1}\right]=\dfrac{1}{a(n+1)}\times(n+1)(ax+b)^{n}\times a$<br>$=(ax+b)^{n}$<br>So it is a primitive of $(ax+b)^{n}$.</div>
 </div></div>
 
 <div class="c"><div class="h">I Do<span>Episode 2 · Primitive functions</span></div><div class="b" style="min-height:360px">
