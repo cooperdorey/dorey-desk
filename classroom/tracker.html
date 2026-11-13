@@ -1009,13 +1009,13 @@ function drawResults(kind){
   const row=(label,cells,cls2)=>'<tr'+(cls2?' class="'+cls2+'"':'')+'><th class="st">'+label+'</th>'+cells+'<th></th></tr>';
   let head=row('Student',items.map(it=>'<th><input type="text" class="rname" data-f="name" data-item="'+esc(it.item)+'" value="'+esc(it.name)+'" aria-label="Name"><button class="quiet sm rdel" data-del="'+esc(it.item)+'" title="Delete this '+K.label+'" aria-label="Delete">×</button></th>').join(''));
   head=head.replace(/<th><\/th><\/tr>$/,'<th>Average</th></tr>');
-  head+=row('Out of',items.map(it=>'<th><input type="number" class="rnum" data-f="outof" data-item="'+esc(it.item)+'" value="'+esc(it.outof)+'" min="0" step="any" aria-label="Marks out of"></th>').join(''),'rrow');
+  head+=row('Out of',items.map(it=>'<th><input type="text" inputmode="decimal" autocomplete="off" class="rnum" data-f="outof" data-item="'+esc(it.item)+'" value="'+esc(it.outof)+'" aria-label="Marks out of"></th>').join(''),'rrow');
   if(K.course){
-    head+=row('Course average (marks)',items.map(it=>'<th><input type="number" class="rnum" data-f="cmean" data-item="'+esc(it.item)+'" value="'+esc(it.cmean)+'" step="any" aria-label="Course average"></th>').join(''),'rrow');
-    head+=row('Course SD (marks)',items.map(it=>'<th><input type="number" class="rnum" data-f="csd" data-item="'+esc(it.item)+'" value="'+esc(it.csd)+'" min="0" step="any" aria-label="Course standard deviation"></th>').join(''),'rrow');
+    head+=row('Course average (marks)',items.map(it=>'<th><input type="text" inputmode="decimal" autocomplete="off" class="rnum" data-f="cmean" data-item="'+esc(it.item)+'" value="'+esc(it.cmean)+'" aria-label="Course average"></th>').join(''),'rrow');
+    head+=row('Course SD (marks)',items.map(it=>'<th><input type="text" inputmode="decimal" autocomplete="off" class="rnum" data-f="csd" data-item="'+esc(it.item)+'" value="'+esc(it.csd)+'" aria-label="Course standard deviation"></th>').join(''),'rrow');
   }
   const body=students.map(s=>'<tr><td class="st">'+esc(fullName(s))+'</td>'+items.map(it=>
-    '<td class="rc" data-id="'+esc(s.id)+'" data-item="'+esc(it.item)+'"><input type="number" class="rmk" min="0" step="any" value="'+esc(getRes(kind,cls,it.item,s.id))+'" data-id="'+esc(s.id)+'" data-item="'+esc(it.item)+'" aria-label="'+esc(fullName(s))+' '+esc(it.name)+'"><span class="rp"></span></td>').join('')+
+    '<td class="rc" data-id="'+esc(s.id)+'" data-item="'+esc(it.item)+'"><input type="text" inputmode="decimal" autocomplete="off" class="rmk" value="'+esc(getRes(kind,cls,it.item,s.id))+'" data-id="'+esc(s.id)+'" data-item="'+esc(it.item)+'" aria-label="'+esc(fullName(s))+' '+esc(it.name)+'"><span class="rp"></span></td>').join('')+
     '<td class="ravg" data-id="'+esc(s.id)+'"></td></tr>').join('');
   const sumRow=(label,key,end)=>'<tr><th class="st">'+label+'</th>'+items.map(it=>'<td data-s="'+key+'" data-item="'+esc(it.item)+'"></td>').join('')+'<td data-s="'+key+'-all">'+(end||'')+'</td></tr>';
   let foot=sumRow('Class average (marks)','cm')+(K.course?sumRow('Class SD (marks)','csd'):'')+sumRow('Class average (%)','cp');
@@ -1078,6 +1078,10 @@ function resultsFor(kind){
   const itemOf=el=>S.ritems.find(r=>r.kind===kind&&r.class===$(K.cls).value&&r.item===el.dataset.item);
   box.addEventListener('input',ev=>{
     const el=ev.target;
+    if(el.classList.contains('rmk')||el.dataset.f){
+      const v=el.value.replace(/[^0-9.]/g,'').replace(/(\..*)\./g,'$1');
+      if(v!==el.value)el.value=v;
+    }
     if(el.classList.contains('rmk')){
       setRes(kind,$(K.cls).value,el.dataset.item,el.dataset.id,el.value.trim());
       calcResults(kind);
