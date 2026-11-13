@@ -740,7 +740,7 @@ $('cPrint').onclick=()=>{
   });
   /* pack into A4 pages of two rows: a normal slip takes one cell, a wide slip (over 10 lessons) a whole row;
      a gap beside a wide slip is filled by the next normal slip */
-  const rows=[],q=slips.slice();
+  const rows=[],q=slips.filter(z=>!z.wide).concat(slips.filter(z=>z.wide)); /* regular slips first, double-width ones last */
   while(q.length){
     const f=q.shift();
     if(f.wide){rows.push([f]);continue}
