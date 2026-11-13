@@ -104,6 +104,7 @@ td.n,th.n{text-align:right}
 .bgrid .done{background:var(--tint)}
 .bgrid .bm{text-align:center;font-weight:600;min-width:52px}
 .tag.owed{background:var(--warnbg);color:var(--warn);border-color:transparent}
+.tag.naw{background:var(--badbg);color:var(--bad);border-color:var(--bad);font-weight:600}
 .empty{color:var(--muted);padding:10px 0}
 .rgrid{border-collapse:collapse;font-size:13px}
 .rgrid th,.rgrid td{border:1px solid var(--line);padding:4px 5px;text-align:center;vertical-align:middle}
@@ -138,6 +139,9 @@ dialog .row{margin-top:12px}
 .slip.wide ul{columns:2;column-gap:8mm;font-size:10pt}
 .slip.wide li{break-inside:avoid}
 .slip .todo{font-size:10pt;margin-top:3mm}
+.slip .nbox{border:1.6px solid #000;padding:1.5mm 3mm;margin:2mm 0 3mm}
+.slip .nbox .nh{font-size:9.5pt;font-weight:bold;letter-spacing:.3px;text-transform:uppercase}
+.slip .nbox ul{margin:1mm 0 1mm}
 .slip .hand{margin-top:4mm;font-size:10pt}
 @media print{
   @page{size:A4;margin:10mm}
@@ -676,6 +680,15 @@ function lessonTitle(cls,code){
   if(!LESSON_AMBIG.has(code))return LESSON_ANY.get(code)||'';
   return '';
 }
+/* lessons a student is N-awarded for: every lesson in a topic they hold an unresolved N-award for */
+function nawLessonSet(id,cls){
+  const cc=classCourse(cls),set=new Set();
+  S.naw.filter(r=>r.id===id&&r.status!=='resolved').forEach(r=>{
+    const t=TOPICS.find(t=>t.label===r.topic&&t.course===cc)||TOPICS.find(t=>t.label===r.topic);
+    if(t)t.lessons.forEach(l=>set.add(l.code));
+  });
+  return set;
+}
 function catchupGroups(){
   const sel=$('cClass').value;
   const classes=sel==='all'?activeClasses():[sel];
@@ -687,7 +700,8 @@ function catchupGroups(){
     const lessons=[...activeLessons].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));
     students.forEach(s=>{
       const owed=lessons.filter(l=>!S.book.has(bKey(s.id,l)));
-      if(owed.length)out.push({id:s.id,name:fullName(s),cls,lessons:owed});
+      const ns=nawLessonSet(s.id,cls),naw=owed.filter(l=>ns.has(l)),rest=owed.filter(l=>!ns.has(l));
+      if(owed.length)out.push({id:s.id,name:fullName(s),cls,lessons:naw.concat(rest),naw,rest});
     });
   });
   return out.sort((a,b)=>cmpId(a.id,b.id));
@@ -699,7 +713,7 @@ function drawCatch(){
   if(!g.length){box.innerHTML='<p class="empty">No outstanding book work for this class. (Lessons appear here once they are ticked on the Book work tab.)</p>';return}
   box.innerHTML='<table><thead><tr><th style="width:34px"><input type="checkbox" id="cAll" aria-label="Tick all"></th><th>Student</th><th>Book work owed</th></tr></thead><tbody>'+
     g.map(x=>'<tr><td><input type="checkbox" class="cTick" data-id="'+esc(x.id)+'" aria-label="Tick '+esc(x.name)+'"></td><td>'+esc(x.name)+'<br><span class="note" style="margin:0">'+esc(x.cls)+'</span></td><td>'+
-      x.lessons.map(l=>{const t=lessonTitle(x.cls,l);return '<span class="tag" title="'+esc(t)+'">'+esc(l)+'</span>'}).join('')+'</td></tr>').join('')+'</tbody></table>';
+      x.lessons.map(l=>{const t=lessonTitle(x.cls,l),n=x.naw.includes(l);return '<span class="tag'+(n?' naw':'')+'" title="'+esc((n?'N-award: ':'')+t)+'">'+esc(l)+'</span>'}).join('')+'</td></tr>').join('')+'</tbody></table>';
   $('cAll').onchange=e=>document.querySelectorAll('.cTick').forEach(c=>c.checked=e.target.checked);
 }
 function ticked(){return [...document.querySelectorAll('.cTick:checked')].map(c=>c.dataset.id)}
@@ -710,11 +724,15 @@ $('cPrint').onclick=()=>{
   const g=catchupGroups().filter(x=>ids.includes(x.id));
   const dl=$('cDeadline').value,NORM=10,CAP=24;
   const slips=g.map(x=>{
-    const cls=x.cls,wide=x.lessons.length>NORM;
+    const cls=x.cls,wide=x.lessons.length+(x.naw.length?3:0)>NORM; /* the N-award box costs about 3 lines */
     const shown=wide?x.lessons.slice(0,CAP):x.lessons,extra=x.lessons.length-shown.length;
+    const li=l=>{const t=lessonTitle(cls,l);return '<li><span class="box"></span><strong>'+esc(l)+'</strong>'+(t?' '+esc(t):'')+'</li>'};
+    const sn=shown.filter(l=>x.naw.includes(l)),sr=shown.filter(l=>!x.naw.includes(l));
     const cc=NAWARD.classroomCodes[cls]||NAWARD.classroomCodes[classCourse(cls)]||'';
-    const h='<div class="slip'+(wide?' wide':'')+'"><h3>'+esc(x.name)+'</h3><p class="cls">'+esc(cls)+'</p><strong>Book work to catch up:</strong><ul>'+
-      shown.map(l=>{const t=lessonTitle(cls,l);return '<li><span class="box"></span><strong>'+esc(l)+'</strong>'+(t?' '+esc(t):'')+'</li>'}).join('')+
+    const h='<div class="slip'+(wide?' wide':'')+'"><h3>'+esc(x.name)+'</h3><p class="cls">'+esc(cls)+'</p>'+
+      (sn.length?'<div class="nbox"><div class="nh">N-award: must be completed</div><ul>'+sn.map(li).join('')+'</ul></div>':'')+
+      (sr.length||extra>0?'<strong>'+(sn.length?'Other book work to catch up:':'Book work to catch up:')+'</strong><ul>':'<ul style="display:none">')+
+      sr.map(li).join('')+
       (extra>0?'<li style="list-style:none;color:#444">+ '+extra+' more — see your teacher</li>':'')+
       '</ul><div class="todo">These lessons can be found on OneNote or Google Classroom'+(cc?' (code: <strong>'+esc(cc)+'</strong>)':'')+'. Work through them and show your teacher when you are done.</div>'+
       '<div class="hand">Hand in by: '+(dl?esc(showDate(dl)):'____________')+'</div></div>';
