@@ -13,17 +13,17 @@ Differentiate each function.<div style="margin:18px 0 0 20px">a) $y=\left(x^{2}+
 
 <div class="c"><div class="h">Fact<span>Episode 4 · Reverse chain rule</span></div><div class="b">
 <div class="rule">The reverse chain rule
-<div class="m">$\displaystyle\int f'(x)\,\left[f(x)\right]^{n}dx=\dfrac{\left[f(x)\right]^{n+1}}{n+1}+C,\quad n\neq-1$</div><br>The derivative of the inside function sits outside the bracket.<br>Add one to the power, then divide by the new power.</div>
-<div class="key">Check by differentiating your answer.</div>
+<div class="m">$\displaystyle\int f'(x)\,\left[f(x)\right]^{n}dx=\dfrac{1}{n+1}\left[f(x)\right]^{n+1}+c,\quad n\neq-1$</div><br>The derivative of the inside function sits outside the bracket.<br>With $u=f(x)$, this is $\displaystyle\int u^{n}\dfrac{du}{dx}\,dx=\dfrac{1}{n+1}u^{n+1}+c$.</div>
+<div class="key">Check by differentiating your answer.<br><b>On the reference sheet.</b></div>
 </div></div>
 
 <div class="c"><div class="h">I Do<span>Episode 4 · Reverse chain rule</span></div><div class="b" style="min-height:360px">
 Find $\displaystyle\int3x^{2}\left(x^{3}-1\right)^{5}dx$.
-<div class="ws">The inside is $f(x)=x^{3}-1$, and $f'(x)=3x^{2}$ is outside.<br>$\int3x^{2}\left(x^{3}-1\right)^{5}dx=\dfrac{\left(x^{3}-1\right)^{6}}{6}+C$<br>Check: $\dfrac{d}{dx}\dfrac{\left(x^{3}-1\right)^{6}}{6}=\dfrac{6\left(x^{3}-1\right)^{5}\times3x^{2}}{6}=3x^{2}\left(x^{3}-1\right)^{5}$</div>
+<div class="ws">The inside is $f(x)=x^{3}-1$, and $f'(x)=3x^{2}$ is outside.<br>$\int3x^{2}\left(x^{3}-1\right)^{5}dx=\dfrac{\left(x^{3}-1\right)^{6}}{6}+c$<br>Check: $\dfrac{d}{dx}\dfrac{\left(x^{3}-1\right)^{6}}{6}=\dfrac{6\left(x^{3}-1\right)^{5}\times3x^{2}}{6}=3x^{2}\left(x^{3}-1\right)^{5}$</div>
 </div></div>
 
 <div class="c"><div class="h">We Do 1<span>Episode 4 · Reverse chain rule</span></div><div class="b" style="min-height:340px">
-Find $\displaystyle\int(4x+1)\left(2x^{2}+x\right)^{3}dx$.<div class="ws">The inside is $f(x)=2x^{2}+x$, and $f'(x)=4x+1$ is outside.<br>$=\dfrac{\left(2x^{2}+x\right)^{4}}{4}+C$</div>
+Find $\displaystyle\int(4x+1)\left(2x^{2}+x\right)^{3}dx$.<div class="ws">The inside is $f(x)=2x^{2}+x$, and $f'(x)=4x+1$ is outside.<br>$=\dfrac{\left(2x^{2}+x\right)^{4}}{4}+c$</div>
 </div></div>
 
 <div class="c"><div class="h">Fact<span>Episode 4 · Reverse chain rule</span></div><div class="b">
@@ -33,22 +33,22 @@ Find $\displaystyle\int(4x+1)\left(2x^{2}+x\right)^{3}dx$.<div class="ws">The in
 
 <div class="c"><div class="h">I Do<span>Episode 4 · Reverse chain rule</span></div><div class="b" style="min-height:360px">
 Find $\displaystyle\int x\left(3x^{2}+1\right)^{2}dx$.
-<div class="ws">The inside is $f(x)=3x^{2}+1$, so $f'(x)=6x$.<br>Write $x=\tfrac{1}{6}\times6x$.<br>$\int x\left(3x^{2}+1\right)^{2}dx=\tfrac{1}{6}\int6x\left(3x^{2}+1\right)^{2}dx$<br>$=\tfrac{1}{6}\times\dfrac{\left(3x^{2}+1\right)^{3}}{3}+C$<br>$=\dfrac{\left(3x^{2}+1\right)^{3}}{18}+C$</div>
+<div class="ws">The inside is $f(x)=3x^{2}+1$, so $f'(x)=6x$.<br>Write $x=\tfrac{1}{6}\times6x$.<br>$\int x\left(3x^{2}+1\right)^{2}dx=\tfrac{1}{6}\int6x\left(3x^{2}+1\right)^{2}dx$<br>$=\tfrac{1}{6}\times\dfrac{\left(3x^{2}+1\right)^{3}}{3}+c$<br>$=\dfrac{\left(3x^{2}+1\right)^{3}}{18}+c$</div>
 </div></div>
 
 <div class="c"><div class="h">We Do 2<span>Episode 4 · Reverse chain rule</span></div><div class="b" style="min-height:380px">
-Find $\displaystyle\int x^{2}\left(x^{3}+4\right)^{4}dx$.<div class="ws">The inside is $f(x)=x^{3}+4$, so $f'(x)=3x^{2}$.<br>$=\tfrac{1}{3}\int3x^{2}\left(x^{3}+4\right)^{4}dx$<br>$=\tfrac{1}{3}\times\dfrac{\left(x^{3}+4\right)^{5}}{5}+C$<br>$=\dfrac{\left(x^{3}+4\right)^{5}}{15}+C$</div>
+Find $\displaystyle\int x^{2}\left(x^{3}+4\right)^{4}dx$.<div class="ws">The inside is $f(x)=x^{3}+4$, so $f'(x)=3x^{2}$.<br>$=\tfrac{1}{3}\int3x^{2}\left(x^{3}+4\right)^{4}dx$<br>$=\tfrac{1}{3}\times\dfrac{\left(x^{3}+4\right)^{5}}{5}+c$<br>$=\dfrac{\left(x^{3}+4\right)^{5}}{15}+c$</div>
 </div></div>
 
 <div class="c"><div class="h">I Do<span>Episode 4 · Reverse chain rule</span></div><div class="b" style="min-height:360px">
 Find $\displaystyle\int\dfrac{x}{\left(x^{2}+4\right)^{2}}dx$.
-<div class="ws">Rewrite: $\int x\left(x^{2}+4\right)^{-2}dx$<br>The inside is $f(x)=x^{2}+4$, so $f'(x)=2x$.<br>$=\tfrac{1}{2}\int2x\left(x^{2}+4\right)^{-2}dx$<br>$=\tfrac{1}{2}\times\dfrac{\left(x^{2}+4\right)^{-1}}{-1}+C$<br>$=-\dfrac{1}{2\left(x^{2}+4\right)}+C$</div>
+<div class="ws">Rewrite: $\int x\left(x^{2}+4\right)^{-2}dx$<br>The inside is $f(x)=x^{2}+4$, so $f'(x)=2x$.<br>$=\tfrac{1}{2}\int2x\left(x^{2}+4\right)^{-2}dx$<br>$=\tfrac{1}{2}\times\dfrac{\left(x^{2}+4\right)^{-1}}{-1}+c$<br>$=-\dfrac{1}{2\left(x^{2}+4\right)}+c$</div>
 </div></div>
 
 <div class="c"><div class="h">We Do 3<span>Episode 4 · Reverse chain rule</span></div><div class="b" style="min-height:380px">
-Find $\displaystyle\int\dfrac{x}{\sqrt{x^{2}+9}}dx$.<div class="ws">Rewrite: $\int x\left(x^{2}+9\right)^{-\frac{1}{2}}dx$<br>$f'(x)=2x$, so $=\tfrac{1}{2}\int2x\left(x^{2}+9\right)^{-\frac{1}{2}}dx$<br>$=\tfrac{1}{2}\times\dfrac{\left(x^{2}+9\right)^{\frac{1}{2}}}{\frac{1}{2}}+C$<br>$=\sqrt{x^{2}+9}+C$</div>
+Find $\displaystyle\int\dfrac{x}{\sqrt{x^{2}+9}}dx$.<div class="ws">Rewrite: $\int x\left(x^{2}+9\right)^{-\frac{1}{2}}dx$<br>$f'(x)=2x$, so $=\tfrac{1}{2}\int2x\left(x^{2}+9\right)^{-\frac{1}{2}}dx$<br>$=\tfrac{1}{2}\times\dfrac{\left(x^{2}+9\right)^{\frac{1}{2}}}{\frac{1}{2}}+c$<br>$=\sqrt{x^{2}+9}+c$</div>
 </div></div>
 
 <div class="c"><div class="h">We Do 4<span>Episode 4 · Reverse chain rule</span></div><div class="b" style="min-height:380px">
-Find $\displaystyle\int x\sqrt{x^{2}+1}\,dx$.<div class="ws">Rewrite: $\int x\left(x^{2}+1\right)^{\frac{1}{2}}dx$<br>$f'(x)=2x$, so $=\tfrac{1}{2}\int2x\left(x^{2}+1\right)^{\frac{1}{2}}dx$<br>$=\tfrac{1}{2}\times\dfrac{\left(x^{2}+1\right)^{\frac{3}{2}}}{\frac{3}{2}}+C$<br>$=\tfrac{1}{3}\left(x^{2}+1\right)^{\frac{3}{2}}+C$</div><div style="font-size:16px;color:#777;margin-top:8px">HSC 2023 Q17.</div>
+Find $\displaystyle\int x\sqrt{x^{2}+1}\,dx$.<div class="ws">Rewrite: $\int x\left(x^{2}+1\right)^{\frac{1}{2}}dx$<br>$f'(x)=2x$, so $=\tfrac{1}{2}\int2x\left(x^{2}+1\right)^{\frac{1}{2}}dx$<br>$=\tfrac{1}{2}\times\dfrac{\left(x^{2}+1\right)^{\frac{3}{2}}}{\frac{3}{2}}+c$<br>$=\tfrac{1}{3}\left(x^{2}+1\right)^{\frac{3}{2}}+c$</div><div style="font-size:16px;color:#777;margin-top:8px">HSC 2023 Q17.</div>
 </div></div>

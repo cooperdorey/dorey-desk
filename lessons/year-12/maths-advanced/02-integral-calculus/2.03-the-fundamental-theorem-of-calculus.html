@@ -13,8 +13,8 @@ Use the graph of $y=2x$.<div class="fig"><svg viewBox="0 0 410 234" width="410" 
 
 <div class="c"><div class="h">Fact<span>Episode 3 · Fundamental Theorem</span></div><div class="b">
 <div class="rule">The Fundamental Theorem of Calculus
-<div class="m">$\displaystyle\int_{a}^{b}f(x)\,dx=F(b)-F(a)$</div><br>where $F$ is any primitive of $f$.<br>We write $\left[F(x)\right]_{a}^{b}=F(b)-F(a)$.</div>
-<div class="key">The $+C$ is not needed, because it cancels in $F(b)-F(a)$.</div>
+<div class="m">$\displaystyle\int_{a}^{b}f(x)\,dx=\left[F(x)\right]_{a}^{b}=F(b)-F(a)$</div><br>for a continuous function $f$ on $a\le x\le b$, where $F(x)$ is any primitive of $f(x)$.</div>
+<div class="key">The $+c$ is not needed, because it cancels in $F(b)-F(a)$.<br><b>Not on the reference sheet: learn it.</b></div>
 </div></div>
 
 <div class="c"><div class="h">I Do<span>Episode 3 · Fundamental Theorem</span></div><div class="b" style="min-height:360px">
@@ -27,7 +27,7 @@ Evaluate $\displaystyle\int_{1}^{2}\left(x^{2}+\dfrac{1}{x^{2}}\right)dx$.<div c
 </div></div>
 
 <div class="c"><div class="h">Fact<span>Episode 3 · Fundamental Theorem</span></div><div class="b">
-<div class="rule">Rules for limits<br>$\displaystyle\int_{a}^{b}f\,dx+\int_{b}^{c}f\,dx=\int_{a}^{c}f\,dx$<br>$\displaystyle\int_{b}^{a}f\,dx=-\int_{a}^{b}f\,dx\qquad\int_{a}^{a}f\,dx=0$<br>$\displaystyle\int_{a}^{b}kf\,dx=k\int_{a}^{b}f\,dx\qquad\int_{a}^{b}(f+g)\,dx=\int_{a}^{b}f\,dx+\int_{a}^{b}g\,dx$</div>
+<div class="rule">Rules for limits<br>$\displaystyle\int_{a}^{b}f\,dx+\int_{b}^{c}f\,dx=\int_{a}^{c}f\,dx$ for $a\le b\le c$<br>$\displaystyle\int_{a}^{b}f\,dx=-\int_{b}^{a}f\,dx\qquad\int_{a}^{a}f\,dx=0$<br>$\displaystyle\int_{a}^{b}kf\,dx=k\int_{a}^{b}f\,dx\qquad\int_{a}^{b}(f+g)\,dx=\int_{a}^{b}f\,dx+\int_{a}^{b}g\,dx$</div>
 <div class="key">These come straight from $F(b)-F(a)$.</div>
 </div></div>
 
@@ -42,7 +42,7 @@ $\displaystyle\int_{0}^{3}f(x)\,dx=5,\ \int_{3}^{8}f(x)\,dx=-2$ and $\displaysty
 
 <div class="c"><div class="h">Fact<span>Episode 3 · Fundamental Theorem</span></div><div class="b">
 <div class="rule">Variable upper limit
-<div class="m">$\dfrac{d}{dx}\displaystyle\int_{a}^{x}f(t)\,dt=f(x)$</div><br>$A(x)=\displaystyle\int_{a}^{x}f(t)\,dt$ is the area from $a$ up to $x$.<br>Differentiating undoes integrating.</div>
+<div class="m">$A(x)=\displaystyle\int_{a}^{x}f(t)\,dt$</div><br>$A(x)$ is a primitive of $f(x)$, so $A'(x)=f(x)$.<br>It is the area from $a$ up to $x$ when $f(x)\ge0$.</div>
 <div class="key">The letter $t$ stands in for the variable, so it does not clash with the limit $x$.</div>
 </div></div>
 
