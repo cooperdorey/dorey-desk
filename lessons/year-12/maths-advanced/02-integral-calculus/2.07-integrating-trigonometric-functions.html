@@ -7,100 +7,53 @@ title: Integrating Trigonometric Functions
 <div class="title">2.07 – Integrating Trigonometric Functions</div>
 </div></div>
 
-<div class="c"><div class="h">Prior knowledge<span>Episode 7 · Trigonometric integrals</span></div><div class="b" style="min-height:330px">
-<b>1.</b> 
-<div class="g" style="grid-template-columns:repeat(2,1fr);font-size:25px;gap:52px 30px;margin:30px 0 20px 20px"><div>a) Differentiate $\sin 3x$<div class="ws">$3\cos3x$</div></div><div>b) Differentiate $\cos 2x$<div class="ws">$-2\sin2x$</div></div><div>c) Differentiate $\tan x$<div class="ws">$\sec^{2}x$</div></div><div>d) Evaluate $\sin\dfrac{\pi}{2}$ and $\cos\pi$<div class="ws">$1$ and $-1$</div></div></div>
+<div class="c"><div class="h">Warm-up<span>Episode 7 · Trigonometric functions</span></div><div class="b" style="min-height:750px">
+Differentiate each function.<div style="margin:18px 0 0 20px">a) $y=\sin x$<div class="ws">$\dfrac{dy}{dx}=\cos x$</div></div><div style="margin:18px 0 0 20px">b) $y=\cos x$<div class="ws">$\dfrac{dy}{dx}=-\sin x$</div></div><div style="margin:18px 0 0 20px">c) $y=\tan x$<div class="ws">$\dfrac{dy}{dx}=\sec^{2}x$</div></div><div style="margin:18px 0 0 20px">d) $y=\sin3x$<div class="ws">$\dfrac{dy}{dx}=3\cos3x$</div></div><div style="margin:18px 0 0 20px">e) Write down a function with derivative $\cos3x$.<div class="ws">Divide (d) by $3$.<br>$y=\tfrac{1}{3}\sin3x$ has derivative $\cos3x$.</div></div>
 </div></div>
 
-<div class="c"><div class="h">Fact<span>Episode 7 · Trigonometric integrals</span></div><div class="b">
-<div class="rule">Integrals of $\cos x$, $\sin x$ and $\sec^{2}x$
-<div class="m">$\displaystyle\int\cos x\,dx=\sin x+C\qquad\int\sin x\,dx=-\cos x+C\qquad\int\sec^{2}x\,dx=\tan x+C$</div>Check each by differentiating. $\dfrac{d}{dx}(-\cos x)=\sin x$, so the minus sign is needed for $\sin x$.</div>
-<div class="key">Angles are in radians.</div>
+<div class="c"><div class="h">Fact<span>Episode 7 · Trigonometric functions</span></div><div class="b" style="min-height:280px">
+<div class="rule">Integrating $\sin x$, $\cos x$ and $\sec^{2}x$<br>$\displaystyle\int\sin x\,dx=-\cos x+c$<br>$\displaystyle\int\cos x\,dx=\sin x+c$<br>$\displaystyle\int\sec^{2}x\,dx=\tan x+c$</div>
 </div></div>
 
-<div class="c"><div class="h">Fact<span>Episode 7 · Trigonometric integrals</span></div><div class="b">
-<div class="rule">Integrals with $ax+b$
-<div class="m">$\displaystyle\int\cos(ax+b)\,dx=\dfrac{1}{a}\sin(ax+b)+C$<br>$\displaystyle\int\sin(ax+b)\,dx=-\dfrac{1}{a}\cos(ax+b)+C$<br>$\displaystyle\int\sec^{2}(ax+b)\,dx=\dfrac{1}{a}\tan(ax+b)+C$</div>Check: $\dfrac{d}{dx}\left(\dfrac{1}{a}\sin(ax+b)\right)=\dfrac{1}{a}\times a\cos(ax+b)$.</div>
-<div class="key">Divide by $a$. Keep the sign from the basic integral.</div>
+<div class="c"><div class="h">I Do<span>Episode 7 · Trigonometric functions</span></div><div class="b" style="min-height:486px">
+Find $\displaystyle\int(2\sin x-5\cos x)\,dx$.
+<div class="ws">$=2\left(-\cos x\right)-5\sin x+c$<br>$=-2\cos x-5\sin x+c$</div>
 </div></div>
 
-<div class="c"><div class="h">Routine · model<span>Episode 7 · Trigonometric integrals</span></div><div class="b">
-<div class="cq">Find the integral</div>
-<div class="g" style="grid-template-columns:repeat(3,1fr);font-size:26px;gap:44px 20px;text-align:center"><div>$\displaystyle\int\cos4x\,dx$<div class="ws">$\dfrac{1}{4}\sin4x+C$</div></div><div>$\displaystyle\int\sin2x\,dx$<div class="ws">$-\dfrac{1}{2}\cos2x+C$</div></div><div>$\displaystyle\int\sec^{2}3x\,dx$<div class="ws">$\dfrac{1}{3}\tan3x+C$</div></div><div>$\displaystyle\int6\sin\left(3x+1\right)dx$<div class="ws">$-2\cos(3x+1)+C$</div></div></div>
+<div class="c"><div class="h">We Do 1<span>Episode 7 · Trigonometric functions</span></div><div class="b" style="min-height:459px">
+Evaluate $\displaystyle\int_{0}^{\frac{\pi}{4}}\sec^{2}x\,dx$.<div class="ws">$\int_{0}^{\frac{\pi}{4}}\sec^{2}x\,dx=\left[\tan x\right]_{0}^{\frac{\pi}{4}}=\tan\dfrac{\pi}{4}-\tan0=1-0=1$</div><div style="font-size:16px;color:#777;margin-top:8px">HSC 2020 Q13.</div>
 </div></div>
 
-<div class="c"><div class="h">Routine · your turn<span>Episode 7 · Trigonometric integrals</span></div><div class="b" style="min-height:340px">
-<b>3.</b> Find the integral.
-<div class="g" style="grid-template-columns:repeat(2,1fr);font-size:26px;gap:52px 30px;margin:30px 0 20px 20px"><div>a) $\displaystyle\int\cos5x\,dx$<div class="ws">$\dfrac{1}{5}\sin5x+C$</div></div><div>b) $\displaystyle\int\sin\dfrac{x}{2}\,dx$<div class="ws">$-2\cos\dfrac{x}{2}+C$</div></div><div>c) $\displaystyle\int4\sec^{2}2x\,dx$<div class="ws">$2\tan2x+C$</div></div><div>d) $\displaystyle\int\cos\left(2x-\dfrac{\pi}{3}\right)dx$<div class="ws">$\dfrac{1}{2}\sin\left(2x-\dfrac{\pi}{3}\right)+C$</div></div></div>
+<div class="c"><div class="h">Fact<span>Episode 7 · Trigonometric functions</span></div><div class="b" style="min-height:280px">
+<div class="rule">Linear inside<br>$\displaystyle\int\sin(ax+b)\,dx=-\dfrac{1}{a}\cos(ax+b)+c$<br>$\displaystyle\int\cos(ax+b)\,dx=\dfrac{1}{a}\sin(ax+b)+c$<br>$\displaystyle\int\sec^{2}(ax+b)\,dx=\dfrac{1}{a}\tan(ax+b)+c$<br>where $a\neq0$</div>
 </div></div>
 
-<div class="c"><div class="h">I Do<span>Episode 7 · Trigonometric integrals</span></div><div class="b" style="min-height:360px">
-Find $\displaystyle\int\left(8\cos2x-3\sin4x+\sec^{2}x\right)dx$.
-<div class="ws">$\int8\cos2x\,dx=4\sin2x$<br>$\int3\sin4x\,dx=-\tfrac{3}{4}\cos4x$<br>$\int\sec^{2}x\,dx=\tan x$<br>Total: $4\sin2x+\tfrac{3}{4}\cos4x+\tan x+C$</div>
+<div class="c"><div class="h">I Do<span>Episode 7 · Trigonometric functions</span></div><div class="b" style="min-height:486px">
+Find $\displaystyle\int\sin(2x+1)\,dx$.
+<div class="ws">$a=2$, so divide by $2$.<br>$\int\sin(2x+1)\,dx=-\dfrac{1}{2}\cos(2x+1)+c$<br>Check: $\dfrac{d}{dx}\left[-\dfrac{1}{2}\cos(2x+1)\right]=-\dfrac{1}{2}\times\left(-2\sin(2x+1)\right)=\sin(2x+1)$</div>
 </div></div>
 
-<div class="c"><div class="h">We Do 1<span>Episode 7 · Trigonometric integrals</span></div><div class="b" style="min-height:320px">
-Find $\displaystyle\int\left(\sin3x+5\cos x\right)dx$.<div class="ws">$-\tfrac{1}{3}\cos3x+5\sin x+C$</div>
+<div class="c"><div class="h">We Do 2<span>Episode 7 · Trigonometric functions</span></div><div class="b" style="min-height:486px">
+Evaluate $\displaystyle\int_{0}^{\pi}\sin\dfrac{x}{2}\,dx$.<div class="ws">$a=\tfrac{1}{2}$, so divide by $\tfrac{1}{2}$.<br>$\int_{0}^{\pi}\sin\dfrac{x}{2}\,dx=\left[-2\cos\dfrac{x}{2}\right]_{0}^{\pi}$<br>$=-2\cos\dfrac{\pi}{2}-\left(-2\cos0\right)$<br>$=0+2=2$</div>
 </div></div>
 
-<div class="c"><div class="h">We Do 2<span>Episode 7 · Trigonometric integrals</span></div><div class="b" style="min-height:300px">
-Find $\displaystyle\int\cos 2x\,dx$.<div class="ws">$\tfrac{1}{2}\sin2x+C$</div><div style="font-size:16px;color:#777;margin-top:8px">Modelled on HSC 2026 Q31(a).</div>
+<div class="c"><div class="h">Fact<span>Episode 7 · Trigonometric functions</span></div><div class="b" style="min-height:280px">
+<div class="rule">Integrating $f'(x)\sin f(x)$<br>$\displaystyle\int f'(x)\sin f(x)\,dx=-\cos f(x)+c$<br>$\displaystyle\int f'(x)\cos f(x)\,dx=\sin f(x)+c$<br>$\displaystyle\int f'(x)\sec^{2}f(x)\,dx=\tan f(x)+c$</div>
 </div></div>
 
-<div class="c"><div class="h">Transformation · model<span>Episode 7 · Trigonometric integrals</span></div><div class="b">
-<div class="cq">Evaluate the trigonometric value</div>
-<div class="g" style="grid-template-columns:repeat(4,1fr);font-size:25px;gap:44px 20px;text-align:center"><div>$\sin\dfrac{\pi}{2}$<div class="ws">$1$</div></div><div>$\cos\pi$<div class="ws">$-1$</div></div><div>$\tan\dfrac{\pi}{4}$<div class="ws">$1$</div></div><div>$\sin\dfrac{\pi}{6}$<div class="ws">$\dfrac{1}{2}$</div></div></div>
+<div class="c"><div class="h">I Do<span>Episode 7 · Trigonometric functions</span></div><div class="b" style="min-height:486px">
+Find $\displaystyle\int3x^{2}\sin\left(x^{3}\right)dx$.
+<div class="ws">$f(x)=x^{3}$ and $f'(x)=3x^{2}$ is outside.<br>$\int3x^{2}\sin\left(x^{3}\right)dx=-\cos\left(x^{3}\right)+c$</div>
 </div></div>
 
-<div class="c"><div class="h">Transformation · your turn<span>Episode 7 · Trigonometric integrals</span></div><div class="b" style="min-height:360px">
-<b>4.</b> Evaluate.
-<div class="g" style="grid-template-columns:repeat(2,1fr);font-size:25px;gap:52px 30px;margin:30px 0 20px 20px"><div>a) $\cos\dfrac{\pi}{3}$<div class="ws">$\dfrac{1}{2}$</div></div><div>b) $\sin\pi$<div class="ws">$0$</div></div><div>c) $\cos\dfrac{\pi}{2}$<div class="ws">$0$</div></div><div>d) $\tan0$<div class="ws">$0$</div></div><div>e) $\sin\dfrac{3\pi}{2}$<div class="ws">$-1$</div></div></div>
+<div class="c"><div class="h">We Do 3<span>Episode 7 · Trigonometric functions</span></div><div class="b" style="min-height:486px">
+Find $\displaystyle\int x\sec^{2}\left(x^{2}\right)dx$.<div class="ws">$f(x)=x^{2}$, so $f'(x)=2x$.<br>$=\tfrac{1}{2}\int2x\sec^{2}\left(x^{2}\right)dx$<br>$=\tfrac{1}{2}\tan\left(x^{2}\right)+c$</div>
 </div></div>
 
-<div class="c"><div class="h">Routine · model<span>Episode 7 · Trigonometric integrals</span></div><div class="b">
-<div class="cq">Evaluate</div>
-<div class="g" style="grid-template-columns:repeat(3,1fr);font-size:26px;gap:44px 20px;text-align:center"><div>$\displaystyle\int_{0}^{\pi/2}\cos x\,dx$<div class="ws">$[\sin x]_{0}^{\pi/2}=1-0=1$</div></div><div>$\displaystyle\int_{0}^{\pi}\sin x\,dx$<div class="ws">$[-\cos x]_{0}^{\pi}=1-(-1)=2$</div></div><div>$\displaystyle\int_{0}^{\pi/4}\sec^{2}x\,dx$<div class="ws">$[\tan x]_{0}^{\pi/4}=1-0=1$</div></div></div>
+<div class="c"><div class="h">We Do 4<span>Episode 7 · Trigonometric functions</span></div><div class="b" style="min-height:648px">
+A camera films the motion of a swing. Let $x(t)$ be the horizontal distance, in metres, from the camera to the seat of the swing at $t$ seconds. The seat is released from rest at a horizontal distance of $11.2$ m from the camera.<br>The rate of change of $x$ is modelled by $\dfrac{dx}{dt}=-1.5\pi\sin\dfrac{5\pi}{4}t$.<br>Find an expression for $x(t)$.<div class="ws">$x(t)=-1.5\pi\times\left(-\dfrac{4}{5\pi}\right)\cos\dfrac{5\pi t}{4}+c=\dfrac{6}{5}\cos\dfrac{5\pi t}{4}+c$<br>$x(0)=11.2$: $\dfrac{6}{5}+c=11.2$, so $c=10$.<br>$x(t)=10+\dfrac{6}{5}\cos\dfrac{5\pi t}{4}$</div><div style="font-size:16px;color:#777;margin-top:8px">HSC 2023 Q26(a).</div>
 </div></div>
 
-<div class="c"><div class="h">Routine · your turn<span>Episode 7 · Trigonometric integrals</span></div><div class="b" style="min-height:360px">
-<b>5.</b> Evaluate.
-<div class="g" style="grid-template-columns:repeat(2,1fr);font-size:26px;gap:52px 30px;margin:30px 0 20px 20px"><div>a) $\displaystyle\int_{0}^{\pi/6}\cos x\,dx$<div class="ws">$\sin\tfrac{\pi}{6}-0=\tfrac{1}{2}$</div></div><div>b) $\displaystyle\int_{0}^{\pi/2}\sin x\,dx$<div class="ws">$-\cos\tfrac{\pi}{2}+\cos0=1$</div></div><div>c) $\displaystyle\int_{0}^{\pi/3}\sec^{2}x\,dx$<div class="ws">$\tan\tfrac{\pi}{3}-0=\sqrt{3}$</div></div><div>d) $\displaystyle\int_{0}^{\pi/4}\cos2x\,dx$<div class="ws">$\left[\tfrac{1}{2}\sin2x\right]_{0}^{\pi/4}=\tfrac{1}{2}$</div></div></div>
-</div></div>
-
-<div class="c"><div class="h">We Do 3<span>Episode 7 · Trigonometric integrals</span></div><div class="b" style="min-height:300px">
-Evaluate $\displaystyle\int_{0}^{\pi/4}\sec^{2}x\,dx$.<div class="ws">$[\tan x]_{0}^{\pi/4}=\tan\tfrac{\pi}{4}-\tan0=1$</div><div style="font-size:16px;color:#777;margin-top:8px">Modelled on HSC 2020 Q13.</div>
-</div></div>
-
-<div class="c"><div class="h">We Do 4<span>Episode 7 · Trigonometric integrals</span></div><div class="b" style="min-height:340px">
-Evaluate $\displaystyle\int_{0}^{\pi/2}\sin2x\,dx$.<div class="ws">$\left[-\tfrac{1}{2}\cos2x\right]_{0}^{\pi/2}=-\tfrac{1}{2}\cos\pi+\tfrac{1}{2}\cos0=\tfrac{1}{2}+\tfrac{1}{2}=1$</div>
-</div></div>
-
-<div class="c"><div class="h">We Do 5<span>Episode 7 · Trigonometric integrals</span></div><div class="b" style="min-height:380px">
-Evaluate $\displaystyle\int_{0}^{\pi/6}\left(3\cos3x+\sec^{2}2x\right)dx$ in exact form.<div class="ws">$[\sin3x+\tfrac{1}{2}\tan2x]_{0}^{\pi/6}$<br>$=\left(\sin\tfrac{\pi}{2}+\tfrac{1}{2}\tan\tfrac{\pi}{3}\right)-0=1+\tfrac{\sqrt{3}}{2}$</div>
-</div></div>
-
-<div class="c"><div class="h">We Do 6<span>Episode 7 · Trigonometric integrals</span></div><div class="b" style="min-height:380px">
-Let $\dfrac{dx}{dt}=-6\sin2t$. When $t=0$, $x=5$. Find $x$ as a function of $t$.<div class="ws">$x=3\cos2t+C$<br>$5=3+C$, so $C=2$<br>$x=3\cos2t+2$</div><div style="font-size:16px;color:#777;margin-top:8px">Modelled on HSC 2023 Q26(a).</div>
-</div></div>
-
-<div class="c"><div class="h">We Do 7<span>Episode 7 · Trigonometric integrals</span></div><div class="b" style="min-height:380px">
-Find the exact value of $\displaystyle\int_{\pi/6}^{\pi/2}\sin\left(x-\dfrac{\pi}{6}\right)dx$.<div class="ws">$[-\cos\left(x-\tfrac{\pi}{6}\right)]_{\pi/6}^{\pi/2}=-\cos\tfrac{\pi}{3}+\cos0=-\tfrac{1}{2}+1=\tfrac{1}{2}$</div>
-</div></div>
-
-<div class="c"><div class="h">Fact<span>Episode 7 · Trigonometric integrals</span></div><div class="b">
-<div class="rule">Integrating $\tan x$ and a trig quotient
-<div class="m">$\displaystyle\int\dfrac{f'(x)}{f(x)}\,dx=\ln|f(x)|+C$ applies when $f$ is a trig function</div>For example $\dfrac{\cos x}{\sin x}$ has $f=\sin x$ and $f'=\cos x$, so $\displaystyle\int\dfrac{\cos x}{\sin x}dx=\ln|\sin x|+C$.</div>
-<div class="key">Spot a numerator that is the derivative of the denominator.</div>
-</div></div>
-
-<div class="c"><div class="h">We Do 8<span>Episode 7 · Trigonometric integrals</span></div><div class="b" style="min-height:420px">
-Find $\displaystyle\int\dfrac{\cos x}{\sin x}\,dx$ and hence evaluate $\displaystyle\int_{\pi/6}^{\pi/2}\dfrac{\cos x}{\sin x}\,dx$.<div class="ws">$f=\sin x,\ f'=\cos x$<br>$\int\dfrac{\cos x}{\sin x}dx=\ln|\sin x|+C$<br>$[\ln\sin x]_{\pi/6}^{\pi/2}=\ln1-\ln\tfrac{1}{2}=\ln2$</div>
-</div></div>
-
-<div class="c"><div class="h">We Do 9<span>Episode 7 · Trigonometric integrals</span></div><div class="b" style="min-height:420px">
-Show that $\displaystyle\int_{0}^{\pi/3}\dfrac{\sin x}{\cos x}\,dx=\ln2$.<div class="ws">$f=\cos x,\ f'=-\sin x$, so $\dfrac{\sin x}{\cos x}=-\dfrac{f'}{f}$<br>$[-\ln\cos x]_{0}^{\pi/3}=-\ln\tfrac{1}{2}+\ln1=\ln2$</div>
-</div></div>
-
-<div class="c"><div class="h">We Do 10<span>Episode 7 · Trigonometric integrals</span></div><div class="b" style="min-height:460px">
-Prove that $\displaystyle\int\sin(ax+b)\,dx=-\dfrac{1}{a}\cos(ax+b)+C$ for $a\neq0$, then find $\displaystyle\int_{0}^{\pi/3}\sin\left(3x+\dfrac{\pi}{2}\right)dx$.<div class="ws">$\dfrac{d}{dx}\left(-\dfrac{1}{a}\cos(ax+b)\right)=-\dfrac{1}{a}\times\left(-a\sin(ax+b)\right)=\sin(ax+b)$ ✓<br>$\left[-\tfrac{1}{3}\cos\left(3x+\tfrac{\pi}{2}\right)\right]_{0}^{\pi/3}=-\tfrac{1}{3}\cos\tfrac{3\pi}{2}+\tfrac{1}{3}\cos\tfrac{\pi}{2}=0$</div>
+<div class="c"><div class="h">We Do 5<span>Episode 7 · Trigonometric functions</span></div><div class="b" style="min-height:702px">
+a) Find $\displaystyle\int\cos2x\,dx$.<br>b) It is given that $\displaystyle\int\dfrac{f'(x)}{f(x)}\,dx=\int\cos2x\,dx$, where $f(0)=1$ and $f(x)\gt 0$ for all real $x$. Find $f(x)$.<div class="ws">a) $\int\cos2x\,dx=\dfrac{1}{2}\sin2x+c$<br>b) $\int\dfrac{f'(x)}{f(x)}\,dx=\ln f(x)+c$ since $f(x)\gt 0$.<br>So $\ln f(x)=\dfrac{1}{2}\sin2x+c$.<br>$f(0)=1$: $\ln1=\dfrac{1}{2}\sin0+c$, so $c=0$.<br>$f(x)=e^{\frac{1}{2}\sin2x}$</div><div style="font-size:16px;color:#777;margin-top:8px">HSC 2026 Q31.</div>
 </div></div>
