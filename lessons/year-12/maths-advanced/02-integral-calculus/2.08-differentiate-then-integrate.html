@@ -7,82 +7,45 @@ title: Differentiate, Then Integrate
 <div class="title">2.08 – Differentiate, Then Integrate</div>
 </div></div>
 
-<div class="c"><div class="h">Prior knowledge<span>Episode 8 · Differentiate, hence integrate</span></div><div class="b" style="min-height:330px">
-<b>1.</b> 
-<div class="g" style="grid-template-columns:repeat(2,1fr);font-size:26px;gap:52px 30px;margin:30px 0 20px 20px"><div>a) Differentiate $x\,e^{2x}$<div class="ws">$e^{2x}+2xe^{2x}$</div></div><div>b) Differentiate $x\ln x$<div class="ws">$\ln x+1$</div></div><div>c) Differentiate $(x^{2}+1)^{4}$<div class="ws">$8x(x^{2}+1)^{3}$</div></div><div>d) Differentiate $x\sin x$<div class="ws">$\sin x+x\cos x$</div></div></div>
+<div class="c"><div class="h">Warm-up<span>Episode 8 · Differentiate, then integrate</span></div><div class="b" style="min-height:520px">
+<div style="margin:18px 0 0 20px">a) Differentiate $y=x^{3}+x$.<div class="ws">$\dfrac{dy}{dx}=3x^{2}+1$</div></div><div style="margin:18px 0 0 20px">b) Use (a) to write down $\displaystyle\int\left(3x^{2}+1\right)dx$.<div class="ws">A primitive of $3x^{2}+1$ is $x^{3}+x$.<br>$\int\left(3x^{2}+1\right)dx=x^{3}+x+c$</div></div><div style="margin:18px 0 0 20px">c) Differentiate $y=\sin2x$.<div class="ws">$\dfrac{dy}{dx}=2\cos2x$</div></div><div style="margin:18px 0 0 20px">d) Use (c) to write down $\displaystyle\int\cos2x\,dx$.<div class="ws">Divide (c) by $2$.<br>$\int\cos2x\,dx=\dfrac{1}{2}\sin2x+c$</div></div>
 </div></div>
 
-<div class="c"><div class="h">Fact<span>Episode 8 · Differentiate, hence integrate</span></div><div class="b">
-<div class="rule">Integrals reverse derivatives
-<div class="m">If $\dfrac{d}{dx}F(x)=g(x)$, then $\displaystyle\int g(x)\,dx=F(x)+C$</div>A derivative you have already found is a free integral. Integrating a derivative undoes it.</div>
-<div class="key">'Hence' means use the result you just found.</div>
+<div class="c"><div class="h">Fact<span>Episode 8 · Differentiate, then integrate</span></div><div class="b">
+<div class="rule">Hence
+<div class="m">$\dfrac{d}{dx}F(x)=f(x)\ \Longrightarrow\ \displaystyle\int f(x)\,dx=F(x)+c$</div></div>
 </div></div>
 
-<div class="c"><div class="h">Transformation · model<span>Episode 8 · Differentiate, hence integrate</span></div><div class="b">
-<div class="cq">Integrate the derivative</div>
-<div class="g" style="grid-template-columns:repeat(3,1fr);font-size:26px;gap:44px 20px;text-align:center"><div>$\dfrac{d}{dx}\left(xe^{2x}\right)=e^{2x}+2xe^{2x}$<div class="ws">$\int\left(e^{2x}+2xe^{2x}\right)dx=xe^{2x}+C$</div></div><div>$\dfrac{d}{dx}\left(x\ln x\right)=\ln x+1$<div class="ws">$\int\left(\ln x+1\right)dx=x\ln x+C$</div></div><div>$\dfrac{d}{dx}\left(x\sin x\right)=\sin x+x\cos x$<div class="ws">$\int\left(\sin x+x\cos x\right)dx=x\sin x+C$</div></div></div>
+<div class="c"><div class="h">I Do<span>Episode 8 · Differentiate, then integrate</span></div><div class="b" style="min-height:360px">
+a) Differentiate $xe^{2x}$.<br>b) Hence find $\displaystyle\int(1+2x)e^{2x}\,dx$.
+<div class="ws">a) $\dfrac{d}{dx}\left(xe^{2x}\right)=1\times e^{2x}+x\times2e^{2x}=(1+2x)e^{2x}$<br>b) The derivative in (a) is the integrand.<br>$\int(1+2x)e^{2x}\,dx=xe^{2x}+c$</div>
 </div></div>
 
-<div class="c"><div class="h">Transformation · your turn<span>Episode 8 · Differentiate, hence integrate</span></div><div class="b" style="min-height:320px">
-<b>3.</b> Integrate the derivative.
-<div class="g" style="grid-template-columns:repeat(2,1fr);font-size:26px;gap:52px 30px;margin:30px 0 20px 20px"><div>a) $\dfrac{d}{dx}\left(xe^{x}\right)=e^{x}+xe^{x}$<div class="ws">$\int\left(e^{x}+xe^{x}\right)dx=xe^{x}+C$</div></div><div>b) $\dfrac{d}{dx}\left(x\cos x\right)=\cos x-x\sin x$<div class="ws">$\int\left(\cos x-x\sin x\right)dx=x\cos x+C$</div></div><div>c) $\dfrac{d}{dx}\left(\dfrac{\ln x}{x}\right)=\dfrac{1-\ln x}{x^{2}}$<div class="ws">$\int\dfrac{1-\ln x}{x^{2}}dx=\dfrac{\ln x}{x}+C$</div></div></div>
+<div class="c"><div class="h">We Do 1<span>Episode 8 · Differentiate, then integrate</span></div><div class="b" style="min-height:400px">
+a) Differentiate $y=\left(x^{2}+1\right)^{4}$.<br>b) Hence, or otherwise, find $\displaystyle\int x\left(x^{2}+1\right)^{3}dx$.<div class="ws">a) $\dfrac{dy}{dx}=4\left(x^{2}+1\right)^{3}\times2x=8x\left(x^{2}+1\right)^{3}$<br>b) Divide (a) by $8$.<br>$\int x\left(x^{2}+1\right)^{3}dx=\dfrac{\left(x^{2}+1\right)^{4}}{8}+c$</div><div style="font-size:16px;color:#777;margin-top:8px">HSC 2022 Q18.</div>
 </div></div>
 
-<div class="c"><div class="h">Transformation · model<span>Episode 8 · Differentiate, hence integrate</span></div><div class="b">
-<div class="cq">Split the result into the wanted integral and an easy one</div>
-<div class="g" style="grid-template-columns:repeat(3,1fr);font-size:26px;gap:44px 20px;text-align:center"><div>$\displaystyle\int\left(e^{2x}+2xe^{2x}\right)dx=xe^{2x}+C$<div class="ws">$\int2xe^{2x}dx=xe^{2x}-\int e^{2x}dx$<br>wanted: $2xe^{2x}$, easy: $e^{2x}$</div></div><div>$\displaystyle\int\left(\sin x+x\cos x\right)dx=x\sin x+C$<div class="ws">$\int x\cos x\,dx=x\sin x-\int\sin x\,dx$<br>wanted: $x\cos x$, easy: $\sin x$</div></div><div>$\displaystyle\int\left(\ln x+1\right)dx=x\ln x+C$<div class="ws">$\int\ln x\,dx=x\ln x-\int1\,dx$<br>wanted: $\ln x$, easy: $1$</div></div></div>
+<div class="c"><div class="h">Fact<span>Episode 8 · Differentiate, then integrate</span></div><div class="b">
+<div class="rule">Rearranging<br>If $F'(x)=g(x)+h(x)$, then<br>$\displaystyle\int h(x)\,dx=F(x)-\int g(x)\,dx$</div>
 </div></div>
 
-<div class="c"><div class="h">Transformation · your turn<span>Episode 8 · Differentiate, hence integrate</span></div><div class="b" style="min-height:360px">
-<b>4.</b> Write the wanted integral and the easy one.
-<div class="g" style="grid-template-columns:repeat(2,1fr);font-size:26px;gap:52px 30px;margin:30px 0 20px 20px"><div>a) $\displaystyle\int\left(e^{x}+xe^{x}\right)dx=xe^{x}+C$<div class="ws">$\int xe^{x}dx=xe^{x}-\int e^{x}dx$<br>wanted: $xe^{x}$, easy: $e^{x}$</div></div><div>b) $\displaystyle\int\left(\cos x-x\sin x\right)dx=x\cos x+C$<div class="ws">$\int x\sin x\,dx=\int\cos x\,dx-x\cos x$<br>wanted: $x\sin x$, easy: $\cos x$</div></div><div>c) $\displaystyle\int\left(e^{3x}+3xe^{3x}\right)dx=xe^{3x}+C$<div class="ws">$\int3xe^{3x}dx=xe^{3x}-\int e^{3x}dx$<br>wanted: $3xe^{3x}$, easy: $e^{3x}$</div></div></div>
+<div class="c"><div class="h">I Do<span>Episode 8 · Differentiate, then integrate</span></div><div class="b" style="min-height:360px">
+a) Differentiate $x\sin x$.<br>b) Hence find $\displaystyle\int x\cos x\,dx$.
+<div class="ws">a) $\dfrac{d}{dx}(x\sin x)=\sin x+x\cos x$<br>b) Integrate both sides of (a).<br>$x\sin x=\int\sin x\,dx+\int x\cos x\,dx$<br>$\int x\cos x\,dx=x\sin x-\int\sin x\,dx$<br>$=x\sin x+\cos x+c$</div>
 </div></div>
 
-<div class="c"><div class="h">Category · rule<span>Episode 8 · Differentiate, hence integrate</span></div><div class="b">
-<div class="key solo"><b>Differentiate-hence-integrate routine</b><br>1. Differentiate the given function.<br>2. Integrate both sides.<br>3. Move the easy integral across.<br>4. Divide to get the wanted integral alone.<br>5. Add $C$ (or use limits).</div>
+<div class="c"><div class="h">We Do 2<span>Episode 8 · Differentiate, then integrate</span></div><div class="b" style="min-height:400px">
+a) Differentiate $xe^{x}$.<br>b) Hence find $\displaystyle\int xe^{x}\,dx$.<div class="ws">a) $\dfrac{d}{dx}\left(xe^{x}\right)=e^{x}+xe^{x}$<br>b) $xe^{x}=\int e^{x}\,dx+\int xe^{x}\,dx$<br>$\int xe^{x}\,dx=xe^{x}-\int e^{x}\,dx$<br>$=xe^{x}-e^{x}+c$</div>
 </div></div>
 
-<div class="c"><div class="h">I Do<span>Episode 8 · Differentiate, hence integrate</span></div><div class="b" style="min-height:360px">
-Differentiate $x\,e^{2x}$. Hence find $\displaystyle\int x\,e^{2x}\,dx$.
-<div class="ws">$\dfrac{d}{dx}\left(xe^{2x}\right)=e^{2x}+2xe^{2x}$<br>Integrate both sides: $xe^{2x}=\int e^{2x}dx+2\int xe^{2x}dx$<br>$xe^{2x}=\tfrac{1}{2}e^{2x}+2\int xe^{2x}dx$<br>$\int xe^{2x}dx=\tfrac{1}{2}\left(xe^{2x}-\tfrac{1}{2}e^{2x}\right)+C$<br>$=\tfrac{1}{2}xe^{2x}-\tfrac{1}{4}e^{2x}+C$</div>
+<div class="c"><div class="h">We Do 3<span>Episode 8 · Differentiate, then integrate</span></div><div class="b" style="min-height:400px">
+a) Differentiate $y=\tan x-x$. Use $1+\tan^{2}x=\sec^{2}x$ to simplify.<br>b) Hence find $\displaystyle\int\tan^{2}x\,dx$.<div class="ws">a) $\dfrac{dy}{dx}=\sec^{2}x-1=\tan^{2}x$<br>b) The derivative in (a) is the integrand.<br>$\int\tan^{2}x\,dx=\tan x-x+c$</div>
 </div></div>
 
-<div class="c"><div class="h">We Do 1<span>Episode 8 · Differentiate, hence integrate</span></div><div class="b" style="min-height:400px">
-Differentiate $x\sin x$. Hence find $\displaystyle\int x\cos x\,dx$.<div class="ws">$\dfrac{d}{dx}(x\sin x)=\sin x+x\cos x$<br>$x\sin x=-\cos x+\int x\cos x\,dx$<br>$\int x\cos x\,dx=x\sin x+\cos x+C$</div>
+<div class="c"><div class="h">We Do 4<span>Episode 8 · Differentiate, then integrate</span></div><div class="b" style="min-height:480px">
+a) Show that $\dfrac{d}{dx}(\sin x-x\cos x)=x\sin x$.<br>b) Hence find the value of $\displaystyle\int_{0}^{2025\pi}x\sin x\,dx$.<div class="ws">a) $\dfrac{d}{dx}(\sin x-x\cos x)=\cos x-\left(\cos x-x\sin x\right)=x\sin x$<br>b) $\int_{0}^{2025\pi}x\sin x\,dx=\left[\sin x-x\cos x\right]_{0}^{2025\pi}$<br>$=\left(\sin2025\pi-2025\pi\cos2025\pi\right)-\left(0-0\right)$<br>$=0-2025\pi\times(-1)=2025\pi$</div><div style="font-size:16px;color:#777;margin-top:8px">HSC 2025 Q25(a)(b).</div>
 </div></div>
 
-<div class="c"><div class="h">We Do 2<span>Episode 8 · Differentiate, hence integrate</span></div><div class="b" style="min-height:380px">
-Differentiate $x\ln x$. Hence find $\displaystyle\int\ln x\,dx$.<div class="ws">$\dfrac{d}{dx}(x\ln x)=\ln x+1$<br>$x\ln x=\int\ln x\,dx+x$<br>$\int\ln x\,dx=x\ln x-x+C$</div>
-</div></div>
-
-<div class="c"><div class="h">We Do 3<span>Episode 8 · Differentiate, hence integrate</span></div><div class="b" style="min-height:420px">
-Differentiate $(x^{2}+3)^{5}$. Hence find $\displaystyle\int x(x^{2}+3)^{4}\,dx$.<div class="ws">$\dfrac{d}{dx}(x^{2}+3)^{5}=5(x^{2}+3)^{4}\times2x=10x(x^{2}+3)^{4}$<br>$\int x(x^{2}+3)^{4}dx=\dfrac{1}{10}(x^{2}+3)^{5}+C$</div><div style="font-size:16px;color:#777;margin-top:8px">Modelled on HSC 2022 Q18.</div>
-</div></div>
-
-<div class="c"><div class="h">We Do 4<span>Episode 8 · Differentiate, hence integrate</span></div><div class="b" style="min-height:420px">
-Differentiate $e^{3x}(3x-1)$. Hence find $\displaystyle\int xe^{3x}\,dx$.<div class="ws">$\dfrac{d}{dx}\left(e^{3x}(3x-1)\right)=3e^{3x}(3x-1)+3e^{3x}=9xe^{3x}$<br>$\int9xe^{3x}dx=e^{3x}(3x-1)+C$<br>$\int xe^{3x}dx=\dfrac{1}{9}e^{3x}(3x-1)+C$</div><div style="font-size:16px;color:#777;margin-top:8px">Modelled on HSC 2020 Q18.</div>
-</div></div>
-
-<div class="c"><div class="h">We Do 5<span>Episode 8 · Differentiate, hence integrate</span></div><div class="b" style="min-height:440px">
-Show that $\dfrac{d}{dx}\left(\sin x-x\cos x\right)=x\sin x$. Hence evaluate $\displaystyle\int_{0}^{\pi}x\sin x\,dx$.<div class="ws">$\dfrac{d}{dx}(\sin x-x\cos x)=\cos x-\left(\cos x-x\sin x\right)=x\sin x$ ✓<br>$\int_{0}^{\pi}x\sin x\,dx=[\sin x-x\cos x]_{0}^{\pi}=\left(0+\pi\right)-0=\pi$</div><div style="font-size:16px;color:#777;margin-top:8px">Modelled on HSC 2025 Q25.</div>
-</div></div>
-
-<div class="c"><div class="h">We Do 6<span>Episode 8 · Differentiate, hence integrate</span></div><div class="b" style="min-height:440px">
-Differentiate $\dfrac{x}{x^{2}+1}$. Hence evaluate $\displaystyle\int_{0}^{1}\dfrac{1-x^{2}}{(x^{2}+1)^{2}}\,dx$.<div class="ws">$\dfrac{d}{dx}\dfrac{x}{x^{2}+1}=\dfrac{(x^{2}+1)-x\times2x}{(x^{2}+1)^{2}}=\dfrac{1-x^{2}}{(x^{2}+1)^{2}}$<br>$\int_{0}^{1}\dfrac{1-x^{2}}{(x^{2}+1)^{2}}dx=\left[\dfrac{x}{x^{2}+1}\right]_{0}^{1}=\dfrac{1}{2}-0=\dfrac{1}{2}$</div>
-</div></div>
-
-<div class="c"><div class="h">We Do 7<span>Episode 8 · Differentiate, hence integrate</span></div><div class="b" style="min-height:460px">
-Show that $\dfrac{d}{dx}\left(x^{2}\ln x\right)=2x\ln x+x$. Hence find $\displaystyle\int x\ln x\,dx$.<div class="ws">$\dfrac{d}{dx}(x^{2}\ln x)=2x\ln x+x^{2}\times\dfrac{1}{x}=2x\ln x+x$ ✓<br>$x^{2}\ln x=2\int x\ln x\,dx+\dfrac{x^{2}}{2}$<br>$\int x\ln x\,dx=\dfrac{1}{2}x^{2}\ln x-\dfrac{1}{4}x^{2}+C$</div><div style="font-size:16px;color:#777;margin-top:8px">Modelled on HSC 2024 Q27.</div>
-</div></div>
-
-<div class="c"><div class="h">We Do 8<span>Episode 8 · Differentiate, hence integrate</span></div><div class="b" style="min-height:460px">
-Differentiate $x\,e^{-x}$. Hence find the exact value of $\displaystyle\int_{0}^{1}xe^{-x}\,dx$.<div class="ws">$\dfrac{d}{dx}(xe^{-x})=e^{-x}-xe^{-x}$<br>$\int xe^{-x}dx=\int e^{-x}dx-xe^{-x}=-e^{-x}-xe^{-x}$<br>$[-e^{-x}(1+x)]_{0}^{1}=-2e^{-1}+1=1-\dfrac{2}{e}$</div>
-</div></div>
-
-<div class="c"><div class="h">We Do 9<span>Episode 8 · Differentiate, hence integrate</span></div><div class="b" style="min-height:480px">
-Differentiate $\dfrac{\ln x}{x}$. Hence find $\displaystyle\int\dfrac{\ln x}{x^{2}}\,dx$.<div class="ws">$\dfrac{d}{dx}\dfrac{\ln x}{x}=\dfrac{1-\ln x}{x^{2}}$<br>$\dfrac{\ln x}{x}=\int\dfrac{1}{x^{2}}dx-\int\dfrac{\ln x}{x^{2}}dx=-\dfrac{1}{x}-\int\dfrac{\ln x}{x^{2}}dx$<br>$\int\dfrac{\ln x}{x^{2}}dx=-\dfrac{\ln x}{x}-\dfrac{1}{x}+C$</div>
-</div></div>
-
-<div class="c"><div class="h">We Do 10<span>Episode 8 · Differentiate, hence integrate</span></div><div class="b" style="min-height:440px">
-Show that $\dfrac{d}{dx}\left(\tan x-x\right)=\tan^{2}x$. Hence evaluate $\displaystyle\int_{0}^{\pi/4}\tan^{2}x\,dx$.<div class="ws">$\dfrac{d}{dx}(\tan x-x)=\sec^{2}x-1=\tan^{2}x$ ✓<br>$[\tan x-x]_{0}^{\pi/4}=\left(1-\tfrac{\pi}{4}\right)-0=1-\tfrac{\pi}{4}$</div>
+<div class="c"><div class="h">We Do 5<span>Episode 8 · Differentiate, then integrate</span></div><div class="b" style="min-height:520px">
+a) Find the derivative of $x^{2}\tan x$.<br>b) Hence, find $\displaystyle\int(x\tan x+1)^{2}\,dx$.<div class="ws">a) $\dfrac{d}{dx}\left(x^{2}\tan x\right)=2x\tan x+x^{2}\sec^{2}x$<br>b) $(x\tan x+1)^{2}=x^{2}\tan^{2}x+2x\tan x+1$<br>$=x^{2}\left(\sec^{2}x-1\right)+2x\tan x+1$<br>$=\left(x^{2}\sec^{2}x+2x\tan x\right)-x^{2}+1$<br>The bracket is the derivative from (a).<br>$\int(x\tan x+1)^{2}\,dx=x^{2}\tan x-\dfrac{x^{3}}{3}+x+c$</div><div style="font-size:16px;color:#777;margin-top:8px">HSC 2024 Q27.</div>
 </div></div>
