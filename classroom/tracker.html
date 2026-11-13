@@ -1297,11 +1297,11 @@ function drawDash(){
   const strip=s=>groups.map(g=>'<div class="lgrp"><div class="ltr">'+g.items.map(l=>{
     const owed=!S.book.has(bKey(s.id,l)),t=lessonTitle(cls,l);
     return '<div class="lt'+(owed?' owed':'')+'" title="'+esc(l+(t?' '+t:'')+(owed?' (owed)':''))+'">'+esc(lab(l))+'</div>'}).join('')+'</div><small title="'+esc(g.name)+'">'+esc(g.label)+'</small></div>').join('');
-  box.innerHTML='<table><thead><tr><th>Student</th><th>N-awards resolved</th><th>N-awards unresolved</th><th>Total missed</th><th>Book work</th></tr></thead><tbody>'+
+  box.innerHTML='<table><thead><tr><th>Student</th><th>N-awards unresolved</th><th>Total missed</th><th>Book work</th></tr></thead><tbody>'+
     students.map(s=>{
-      const n=nawFor(s.id),res=n.filter(r=>r.status==='resolved').length,un=n.length-res;
+      const un=nawFor(s.id).filter(r=>r.status!=='resolved').length;
       const owed=lessons.filter(l=>!S.book.has(bKey(s.id,l)));
-      return '<tr><td>'+esc(s.last)+', '+esc(s.first)+'</td><td style="text-align:center;color:#15803D;font-weight:600">'+res+'</td><td style="text-align:center;color:'+(un?'#C0392B':'inherit')+';font-weight:600">'+un+'</td><td style="text-align:center">'+missPill(owed.length)+'</td><td>'+
+      return '<tr><td>'+esc(s.last)+', '+esc(s.first)+'</td><td style="text-align:center;color:#C0392B;font-weight:600">'+(un||'')+'</td><td style="text-align:center">'+missPill(owed.length)+'</td><td>'+
         (lessons.length?'<div class="lg">'+strip(s)+'</div>':'<span class="note" style="margin:0">No book work ticked yet</span>')+'</td></tr>'}).join('')+'</tbody></table>';
 }
 $('dClass').onchange=drawDash;$('dEnd').oninput=drawDash;$('dN').oninput=drawDash;
