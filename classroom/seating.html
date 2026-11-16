@@ -90,7 +90,7 @@ svg{display:block;width:100%;height:auto;font-family:var(--ui)}
 .desk.locked{stroke:var(--brand);stroke-width:3.5}
 .lockmark{pointer-events:none}.lockmark .shackle{fill:none;stroke:var(--brand);stroke-width:2.2}.lockmark .lockbody{fill:var(--brand)}
 .nm{fill:var(--ink);font-family:Helvetica,Arial,sans-serif;font-weight:600;text-anchor:middle;pointer-events:none}   /* same font as the PDF, so the fitting below matches it */
-.tdesk{fill:var(--panel);stroke:var(--ink);stroke-width:2.5}
+.tdesk,.lectern{fill:var(--panel);stroke:var(--ink);stroke-width:2.5}
 .door{fill:none;stroke:var(--muted);stroke-width:2}
 .lbl{fill:var(--muted);font-size:15px;font-weight:600;letter-spacing:.04em;text-anchor:middle}
 </style>
@@ -135,7 +135,7 @@ svg{display:block;width:100%;height:auto;font-family:var(--ui)}
 </div>
 
 <main>
-  <svg id="room" viewBox="0 0 1000 560" role="group" aria-label="Classroom plan with the front at the bottom: three rows of eight desks in two tables of four at the front; a back row of three desks on the left and a single desk beside a double-length big desk on the right; teacher's desk at the back left; windows down the left wall, door on the right wall near the front corner"></svg>
+  <svg id="room" viewBox="0 0 1000 590" role="group" aria-label="Classroom plan with the front at the bottom: three rows of eight desks in two tables of four at the front; a back row of three desks on the left and a single desk beside a double-length big desk on the right; teacher's desk at the back left; windows down the left wall, door on the right wall near the front corner, lectern front-left"></svg>
 </main>
 </div>
 </div>
@@ -149,7 +149,7 @@ const el = (name, attrs, text) => { const e = document.createElementNS(NS, name)
 
 // ---------- the room ----------
 // Room: x 10–990. Windows run down the whole left wall, the door is in the right wall near the bottom corner.
-const VB_H = 560, ROOM = {x:10, y:10, w:980, h:540}, WIN_W = 36, BOTTOM = ROOM.y + ROOM.h;
+const VB_H = 590, ROOM = {x:10, y:10, w:980, h:570}, WIN_W = 36, BOTTOM = ROOM.y + ROOM.h;
 const DESK = {w:84, h:52}, TABLE = 4, ROWS = 3, AISLE = 80, ROW_GAP = 48, TOP = 110;   // TOP: the back row
 
 const svg = $('room');
@@ -192,6 +192,13 @@ const T = {x:xOf(0), y:30, w:2*DESK.w, h:46};
 svg.appendChild(el('rect', {class:'tdesk', x:T.x, y:T.y, width:T.w, height:T.h, rx:4}));
 svg.appendChild(el('text', {class:'lbl', x:T.x + T.w/2, y:T.y + T.h/2 + 5}, "Teacher's desk"));
 svg.appendChild(el('text', {class:'lbl', x:x0 + blockW/2, y:BOTTOM - 20}, 'Front'));
+
+// teacher lectern: front-left corner, turned 45°
+const L = {w:84, h:46, cx:ROOM.x + WIN_W + 76, cy:BOTTOM - 58};
+const lec = el('g', {transform:`rotate(45 ${L.cx} ${L.cy})`});
+lec.appendChild(el('rect', {class:'lectern', x:L.cx - L.w/2, y:L.cy - L.h/2, width:L.w, height:L.h, rx:4}));
+lec.appendChild(el('text', {class:'lbl', x:L.cx, y:L.cy + 5}, 'Lectern'));
+svg.appendChild(lec);
 
 // ---------- names ----------
 let pool = [], sel = null;                                            // sel: {t:'pool'|'desk', i}
@@ -481,7 +488,7 @@ window.addEventListener('storage', e => { if (e.key === KEY) renderList() });
 
 // ---------- A4 PDF ----------
 const PDF_CSS = 'svg{font-family:Helvetica,Arial,sans-serif}.floor{fill:#fff}.wall{fill:none;stroke:#1D232B;stroke-width:3;stroke-linejoin:round;stroke-linecap:round}' +
-  '.glass{fill:#DCEBF5;stroke:#9DB9CC;stroke-width:1.5}.desk{fill:#fff;stroke:#1D232B;stroke-width:2}.tdesk{fill:#fff;stroke:#1D232B;stroke-width:2.5}' +
+  '.glass{fill:#DCEBF5;stroke:#9DB9CC;stroke-width:1.5}.desk{fill:#fff;stroke:#1D232B;stroke-width:2}.tdesk,.lectern{fill:#fff;stroke:#1D232B;stroke-width:2.5}' +
   '.door{fill:none;stroke:#5E6672;stroke-width:2}.lbl{fill:#5E6672;font-size:15px;font-weight:600;letter-spacing:.04em;text-anchor:middle}.nm{fill:#1D232B;font-weight:600;text-anchor:middle}';
 $('pdf').addEventListener('click', async () => {
   sel = null; paint();
