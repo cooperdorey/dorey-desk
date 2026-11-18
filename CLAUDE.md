@@ -47,6 +47,11 @@ We Do levels) live in the Lesson Creator project; this file covers the repo form
   Sheet codes: the homework code also records the lessons that ended up on the sheet; a linked LSQ's code is
   `homeworkCode~…`. Codes are read back in the on-screen lesson order, so keep engine.js lesson order stable.
   Question text from HSC papers is cited by year and question number; omit questions that need a diagram.
+  Question generator print layouts: Textbook page (2 or 1 columns, fixed A4 geometry, 186 mm sheet measured on screen) or One per row
+  with working space. In textbook layouts, back-to-back questions from one lesson of the form `<stem> $maths$[, tail]` with the
+  same stem and tail become one numbered question with parts a, b, c… (a part row's column count comes from the widest part);
+  Amount can fill 1 or 2 pages (largest count whose measured questions pack into the columns). Answer key: answers only (3 columns),
+  worked solutions, or none, on a new page. So new lessons group well, keep plain prompts as `Verb $maths$.`.
   In the question generator, test every generator function on many seeds before committing
   (all maths must parse in KaTeX; no `NaN`, `undefined`, `+ -` or `1x`).
 - Standard 1 LSQ (`generators/lsq-std1.html`): a copy of the LSQ page with its own bank, `generators/std1-bank.js`

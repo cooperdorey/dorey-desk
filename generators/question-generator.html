@@ -70,10 +70,47 @@ table.tv{border-collapse:collapse;margin:8px 0}
 table.tv th,table.tv td{border:1px solid var(--sol-line);padding:4px 12px;text-align:center;font-weight:400}
 .key{display:none}
 @media (max-width:860px){.wrap{grid-template-columns:minmax(0,1fr)}aside{position:static;max-height:none}}
+/* textbook page: fixed A4 geometry so on-screen measuring matches print */
+.viewrow{display:flex;gap:0;margin:0 0 12px}
+.viewrow button{border-radius:0;padding:5px 14px}
+.viewrow button:first-child{border-radius:8px 0 0 8px}.viewrow button:last-child{border-radius:0 8px 8px 0;border-left:none}
+.viewrow button[aria-pressed=true]{background:var(--brand);color:var(--brand-ink)}
+.ctl select{width:100%;padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink);font:inherit}
+.ctl .full{grid-column:1/-1}
+.pagebox{background:#fff;color:#000;box-shadow:0 1px 4px rgba(0,0,0,.18);width:210mm;padding:12mm;margin:0 0 16px;overflow:hidden}
+.pagewrap{overflow-x:auto}
+.offscreen{position:absolute!important;left:-10000px;top:0;visibility:hidden}
+.sheet{width:186mm;color:#000;font-family:var(--card);font-size:10.5pt;line-height:1.42}
+.sheet math{font-size:1.05em}
+.sh-head{display:flex;justify-content:space-between;align-items:baseline;border-bottom:1.2pt solid #000;padding-bottom:1.5mm;margin-bottom:3mm}
+.sh-head b{font-size:12.5pt}
+.sh-head b{flex:1;min-width:0}
+.sh-head span{font-family:var(--ui);font-size:8pt;color:#555;white-space:nowrap;margin-left:6mm}
+.cols{column-gap:7mm}
+.cols.c2{column-count:2;column-rule:0.4pt solid #ccc}
+.it{display:grid;grid-template-columns:6.5mm minmax(0,1fr);break-inside:avoid;padding-bottom:2.4mm}
+.it .n{font-weight:700}
+.it .stem{margin-bottom:.6mm}
+.parts{display:grid;column-gap:4mm;row-gap:1.2mm;grid-template-columns:minmax(0,1fr)}
+.pt{display:flex;gap:1.6mm;align-items:baseline;min-width:0}
+.pt b{flex:0 0 auto}
+.pt span{white-space:nowrap}
+.parts.wrap .pt span{white-space:normal}
+.sh-key{break-before:page;padding-top:0}
+.sh-key .sh-head{margin-top:0}
+.kcols{column-gap:6mm;column-count:3;font-size:9.5pt}
+.kcols.sols{column-count:2}
+.ka{break-inside:avoid;display:grid;grid-template-columns:7mm minmax(0,1fr);padding-bottom:1.4mm}
+.ka .n{font-weight:700}
+.ka .s>div{margin:0 0 .4mm}
+.ka .s .fa{font-weight:700}
+.sheet table.tv{font-size:9pt;margin:2px 0}
+.sheet table.tv th,.sheet table.tv td{border:0.5pt solid #999;padding:1px 6px}
+@page{size:A4;margin:12mm}
 @media print{
  :root{--sheet:#fff;--ink:#000;--sol-ink:#000}
  body{background:#fff;color:#000}
- header,.intro,aside,.qhead button,.tag{display:none!important}
+ header,.intro,aside,.qhead button,.tag,.viewrow,.meta{display:none!important}
  .wrap{display:block;padding:0}
  .q{border:none;border-bottom:1px solid #ccc;border-radius:0;padding:10px 0 48px}
  .sol{display:none!important}
@@ -81,6 +118,13 @@ table.tv th,table.tv td{border:1px solid var(--sol-line);padding:4px 12px;text-a
  .key h2{font-family:var(--card);font-size:20px}
  .key .q{padding-bottom:12px}
  .key .sol{display:block!important;background:none;border:none;padding:0}
+ /* textbook layouts print the sheet only */
+ body.print-sheet #out,body.print-sheet .key{display:none!important}
+ body.print-sheet #pagewrap{display:block!important;overflow:visible;position:static!important;visibility:visible!important}
+ body:not(.print-sheet) #pagewrap{display:none!important}
+ body.print-sheet .pagebox{box-shadow:none;width:auto;padding:0;margin:0;overflow:visible}
+ body.print-sheet #sheet{position:static!important;visibility:visible!important}
+ body.sheet-nokey .sh-key{display:none!important}
 }
 </style>
 </head>
@@ -91,17 +135,19 @@ table.tv th,table.tv td{border:1px solid var(--sol-line);padding:4px 12px;text-a
 </header>
 <div class="intro">
  <h1>Question generator</h1>
- <p>Tick a topic or individual lessons, then generate. Every question has a worked solution. The same seed and lessons always give the same set, so a copied link reproduces it exactly.</p>
+ <p>Tick a topic or individual lessons, then generate. Every question has a worked solution. Textbook layouts pack questions into columns, with like questions set as parts a, b, c… The same seed and lessons always give the same set, so a copied link reproduces it exactly.</p>
 </div>
 <div class="wrap">
  <aside>
   <div id="topics"></div>
   <div class="ctl">
-   <div><label for="n">Questions</label><input id="n" type="number" min="1" max="40" value="8"></div>
+   <div class="full"><label for="lay">Print layout</label><select id="lay"><option value="2">Textbook page, 2 columns</option><option value="1">Textbook page, 1 column</option><option value="ws">One per row, working space</option></select></div>
+   <div><label for="fill">Amount</label><select id="fill"><option value="0">Set number</option><option value="1">Fill 1 page</option><option value="2">Fill 2 pages</option></select></div>
+   <div><label for="n">Questions</label><input id="n" type="number" min="1" max="120" value="8"></div>
    <div><label for="seed">Seed</label><div class="seedrow"><input id="seed" type="text"><button id="dice" type="button" title="New seed" aria-label="New seed">🎲</button></div></div>
   </div>
   <label class="check"><input type="checkbox" id="mix"> Shuffle question order</label>
-  <label class="check"><input type="checkbox" id="printkey" checked> Print answer key on last page</label>
+  <div class="ctl"><div class="full"><label for="keymode">Answer key (prints on a new page)</label><select id="keymode"><option value="ans">Answers only</option><option value="sol">Worked solutions</option><option value="none">None</option></select></div></div>
   <button class="primary" id="go">Generate</button>
   <div class="btnrow">
    <button id="toggleAll">Show all solutions</button>
@@ -110,9 +156,11 @@ table.tv th,table.tv td{border:1px solid var(--sol-line);padding:4px 12px;text-a
   </div>
  </aside>
  <main>
+  <div class="viewrow" id="viewrow" hidden><button type="button" data-v="cards" aria-pressed="true">Cards</button><button type="button" data-v="page" aria-pressed="false">Page</button></div>
   <p class="meta" id="meta"></p>
   <div id="out"><div class="empty">Select at least one lesson, then press Generate.</div></div>
   <section class="key" id="key"></section>
+  <div id="pagewrap" class="pagewrap offscreen"><div class="pagebox"><section id="sheet" class="sheet"></section></div></div>
  </main>
 </div>
 
@@ -148,13 +196,30 @@ document.addEventListener('DOMContentLoaded',()=>{
  $('seed').value=h.get('seed')||newSeed();
  if(h.get('n'))$('n').value=h.get('n');
  $('mix').checked=h.get('mix')==='1';
+ if(['2','1','ws'].includes(h.get('lay')))$('lay').value=h.get('lay');
+ if(['0','1','2'].includes(h.get('fill')))$('fill').value=h.get('fill');
+ if(['ans','sol','none'].includes(h.get('key')))$('keymode').value=h.get('key');
  const fromLink=(h.get('l')||'').split(',').filter(id=>LESSONS[id]);
  fromLink.forEach(id=>{const el=document.querySelector(`.lsel[value="${id}"]`);if(el)el.checked=true});
  document.querySelectorAll('details[data-topic]').forEach(syncTopic);
 
+ const textbook=()=>$('lay').value!=='ws';
+ function syncCtl(){const tb=textbook();if(!tb)$('fill').value='0';$('fill').disabled=!tb;$('n').disabled=tb&&$('fill').value!=='0'}
+ $('lay').onchange=()=>{syncCtl();if(set)generate()};
+ $('fill').onchange=()=>{syncCtl();if(set)generate()};
+ $('keymode').onchange=()=>{if(set)generate()};
+ syncCtl();
+
+ let view='cards';
+ function setView(v){view=v;document.querySelectorAll('#viewrow button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===v));
+  const page=v==='page'&&textbook()&&!!set;$('out').hidden=page;$('pagewrap').classList.toggle('offscreen',!page)}
+ document.querySelectorAll('#viewrow button').forEach(b=>b.onclick=()=>setView(b.dataset.v));
+
  $('dice').onclick=()=>{$('seed').value=newSeed();generate()};
  $('go').onclick=generate;
- $('print').onclick=()=>{document.body.classList.toggle('print-key',$('printkey').checked);window.print()};
+ $('print').onclick=()=>{const tb=textbook()&&set;document.body.classList.toggle('print-sheet',!!tb);
+  document.body.classList.toggle('sheet-nokey',$('keymode').value==='none');
+  document.body.classList.toggle('print-key',!tb&&$('keymode').value!=='none');window.print()};
  $('copy').onclick=async()=>{try{await navigator.clipboard.writeText(location.href);$('copy').textContent='Copied!'}catch(e){$('copy').textContent='Copy failed'}setTimeout(()=>$('copy').textContent='Copy link',1500)};
  let allShown=false;
  $('toggleAll').onclick=()=>{allShown=!allShown;document.querySelectorAll('#out .sol').forEach(s=>s.hidden=!allShown);
@@ -164,7 +229,7 @@ document.addEventListener('DOMContentLoaded',()=>{
  function render(el){if(typeof renderMathInElement!=='function')return;
   renderMathInElement(el,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],output:'mathml',throwOnError:false});evenBrackets(el);unaryMinus(el)}
  // a minus at the start, or straight after an operator or opening bracket, is a sign, not subtraction: no gap after it
- function unaryMinus(el){el.querySelectorAll('mo').forEach(mo=>{const t=mo.textContent;if(t!=='\u2212'&&t!=='-')return;
+ function unaryMinus(el){el.querySelectorAll('mo').forEach(mo=>{const t=mo.textContent;if(t!=='−'&&t!=='-')return;
   const prev=mo.previousElementSibling;if(prev&&!(prev.tagName.toLowerCase()==='mo'&&!/^[)\]|}]$/.test(prev.textContent)))return;
   mo.setAttribute('lspace','0');mo.setAttribute('rspace','0')})}
  // same as assets/app.js: \left…\right only stretches around fractions and matrices
@@ -175,20 +240,79 @@ document.addEventListener('DOMContentLoaded',()=>{
   [f,l].forEach(mo=>{mo.setAttribute('stretchy','false');mo.setAttribute('lspace','0');mo.setAttribute('rspace','0')})})}
  const solHTML=Q=>`<div class="sol">${Q.sol.map(s=>`<div>${s}</div>`).join('')}<div class="ans">Answer: ${Q.ans}</div></div>`;
 
+ // ---- textbook numbering ----
+ // Back-to-back questions from one lesson that are "<stem> $<maths>$" with the same stem
+ // become one numbered question with parts a, b, c… (e.g. "Differentiate:" with a row of functions).
+ // A trailing ", giving your answer…" clause moves into the stem: "Differentiate, giving your answer as a single fraction:".
+ const STEM=/^([^$<]*[A-Za-z][^$<]*?)\s*(\$[^$]+\$)\s*((?:,\s*[^$<]+?)?)\s*\.?$/;
+ const ALPHA='abcdefghijklmnopqrstuvwxyz';
+ function groupSet(qs,mix){const items=[];
+  // unshuffled: within each lesson's run, bring questions with the same stem together (first-seen order)
+  if(!mix){const runs=[];qs.forEach(Q=>{const r=runs[runs.length-1];if(r&&r[0].lesson.id===Q.lesson.id)r.push(Q);else runs.push([Q])});
+   const keyOf=Q=>{const m=STEM.exec(Q.q);return m?m[1]+'|'+m[3]:'\u0000'+Q.q};
+   qs=runs.flatMap(r=>{const first=new Map();r.forEach((Q,i)=>{const k=keyOf(Q);if(!first.has(k))first.set(k,i)});
+    return r.map((Q,i)=>({Q,i,o:first.get(keyOf(Q))})).sort((a,b)=>a.o-b.o||a.i-b.i).map(x=>x.Q)})}
+  qs.forEach(Q=>{const m=STEM.exec(Q.q),key=m?m[1]+'|'+m[3]:null,last=items[items.length-1];
+   if(m&&last&&last.key===key&&last.lesson===Q.lesson.id&&last.parts.length<26){last.parts.push({Q,body:m[2]});return}
+   items.push({key,stem:m?(m[1].replace(/[:.,]$/,'')+m[3]):null,lesson:Q.lesson.id,parts:[{Q,body:m?m[2]:Q.q}]})});
+  items.forEach((it,i)=>{it.num=i+1;if(it.parts.length<2){it.single=true;it.parts[0].label=String(it.num)}
+   else it.parts.forEach((p,j)=>p.label=it.num+ALPHA[j])});
+  return items}
+ const stemText=s=>/\?$/.test(s)?s:s.replace(/[.,]$/,'')+':';
+
+ // ---- the page ----
+ const MM=96/25.4,PAGE_H=273*MM;
+ function sheetHTML(items){const topics=[...new Set(items.flatMap(it=>it.parts.map(p=>p.Q.lesson.topic.name)))].join(', ');
+  const qs=items.map(it=>it.single?`<div class="it"><span class="n">${it.num}</span><div>${it.parts[0].Q.q}</div></div>`
+   :`<div class="it"><span class="n">${it.num}</span><div><div class="stem">${stemText(it.stem)}</div><div class="parts">${it.parts.map((p,j)=>`<div class="pt"><b>${ALPHA[j]}</b><span>${p.body}</span></div>`).join('')}</div></div></div>`).join('');
+  const km=$('keymode').value,flat=items.flatMap(it=>it.parts);
+  const key=km==='none'?'':`<div class="sh-key"><div class="sh-head"><b>Answers</b><span>${esc(topics)}</span></div><div class="kcols${km==='sol'?' sols':''}">${
+   flat.map(p=>`<div class="ka"><span class="n">${p.label}</span><div class="s">${km==='sol'?p.Q.sol.map(x=>`<div>${x}</div>`).join('')+`<div class="fa">${p.Q.ans}</div>`:p.Q.ans}</div></div>`).join('')}</div></div>`;
+  return `<div class="sh-head"><b>${esc(topics)}</b><span>Name ____________________</span></div><div class="cols${$('lay').value==='2'?' c2':''}">${qs}</div>${key}`}
+ // size each part row from the widest part, so short parts sit 3–6 across and long ones fewer
+ function fitParts(sh){sh.querySelectorAll('.parts').forEach(box=>{const spans=[...box.querySelectorAll('.pt')];
+  const w=Math.max(...spans.map(pt=>pt.querySelector('b').offsetWidth+pt.querySelector('span').scrollWidth))+6.5*MM,avail=box.clientWidth;
+  if(w>avail){box.classList.add('wrap');box.style.gridTemplateColumns='minmax(0,1fr)';return}
+  const k=Math.max(1,Math.min(spans.length,Math.floor((avail+4*MM)/(w+4*MM))));
+  box.style.gridTemplateColumns=`repeat(${k},minmax(0,1fr))`})}
+ function drawSheet(items){const sh=$('sheet');sh.innerHTML=sheetHTML(items);render(sh);fitParts(sh);return sh}
+ // pack the measured questions into columns the way print fragments them; true if it fits in `pages`
+ function fitsPages(sh,pages){const cols=$('lay').value==='2'?2:1,head=sh.querySelector('.sh-head').offsetHeight+3*MM,
+  hs=[...sh.querySelectorAll('.cols>.it')].map(el=>el.getBoundingClientRect().height),slack=0.96;
+  let col=0,used=0;const cap=c=>(c<cols?PAGE_H-head:PAGE_H)*slack;
+  for(const hgt of hs){if(used+hgt>cap(col)){col++;used=0;if(col>=pages*cols)return false}used+=hgt}
+  return true}
+
+ let set=null;
+ function build(ids,n,seed){return buildSet(ids,n,seed,$('mix').checked)}
  function generate(){
-  const ids=selected();const n=Math.max(1,Math.min(40,+$('n').value||8));const seed=$('seed').value.trim()||newSeed();$('seed').value=seed;
-  if(!ids.length){$('out').innerHTML='<div class="empty">Select at least one lesson, then press Generate.</div>';$('meta').textContent='';$('key').innerHTML='';return}
-  const p=new URLSearchParams({seed,n,l:ids.join(',')});if($('mix').checked)p.set('mix','1');history.replaceState(null,'','#'+p);
-  let set;try{set=buildSet(ids,n,seed,$('mix').checked)}catch(e){$('out').innerHTML=`<div class="empty">Generator error: ${esc(String(e.message))}</div>`;return}
+  const ids=selected();const seed=$('seed').value.trim()||newSeed();$('seed').value=seed;let n=Math.max(1,Math.min(120,+$('n').value||8));
+  if(!ids.length){$('out').innerHTML='<div class="empty">Select at least one lesson, then press Generate.</div>';$('meta').textContent='';$('key').innerHTML='';$('sheet').innerHTML='';set=null;$('viewrow').hidden=true;setView(view);return}
+  const fill=textbook()?+$('fill').value:0;
+  let items;
+  try{
+   if(fill){// largest count that fits: grow, then halve the gap
+    $('pagewrap').classList.add('offscreen');
+    const ok=k=>{set=build(ids,k,seed);items=groupSet(set,$('mix').checked);return fitsPages(drawSheet(items),fill)};
+    let lo=0,hi=Math.max(ids.length,10);while(hi<=120&&ok(hi)){lo=hi;hi=Math.min(120,hi*2);if(lo===120)break}
+    if(lo<120){hi=Math.min(hi,121);while(hi-lo>1){const mid=(lo+hi)>>1;if(ok(mid))lo=mid;else hi=mid}}
+    n=Math.max(1,lo);$('n').value=n}
+   set=build(ids,n,seed);items=textbook()?groupSet(set,$('mix').checked):set.map((Q,i)=>({num:i+1,single:true,parts:[{Q,body:Q.q,label:String(i+1)}]}))}
+  catch(e){$('out').innerHTML=`<div class="empty">Generator error: ${esc(String(e.message))}</div>`;return}
+  const p=new URLSearchParams({seed,n,l:ids.join(',')});if($('mix').checked)p.set('mix','1');
+  p.set('lay',$('lay').value);if(fill)p.set('fill',fill);if($('keymode').value!=='ans')p.set('key',$('keymode').value);history.replaceState(null,'','#'+p);
   const topics=[...new Set(set.map(Q=>Q.lesson.topic.name))].join(', ');
-  $('meta').textContent=`${set.length} questions · ${topics} · seed ${seed}`;
-  $('out').innerHTML=`<ol class="qs">${set.map((Q,i)=>`
-   <li class="q"><div class="qhead"><span class="num">${i+1}</span><span class="tag">${esc(Q.lesson.name)}</span><button class="reveal">Show solution</button></div>
-   <div class="prompt">${Q.q}</div>${solHTML(Q).replace('<div class="sol">','<div class="sol" hidden>')}</li>`).join('')}</ol>`;
-  $('key').innerHTML=`<h2>Answer key</h2><ol class="qs">${set.map((Q,i)=>`<li class="q"><div class="qhead"><span class="num">${i+1}</span></div>${solHTML(Q)}</li>`).join('')}</ol>`;
+  const flat=items.flatMap(it=>it.parts);
+  $('meta').textContent=`${set.length} questions${textbook()?` as ${items.length} numbered`:''} · ${topics} · seed ${seed}`;
+  $('out').innerHTML=`<ol class="qs">${flat.map(pt=>`
+   <li class="q"><div class="qhead"><span class="num">${pt.label}</span><span class="tag">${esc(pt.Q.lesson.name)}</span><button class="reveal">Show solution</button></div>
+   <div class="prompt">${pt.Q.q}</div>${solHTML(pt.Q).replace('<div class="sol">','<div class="sol" hidden>')}</li>`).join('')}</ol>`;
+  $('key').innerHTML=`<h2>Answer key</h2><ol class="qs">${flat.map(pt=>`<li class="q"><div class="qhead"><span class="num">${pt.label}</span></div>${solHTML(pt.Q)}</li>`).join('')}</ol>`;
   document.querySelectorAll('#out .reveal').forEach(b=>b.onclick=()=>{const s=b.closest('.q').querySelector('.sol');s.hidden=!s.hidden;b.textContent=s.hidden?'Show solution':'Hide solution'});
   allShown=false;$('toggleAll').textContent='Show all solutions';
   render($('out'));render($('key'));
+  if(textbook())drawSheet(items);else $('sheet').innerHTML='';
+  $('viewrow').hidden=!textbook();setView(view);
  }
  if(fromLink.length)generate();
 });
