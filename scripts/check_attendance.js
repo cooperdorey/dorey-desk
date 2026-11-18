@@ -122,6 +122,42 @@ ok(C.splitStudent('') === null && C.splitStudent(null) === null, 'blank name');
   eq(C.impact([rec(100, 8)], 95, 5).tiers[0].need, 3, 'a 92% student has days to win back at a 95% target');
 }
 
+/* ---- absence list and rolling CWU ---- */
+{
+  eq([C.dayOf('46308'), C.dayOf('2026-10-13'), C.dayOf('2026-10-13 00:00:00'), C.dayOf('3/2/2026'), C.dayOf('')], ['2026-10-13', '2026-10-13', '2026-10-13', '2026-02-03', null], 'dates in four forms');
+  eq([C.minsOf('8:00AM - 10:47AM'), C.minsOf('1:45PM - 3:10PM'), C.minsOf('12:00PM - 1:00PM'), C.minsOf('')], [167, 85, 60, null], 'partial times to minutes');
+  const AH = ['Student ID', 'Student Barcode', 'Date', 'Surname', 'Given Name(s)', 'Gender', 'School Year', 'Roll Class', 'Shorthand', 'Description', 'Time'];
+  const day = i => { const d = new Date(Date.UTC(2026, 0, 5 + i + 2 * Math.floor(i / 5))); return d.toISOString().slice(0, 10) };   // weekdays only
+  const ar = (n, i, code, time, yr) => [String(100000000 + n), '', day(i), '', '', 'M', yr || '11', '', code, '', time || ''];
+  const rows = [AH];
+  for (let i = 0; i < 120; i++) rows.push(ar(9, i, 'S'));                                  // student 9 is away sick every day: not CWU
+  for (let i = 0; i < 40; i++) rows.push(ar(1, i, i < 15 ? 'A' : 'U'));                    // student 1: 40 unjustified days (days 0-39); the 100-day window starts at day 25
+  for (let i = 100; i < 125; i++) rows.push(ar(2, i, i < 120 ? 'U' : '?'));               // student 2: 20 U and 5 ? late in the term
+  for (let i = 10; i < 50; i++) rows.push(ar(3, i, 'U', '8:00AM - 9:00AM'));              // student 3: partials only: not CWU
+  for (let i = 60; i < 95; i++) rows.push(ar(4, i, 'B'));                                 // student 4: school business: not CWU
+  rows.push(ar(2, 100, 'U'));                                                             // a repeated row
+  const ing = C.ingestAbsences(rows);
+  eq(ing.kind, 'absences', 'absence list detected'); ok(ing.rows.length === 120 + 40 + 25 + 40 + 35 + 1, 'every valid row read'); eq(ing.bad, 0, 'no bad rows');
+  ok(ing.rows.filter(r => r.srn === srn(3)).every(r => !r.whole && r.mins === 60), 'partials carry their minutes');
+  const blank = rows.map((r, i) => i ? r : r.map((c, j) => j === 0 ? '' : c));
+  eq(C.ingestAbsences(blank).kind, 'absences', 'a blank header in column A is the student code');
+  eq(C.ingestAbsences([['Date', 'Shorthand'], ['2026-01-01', 'S']]).kind, 'other', 'no student column: not an absence list');
+  eq(C.ingestAbsences(mainRows([{ n: 1, enr: 5, wh: 0 }])).kind, 'other', 'a term export is not an absence list');
+  const merged = C.mergeAbsences([ing.rows, ing.rows]); eq(merged.length, ing.rows.length - 1, 'the same file read twice counts once (and so does a row repeated within it)');
+  const R = C.cwuRolling(ing.rows, 100, null);
+  eq([R.windows.length, R.windows[0].n, R.windows[0].year], [1, 100, '11'], 'one window of 100 school days for Year 11');
+  const by = new Map(Array.from(R.students, ([k, e]) => [k, e]));
+  eq([by.get(srn(1)).days, by.get(srn(1)).q], [15, 0], 'student 1: only days 25-39 fall inside the window, none unconfirmed');
+  eq([by.get(srn(2)).days, by.get(srn(2)).q], [25, 5], 'student 2: 25 days of which 5 are unconfirmed (the repeated row counts once)');
+  ok(!by.has(srn(3)) && !by.has(srn(4)) && !by.has(srn(9)), 'partials, school business and sick days are not CWU days');
+  const R2 = C.cwuRolling(ing.rows, 100, day(60));
+  eq([R2.windows[0].n, R2.students.get(srn(1)).days], [61, 40], 'a window can end earlier; here it holds all 61 days so far and all 40 of student 1');
+  eq(C.cwuRolling(ing.rows, 100, null).students.get(srn(1)).days + 25, 40, 'the 25 days before the window are the only ones left out');
+  const R3 = C.cwuRolling(ing.rows, 20, null); eq(R3.students.get(srn(2)).days, 20, 'a short window counts only its own days (days 100-119 are all U or ?)');
+  const R4 = C.cwuRolling(ing.rows.concat([{ srn: srn(7), day: day(110), code: 'U', whole: true, mins: null, year: '12', name: '' }]), 100, null);
+  eq(R4.windows.map(w => w.year + ':' + w.n), ['11:100', '12:1'], 'each year group gets its own window');
+}
+
 /* ---- early warning ---- */
 {
   // Cumulative term-to-date files, weeks 1 to 5 (5 school days a week). Each student: days lost so far by week.

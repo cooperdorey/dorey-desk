@@ -192,6 +192,69 @@ function cwuBlocks(store) {
   });
 }
 
+/* ---------- absence list: one row per absence per day (school system "absence list") ---------- */
+const CWU_CODES = ['?', 'U', 'A'];                               // whole-day codes that count toward CWU: ? unconfirmed, U and A unjustified
+function dayOf(v) {                                              // Excel serial, yyyy-mm-dd or d/m/yyyy -> 'yyyy-mm-dd' (null if not a date)
+  const t = String(v == null ? '' : v).trim(); if (!t) return null;
+  let m = /^(\d{4})-(\d{2})-(\d{2})/.exec(t);
+  if (!m) { const a = /^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/.exec(t); if (a) m = [0, a[3].length === 2 ? '20' + a[3] : a[3], a[2].padStart(2, '0'), a[1].padStart(2, '0')] }
+  if (m) return m[1] + '-' + m[2] + '-' + m[3];
+  const n = Number(t);
+  if (isFinite(n) && n > 20000 && n < 80000) return new Date(Date.UTC(1899, 11, 30) + Math.floor(n) * 864e5).toISOString().slice(0, 10);
+  return null;
+}
+function minsOf(t) {                                             // "8:00AM - 10:47AM" -> 167
+  const m = /(\d{1,2}):(\d{2})\s*([AP])M?\s*-\s*(\d{1,2}):(\d{2})\s*([AP])M?/i.exec(String(t || ''));
+  if (!m) return null;
+  const at = (h, mi, ap) => (+h % 12 + (/p/i.test(ap) ? 12 : 0)) * 60 + +mi;
+  return at(m[4], m[5], m[6]) - at(m[1], m[2], m[3]);
+}
+// rows -> { kind: 'absences' | 'other', rows: [{ srn, day, code, whole, mins, year, name }], bad }
+function ingestAbsences(rows) {
+  rows = rows.filter(nonblank);
+  const empty = { kind: 'other', rows: [], bad: 0 };
+  if (!rows.length) return empty;
+  const head = rows[0].map(hkey), di = head.indexOf('date'), ci = head.indexOf('shorthand');
+  if (di < 0 || ci < 0) return empty;
+  let si = head.indexOf('student id'); if (si < 0 && head[0] === '') si = 0;              // a blanked header: column A is the student code
+  if (si < 0) return empty;
+  const ti = head.indexOf('time'), yi = head.indexOf('school year'), ni = head.indexOf('surname'), gi = head.indexOf('given name(s)');
+  const out = []; let bad = 0;
+  for (const r of rows.slice(1)) {
+    const srn = String(r[si] == null ? '' : r[si]).trim().replace(/\.0+$/, ''), day = dayOf(r[di]), code = String(r[ci] == null ? '' : r[ci]).trim().toUpperCase();
+    if (!/^\d{6,12}$/.test(srn) || !day || !code) { bad++; continue }
+    const time = ti < 0 ? '' : String(r[ti] == null ? '' : r[ti]).trim();
+    const sur = ni < 0 ? '' : String(r[ni] || '').trim(), giv = gi < 0 ? '' : String(r[gi] || '').trim();
+    out.push({ srn, day, code, whole: !time, mins: time ? minsOf(time) : null, year: yi < 0 ? '' : String(r[yi] == null ? '' : r[yi]).trim(), name: sur ? (giv ? sur + ', ' + giv : sur) : '' });
+  }
+  return { kind: 'absences', rows: out, bad };
+}
+function mergeAbsences(lists) {                                  // several files may overlap: a row repeated in two files counts once
+  const seen = new Set(), out = [];
+  for (const l of lists) for (const r of l) { const k = [r.srn, r.day, r.code, r.mins == null ? '' : r.mins, r.whole].join('|'); if (!seen.has(k)) { seen.add(k); out.push(r) } }
+  return out;
+}
+// The last N school days (days that appear for that year group in the file) up to and including `end`,
+// then each student's whole-day CWU absences inside their year group's window.
+function cwuRolling(rows, N, end) {
+  const byYear = new Map();
+  for (const r of rows) { if (end && r.day > end) continue; if (!byYear.has(r.year)) byYear.set(r.year, new Set()); byYear.get(r.year).add(r.day) }
+  const windows = new Map();
+  for (const [y, set] of byYear) {
+    const days = Array.from(set).sort().slice(-N);
+    windows.set(y, { year: y, from: days[0], to: days[days.length - 1], n: days.length, days: new Set(days) });
+  }
+  const students = new Map(), seen = new Set();
+  for (const r of rows) {
+    const w = windows.get(r.year);
+    if (!w || !w.days.has(r.day) || !r.whole || !CWU_CODES.includes(r.code)) continue;
+    const k = r.srn + '|' + r.day; if (seen.has(k)) continue; seen.add(k);
+    let e = students.get(r.srn); if (!e) { e = { srn: r.srn, year: r.year, name: r.name, days: 0, q: 0 }; students.set(r.srn, e) }
+    e.days++; if (r.code === '?') e.q++; if (r.name) e.name = r.name;
+  }
+  return { windows: Array.from(windows.values()).sort((a, b) => a.year.localeCompare(b.year)), students };
+}
+
 /* ---------- recoverable days: days a student would have to win back to reach a target rate ---------- */
 function recoverDays(r, target) {
   if (!(r.enr > 0) || geRate(r, target)) return 0;
@@ -234,7 +297,7 @@ function checkTotals(snap) {                                    // does the Tota
 }
 
 /* ---------- early warning: this Friday's term-to-date file minus an earlier Friday's ---------- */
-const DEFAULTS = { impactTarget: 90, impactReach: 5, cwuDays: 30, drop: 15, minLost: 3, unex: 2, shortMins: 300, minDays: 5 };
+const DEFAULTS = { cwuWindow: 100, impactTarget: 90, impactReach: 5, cwuDays: 30, drop: 15, minLost: 3, unex: 2, shortMins: 300, minDays: 5 };
 
 function evaluateWeek(store, term, week, P) {
   P = Object.assign({}, DEFAULTS, P || {});
@@ -361,7 +424,7 @@ function possiblyLeft(store, roster) {
 }
 
 const api = { readXlsx, readCsv, toCSV, splitStudent, ingestRows, newStore, addSnapshot, weeksOf, termsOf, finalSnap,
-  lost2, lostDays, rateOf, geRate, isPerfect, tierOf, pctText, pctOf, cwuHit, cwuBlocks, recoverDays, impact, scopeRecs, summarise, checkTotals,
+  lost2, lostDays, rateOf, geRate, isPerfect, tierOf, pctText, pctOf, cwuHit, cwuBlocks, recoverDays, impact, ingestAbsences, mergeAbsences, cwuRolling, dayOf, minsOf, CWU_CODES, scopeRecs, summarise, checkTotals,
   DEFAULTS, evaluateWeek, earlyWarning, spareDays, parseRosterRows, rosterCSV, rosterIndex, possiblyLeft, zero };
 root.AttCore = api;
 if (typeof module !== 'undefined' && module.exports) module.exports = api;

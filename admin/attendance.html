@@ -113,7 +113,7 @@ details summary{cursor:pointer;color:var(--muted);margin:8px 0}
   <div class="bar" id="fileBar">
     <button class="solid" id="openDir" type="button">Open folder…</button>
     <button class="quiet" id="openFiles" type="button">Open files…</button>
-    <input type="file" id="fileIn" multiple accept=".xlsx,.csv" hidden>
+    <input type="file" id="fileIn" multiple accept=".xlsx,.xls,.csv" hidden>
     <span class="msg" id="msg">Open your year folder (the one holding the term folders and yr11.csv / yr12.csv).</span>
     <button class="quiet" id="dlRosters" type="button" hidden>Download rosters</button>
   </div>
@@ -143,11 +143,12 @@ const C = AttCore;
 const $ = id => document.getElementById(id);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const RE_EXPORT = /^t([1-4])w(\d{1,2})(_short)?\.(xlsx|csv)$/i;
+const RE_ABS = /^absence.*\.(xlsx|csv)$/i;                       // the school system's absence list
 const RE_ROSTER = /^yr(11|12)\.(csv|xlsx)$/i;
 const FSA = typeof window.showDirectoryPicker === 'function';
 
 // Everything below lives in memory only. Nothing about students is stored in the browser.
-const S = { dir: null, store: C.newStore(), files: [], warnings: [], y11: [], y12: [], index: new Map(), loaded: false, dirty: false,
+const S = { dir: null, store: C.newStore(), files: [], abs: [], absFiles: [], absEnd: null, warnings: [], y11: [], y12: [], index: new Map(), loaded: false, dirty: false,
   tab: 'overview', tier: 'all', through: 4, year: 'all', incRemoved: false, P: Object.assign({}, C.DEFAULTS), ewTerm: null, ewWeek: null, ticked: new Set(), tickedLeft: new Set(), folder: '' };
 
 function setMsg(t) { $('msg').textContent = t }
@@ -164,9 +165,20 @@ async function readRows(entry) {
 }
 async function loadEntries(entries) {
   S.store = C.newStore(); S.files = []; S.warnings = []; S.ticked = new Set(); S.tickedLeft = new Set();
-  const roster = {};
+  S.abs = []; S.absFiles = []; S.absEnd = null;
+  const roster = {}, absLists = [];
   let exportsRead = 0;
   for (const e of entries) {
+    if (/\.xls$/i.test(e.name) && /^(t[1-4]w|absence)/i.test(e.name)) { S.warnings.push(e.name + ' is an old .xls file, which can’t be read here. Open it in Excel and save it as .xlsx (or .csv).'); continue }
+    if (RE_ABS.test(e.name)) {
+      setMsg('Reading ' + e.name + '…');
+      let ing;
+      try { ing = C.ingestAbsences(await readRows(e)) } catch (err) { S.warnings.push(e.name + ' couldn’t be read.'); continue }
+      if (ing.kind === 'other') { S.warnings.push(e.name + ' isn’t an absence list (it needs Date and Shorthand columns and a student code in column A), so it was skipped.'); continue }
+      if (ing.bad) S.warnings.push(e.name + ': ' + ing.bad + ' row' + (ing.bad === 1 ? '' : 's') + ' without a valid student code or date skipped.');
+      absLists.push(ing.rows); S.absFiles.push({ file: e.name, rows: ing.rows.length });
+      continue;
+    }
     let m = RE_EXPORT.exec(e.name);
     if (m) {
       const term = +m[1], week = +m[2], wantShort = !!m[3];
@@ -195,6 +207,7 @@ async function loadEntries(entries) {
     }
   }
   if (roster['11'] && /\.xlsx$/i.test(roster['11'].name) || roster['12'] && /\.xlsx$/i.test(roster['12'].name)) S.warnings.push('A roster is an .xlsx file. Changes are saved as .csv, which is then used instead.');
+  S.abs = C.mergeAbsences(absLists);
   S.files = [];
   for (const kind of ['main', 'short']) for (const t of C.termsOf(S.store, kind)) for (const w of C.weeksOf(S.store, kind, t)) S.files.push(S.store[kind][t][w]);
   S.loaded = true; S.dirty = false;
@@ -206,7 +219,8 @@ async function loadEntries(entries) {
   fillThrough();
   updateBar();
   setMsg((S.folder ? 'Folder open: ' + S.folder + ' · ' : 'Files loaded · ') + exportsRead + ' export file' + (exportsRead === 1 ? '' : 's') + ', ' + (S.y11.length + S.y12.length) + ' on the rosters' + (S.warnings.length ? ' · ' + S.warnings.length + ' note' + (S.warnings.length === 1 ? '' : 's') + ' on Setup' : ''));
-  if (!exportsRead) setMsg('No term exports found. Name them T1W10.xlsx, T4W05.xlsx… and put them in the folder or in T1…T4 folders inside it.');
+  if (!exportsRead && S.abs.length) setMsg('Absence list read (' + S.abs.length + ' rows) · no term exports found, so only the CWU tab has data. Name exports T1W10.xlsx, T4W05.xlsx…');
+  else if (!exportsRead) setMsg('No term exports found. Name them T1W10.xlsx, T4W05.xlsx… and put them in the folder or in T1…T4 folders inside it.');
   render();
 }
 async function walk(dir, depth, out) {
@@ -413,14 +427,30 @@ function viewImpact() {
   return h;
 }
 
+const fmtDay = d => new Date(d + 'T00:00:00Z').toLocaleDateString('en-AU', { day: 'numeric', month: 'short', timeZone: 'UTC' });
+function rollingHtml(need) {                                // the last N school days from the absence list
+  const N = S.P.cwuWindow, last = S.abs.reduce((m, r) => r.day > m ? r.day : m, ''), end = S.absEnd && S.absEnd < last ? S.absEnd : last;
+  const R = C.cwuRolling(S.abs, N, end), known = allStudents();
+  const list = Array.from(R.students.values()).map(e => { const v = vis(e.srn); const r = S.index.get(e.srn); return v ? Object.assign({}, v, { srn: e.srn, fileYear: e.year, days: e.days, q: e.q, name: (r && r.name) || known.get(e.srn) || e.name || e.srn }) : null })
+    .filter(p => p && p.days >= need).sort((a, b) => b.days - a.days || a.name.localeCompare(b.name));
+  let h = '<h2>Last ' + N + ' school days <small>' + list.length + ' student' + (list.length === 1 ? '' : 's') + '</small></h2>';
+  h += '<p class="empty">' + R.windows.map(w => 'Year ' + esc(w.year || '?') + ': ' + fmtDay(w.from) + ' to ' + fmtDay(w.to) + ', ' + w.n + ' school day' + (w.n === 1 ? '' : 's') + (w.n < N ? ' (the file has fewer than ' + N + ')' : '')).join(' · ') + '</p>';
+  h += list.length ? '<div class="card"><table><thead><tr><th>Student</th><th>Year</th><th class="n">Unexplained days</th><th class="n">Unconfirmed (?)</th></tr></thead><tbody>' +
+    list.map(p => '<tr><td>' + esc(p.name) + (p.removed ? ' <span class="tag">removed</span>' : '') + '</td><td>' + (p.unassigned && p.fileYear ? 'Year ' + esc(p.fileYear) : yearTxt(p)) + '</td><td class="n">' + p.days + '</td><td class="n">' + (p.q || '') + '</td></tr>').join('') + '</tbody></table></div>'
+    : '<p class="empty">No students with ' + need + ' or more unexplained days.</p>';
+  return { html: h, last: last, end: end };
+}
 function viewCwu() {
   const days = S.P.cwuDays, blocks = C.cwuBlocks(S.store);
+  const roll = S.abs.length ? rollingHtml(days) : null;
   const hits = blocks.map(b => b.missing.length ? null : Array.from(b.students.values())
     .map(e => { const v = vis(e.srn); return v ? Object.assign({}, e, v) : null })
     .filter(p => p && C.cwuHit(p.rec, days))
     .sort((a, b) => b.rec.unex - a.rec.unex || a.name.localeCompare(b.name)));
   const first = new Set((hits[0] || []).map(p => p.srn));
-  let h = '<div class="row" style="margin-top:0"><label class="f">Unexplained days at least<input type="number" min="1" max="400" data-p="cwuDays" value="' + days + '"></label></div>';
+  let h = '<div class="row" style="margin-top:0"><label class="f">Unexplained days at least<input type="number" min="1" max="400" data-p="cwuDays" value="' + days + '"></label>' +
+    (roll ? '<label class="f">School days in window<input type="number" min="10" max="400" data-p="cwuWindow" value="' + S.P.cwuWindow + '"></label><label class="f">Ending<input type="date" data-endday value="' + roll.end + '" max="' + roll.last + '"></label>' : '') + '</div>';
+  if (roll) h += roll.html;
   blocks.forEach((b, i) => {
     const title = 'Terms ' + b.terms[0] + ' to ' + b.terms[1], list = hits[i];
     if (!list) { h += '<h2>' + title + '</h2><p class="empty">Needs the ' + b.missing.map(t => 'Term ' + t).join(' and ') + ' export' + (b.missing.length > 1 ? 's' : '') + '.</p>'; return }
@@ -500,6 +530,7 @@ function viewSetup() {
   const rem = [...S.y11.map(r => [r, '11']), ...S.y12.map(r => [r, '12'])].filter(([r]) => r.removed).sort((a, b) => a[0].name.localeCompare(b[0].name));
   if (rem.length) h += '<details><summary>Removed students (' + rem.length + ')</summary><div class="card"><table><tbody>' +
     rem.map(([r, y]) => '<tr><td>' + esc(r.name) + '</td><td class="muted">' + r.srn + '</td><td>Year ' + y + '</td><td class="n"><button class="sm" data-act="restore" data-srn="' + r.srn + '" type="button">Restore</button></td></tr>').join('') + '</tbody></table></div></details>';
+  if (S.absFiles.length) h += '<details><summary>Absence lists read (' + S.absFiles.length + ')</summary><div class="card"><table><thead><tr><th>File</th><th class="n">Rows</th></tr></thead><tbody>' + S.absFiles.map(f => '<tr><td>' + esc(f.file) + '</td><td class="n">' + f.rows + '</td></tr>').join('') + '</tbody></table></div></details>';
   h += '<details><summary>Files read (' + S.files.length + ')</summary>' + (S.files.length ? '<div class="card"><table><thead><tr><th>File</th><th>Term</th><th>Week</th><th>Report</th><th class="n">Students</th><th>Total row</th></tr></thead><tbody>' +
     S.files.map(f => {
       const bad = C.checkTotals(f);
@@ -530,6 +561,7 @@ $('incRemoved').onchange = e => { S.incRemoved = e.target.checked; render() };
 $('view').addEventListener('change', e => {
   const t = e.target;
   if (t.dataset.p) { const v = parseFloat(t.value); if (v > 0) S.P[t.dataset.p] = v; render() }
+  else if (t.dataset.endday !== undefined) { S.absEnd = t.value || null; render() }
   else if (t.dataset.ew) { if (t.dataset.ew === 'term') { S.ewTerm = +t.value; S.ewWeek = null } else S.ewWeek = +t.value; render() }
   else if (t.dataset.tiersel !== undefined) { S.tier = t.value; render() }
   else if (t.dataset.tickleft) { t.checked ? S.tickedLeft.add(t.dataset.tickleft) : S.tickedLeft.delete(t.dataset.tickleft) }
