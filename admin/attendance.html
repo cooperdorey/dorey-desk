@@ -127,6 +127,7 @@ details summary{cursor:pointer;color:var(--muted);margin:8px 0}
   <div class="tabs" id="tabs" role="tablist" hidden>
     <button type="button" role="tab" data-tab="overview">Overview</button>
     <button type="button" role="tab" data-tab="tiers">Tiers</button>
+    <button type="button" role="tab" data-tab="impact">Impact</button>
     <button type="button" role="tab" data-tab="cwu">CWU</button>
     <button type="button" role="tab" data-tab="warning">Early warning</button>
     <button type="button" role="tab" data-tab="setup">Setup</button>
@@ -382,6 +383,36 @@ function viewTiers() {
   return withNotes(h);
 }
 
+function viewImpact() {
+  const ps = people(), T = S.P.impactTarget, R = S.P.impactReach;
+  if (!ps.length) return '<p class="empty">No students to show' + (S.loaded ? ' for these settings.' : '.') + '</p>';
+  const im = C.impact(ps.map(p => p.rec), T, R);
+  if (!im.n) return '<p class="empty">No attendance data for these settings.</p>';
+  const pts = x => (Math.round(x * 1000) / 10).toFixed(1);
+  const share = x => im.need > 0 ? Math.round(100 * x / im.need) + '%' : '';
+  const names = ['90% or above', 'Tier 1 · 80–89%', 'Tier 2 · 50–79%', 'Tier 3 · under 50%'];
+  let h = '<div class="row" style="margin-top:0"><label class="f">Target attendance (%)<input type="number" min="50" max="99" data-p="impactTarget" value="' + T + '"></label>' +
+    '<label class="f">Within reach (days to target, at most)<input type="number" min="1" max="100" data-p="impactReach" value="' + R + '"></label>' + printBtn('portrait') + '</div>' +
+    printHead('Impact', [scopeText(), yearText(), 'target ' + T + '%', 'within reach ' + R + ' days']);
+  h += '<div class="tiles">' +
+    '<div class="tile"><b>' + C.pctOf(im.rate) + '</b><span>Attendance rate</span></div>' +
+    '<div class="tile warn"><b>' + num1(im.need) + '</b><span>Days to win back to reach ' + T + '%</span></div>' +
+    '<div class="tile good"><b>+' + pts(im.gain) + '</b><span>Points on the school rate if all reach ' + T + '%</span></div>' +
+    '<div class="tile"><b>' + im.within + '</b><span>Within ' + R + ' day' + (R === 1 ? '' : 's') + ' of ' + T + '%</span></div></div>';
+  h += '<div class="card"><table><thead><tr><th></th><th class="n">Students</th><th class="n">Days lost</th><th class="n">Days to target</th><th class="n">Share</th><th class="n">Points on school rate</th><th class="n">Per student</th><th class="n">Within reach</th></tr></thead><tbody>';
+  im.tiers.forEach(r => {
+    if (r.tier === 0 && !(r.need > 0)) return;
+    h += '<tr><td>' + names[r.tier] + '</td><td class="n">' + r.n + '</td><td class="n">' + num1(r.lost) + '</td><td class="n">' + num1(r.need) + '</td><td class="n">' + share(r.need) + '</td><td class="n">' + (r.need > 0 ? '+' + pts(r.need / im.enr) : '') + '</td><td class="n">' + (r.need > 0 ? num1(r.need / r.n) : '') + '</td><td class="n">' + (r.within || '') + '</td></tr>';
+  });
+  h += '</tbody></table></div>';
+  const near = ps.map(p => ({ p, d: C.recoverDays(p.rec, T) })).filter(x => x.d > 0 && x.d <= R).sort((a, b) => a.d - b.d || a.p.name.localeCompare(b.p.name));
+  h += '<h2>Within reach <small>' + near.length + ' student' + (near.length === 1 ? '' : 's') + '</small></h2>';
+  h += near.length ? withNotes('<div class="card"><table><thead><tr><th>Student</th><th>Year</th><th class="n">Attendance</th><th class="n">Days lost</th><th class="n">Days to target</th></tr></thead><tbody>' +
+    near.map(x => '<tr><td>' + esc(x.p.name) + '</td><td>' + yearTxt(x.p) + '</td><td class="n">' + pill(x.p.rec) + '</td><td class="n">' + num1(C.lostDays(x.p.rec)) + '</td><td class="n">' + num1(x.d) + '</td></tr>').join('') + '</tbody></table></div>')
+    : '<p class="empty">No students within ' + R + ' day' + (R === 1 ? '' : 's') + ' of ' + T + '%.</p>';
+  return h;
+}
+
 function viewCwu() {
   const days = S.P.cwuDays, blocks = C.cwuBlocks(S.store);
   const hits = blocks.map(b => b.missing.length ? null : Array.from(b.students.values())
@@ -481,7 +512,7 @@ function viewSetup() {
   return h;
 }
 
-const VIEWS = { overview: viewOverview, tiers: viewTiers, cwu: viewCwu, warning: viewWarning, setup: viewSetup };
+const VIEWS = { overview: viewOverview, tiers: viewTiers, impact: viewImpact, cwu: viewCwu, warning: viewWarning, setup: viewSetup };
 function render() {
   document.querySelectorAll('#tabs button').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === S.tab)));
   $('view').innerHTML = S.loaded ? VIEWS[S.tab]() : '';

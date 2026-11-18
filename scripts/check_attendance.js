@@ -105,6 +105,23 @@ ok(C.splitStudent('') === null && C.splitStudent(null) === null, 'blank name');
   eq(bl[1].students.has(srn(2)), false, 'a student absent from Terms 3 and 4 is not in block 2');
 }
 
+/* ---- recoverable days ---- */
+{
+  eq(C.recoverDays(rec(100, 15), 90), 5, '15 lost in 100 needs 5 back to reach 90%');
+  eq(C.recoverDays(rec(100, 10), 90), 0, 'exactly 90% needs nothing'); eq(C.recoverDays(rec(100, 4), 90), 0, 'above target needs nothing');
+  ok(Math.abs(C.recoverDays(rec(48, 6), 90) - 1.2) < 1e-9, 'enrolled days scale the allowance: 4.8 may be lost'); eq(C.recoverDays(rec(0, 0), 90), 0, 'no days, nothing to recover');
+  eq(C.recoverDays(rec(100, 14, 2), 90), 5, 'a partial over 120 minutes costs half a day (14 + 1 lost)');
+  eq(C.recoverDays(rec(100, 6), 95), 1, 'the target can be 95%');
+  const recs = [rec(100, 2), rec(100, 15), rec(100, 12), rec(100, 30), rec(100, 60), rec(0, 0)];
+  const im = C.impact(recs, 90, 5);
+  eq(im.tiers.map(r => r.n), [1, 2, 1, 1], 'students per tier; a student with no days is left out'); eq(im.n, 5, 'five students counted');
+  eq(im.tiers.map(r => r.need), [0, 7, 20, 50], 'days to target per tier (5 + 2, 20, 50)');
+  eq(im.tiers.map(r => r.within), [0, 2, 0, 0], 'two students are within 5 days of target');
+  eq([im.lost, im.need, im.enr], [119, 77, 500], 'totals'); ok(Math.abs(im.rate - 0.762) < 1e-9 && Math.abs(im.gain - 0.154) < 1e-9, 'rate and gain on the school rate');
+  const im95 = C.impact(recs, 95, 5); eq(im95.tiers[0].need, 0, '95% target: the 98% student needs nothing');
+  eq(C.impact([rec(100, 8)], 95, 5).tiers[0].need, 3, 'a 92% student has days to win back at a 95% target');
+}
+
 /* ---- early warning ---- */
 {
   // Cumulative term-to-date files, weeks 1 to 5 (5 school days a week). Each student: days lost so far by week.

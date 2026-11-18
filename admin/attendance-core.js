@@ -192,6 +192,23 @@ function cwuBlocks(store) {
   });
 }
 
+/* ---------- recoverable days: days a student would have to win back to reach a target rate ---------- */
+function recoverDays(r, target) {
+  if (!(r.enr > 0) || geRate(r, target)) return 0;
+  return lostDays(r) - r.enr * (100 - target) / 100;
+}
+function impact(recs, target, reach) {                          // one row per tier (0 = 90%+), all counted from each student's own days
+  const tiers = [0, 1, 2, 3].map(t => ({ tier: t, n: 0, enr: 0, lost: 0, need: 0, within: 0 }));
+  let enr = 0, lost = 0, need = 0, within = 0, n = 0;
+  for (const r of recs) {
+    const t = tierOf(r); if (t == null) continue;
+    const row = tiers[t], d = recoverDays(r, target);
+    row.n++; row.enr += r.enr; row.lost += lostDays(r); row.need += d; if (d > 0 && d <= reach) row.within++;
+    n++; enr += r.enr; lost += lostDays(r); need += d; if (d > 0 && d <= reach) within++;
+  }
+  return { tiers, n, enr, lost, need, within, rate: enr > 0 ? 1 - lost / enr : null, gain: enr > 0 ? need / enr : 0 };
+}
+
 function summarise(recs) {
   const s = { n: 0, enr: 0, lost2: 0, g90: 0, g95: 0, p100: 0, t1: 0, t2: 0, t3: 0, nodata: 0,
     leave: 0, sick: 0, susp: 0, unj: 0, unex: 0, pc: 0, pleave: 0, psick: 0, punj: 0, punex: 0,
@@ -217,7 +234,7 @@ function checkTotals(snap) {                                    // does the Tota
 }
 
 /* ---------- early warning: this Friday's term-to-date file minus an earlier Friday's ---------- */
-const DEFAULTS = { cwuDays: 30, drop: 15, minLost: 3, unex: 2, shortMins: 300, minDays: 5 };
+const DEFAULTS = { impactTarget: 90, impactReach: 5, cwuDays: 30, drop: 15, minLost: 3, unex: 2, shortMins: 300, minDays: 5 };
 
 function evaluateWeek(store, term, week, P) {
   P = Object.assign({}, DEFAULTS, P || {});
@@ -344,7 +361,7 @@ function possiblyLeft(store, roster) {
 }
 
 const api = { readXlsx, readCsv, toCSV, splitStudent, ingestRows, newStore, addSnapshot, weeksOf, termsOf, finalSnap,
-  lost2, lostDays, rateOf, geRate, isPerfect, tierOf, pctText, pctOf, cwuHit, cwuBlocks, scopeRecs, summarise, checkTotals,
+  lost2, lostDays, rateOf, geRate, isPerfect, tierOf, pctText, pctOf, cwuHit, cwuBlocks, recoverDays, impact, scopeRecs, summarise, checkTotals,
   DEFAULTS, evaluateWeek, earlyWarning, spareDays, parseRosterRows, rosterCSV, rosterIndex, possiblyLeft, zero };
 root.AttCore = api;
 if (typeof module !== 'undefined' && module.exports) module.exports = api;
