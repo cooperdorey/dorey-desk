@@ -206,13 +206,34 @@ async function showGenerators(){
   const g = await loadGenerators();
   if (!g.length){ tiles.innerHTML = '<p class="empty-note">No generators yet.</p>'; return }
   const colourOf = s => { for (const y of M.years) for (const c of y.courses) if (c.short===s) return c.colour; return '' };
-  tiles.replaceChildren(...g.map(x=>{
+  const tile = x=>{
     const a = document.createElement('a'); a.className = 'generator'; a.href = 'generators/' + encodeURI(x.file);
     a.innerHTML = `<span class="t">${esc(x.name)}</span><span class="d">${esc(x.desc||'')}</span>
       <span class="chips">${(x.courses||[]).map(s=>{const col=colourOf(s)||'#5E6672';return `<span class="course-chip" style="--course:${esc(col)};--course-ink:${inkFor(col)}">${esc(s)}</span>`}).join('')}</span>`;
     return a;
+  };
+  // one column per course family, hardest first; a generator sits under the hardest course it is tagged with
+  const rank = x=>Math.min(...(x.courses||[]).map(genFamily), GEN_FAMILIES.length-1);
+  const cols = GEN_FAMILIES.map((f,i)=>({f, items:g.filter(x=>rank(x)===i)})).filter(c=>c.items.length);
+  tiles.style.setProperty('--cols', cols.length);
+  tiles.replaceChildren(...cols.map(c=>{
+    const col = document.createElement('section'); col.className = 'gen-col';
+    const shade = c.items.flatMap(x=>x.courses||[]).filter(s=>genFamily(s)===GEN_FAMILIES.indexOf(c.f)).map(colourOf).find(Boolean)||'#5E6672';
+    col.style.setProperty('--course', shade);
+    const h = document.createElement('h2'); h.className = 'gen-head'; h.textContent = c.f;
+    col.append(h, ...c.items.map(tile));
+    return col;
   }));
 }
+const GEN_FAMILIES = ['Extension 2','Extension 1','Advanced','Standard 2','Standard','Standard 1','Other'];
+function genFamily(short){const s=String(short).toUpperCase().replace(/\s+/g,' ');
+  if (/EXT(ENSION)? ?2|X2/.test(s)) return 0;
+  if (/EXT|X1/.test(s)) return 1;
+  if (/ADV/.test(s)) return 2;
+  if (/STD ?2|STANDARD ?2/.test(s)) return 3;
+  if (/STD ?1|STANDARD ?1/.test(s)) return 5;
+  if (/STD|STANDARD/.test(s)) return 4;
+  return 6}
 
 // ---------- home: year ----------
 function showYears(){

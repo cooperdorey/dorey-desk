@@ -133,7 +133,10 @@ a{color:inherit}
 .side-drb:hover{background:var(--course-tint)}
 
 /* Generator list */
-.gens{grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
+.gens{grid-template-columns:repeat(var(--cols,1),minmax(0,1fr));align-items:start}
+.gen-col{display:flex;flex-direction:column;gap:22px;min-width:0}
+.gen-head{margin:0;padding-bottom:8px;border-bottom:3px solid var(--course);font-family:var(--card);font-weight:700;font-size:22px;line-height:1.2}
+@media (max-width:760px){.gens{grid-template-columns:minmax(0,1fr)}}
 .generator{display:flex;flex-direction:column;gap:8px;min-height:170px;padding:22px;background:var(--sheet);border:1px solid var(--line);
   border-top:5px solid var(--brand);border-radius:4px 4px 12px 12px;text-decoration:none;color:var(--ink)}
 .generator .t{font-family:var(--card);font-weight:700;font-size:24px;line-height:1.2}

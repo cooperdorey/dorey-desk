@@ -32,7 +32,9 @@ We Do levels) live in the Lesson Creator project; this file covers the repo form
   manifest course (key `<year-id>/<course-id>`, e.g. year-12/maths-advanced), so the Book work topic list filters to that course. Test with made-up names only.
   New top-level site folders must also be added to the `cp -r` line in `.github/workflows/pages.yml`.
 - Generators: one page per generator in `generators/`, registered in
-  `generators/generators.json`. The question bank (`gen` functions, topics, lessons and each
+  `generators/generators.json`. The site's Generators page shows one column per course family, hardest first (Extension 2,
+  Extension 1, Advanced, Standard 2, Standard, Standard 1; empty columns hidden), read from each entry's `courses`: a generator
+  sits under the hardest course it lists, in `generators.json` order. The question bank (`gen` functions, topics, lessons and each
   lesson's `marks`) lives in `generators/engine.js`, shared by the question generator, the
   LSQ generator (`lsq.html`, 2-page A4 quiz, PDF via the vendored jsPDF + html-to-image) and the
   homework generator (`homework.html`, two-page (double-sided) HSC-style Question 1 with parts (a), (b)… sorted
