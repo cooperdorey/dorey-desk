@@ -83,10 +83,26 @@ ok(C.splitStudent('') === null && C.splitStudent(null) === null, 'blank name');
   eq(C.finalSnap(st, 'main', 2).week, 10, 'the highest week is the term’s final file');
 }
 
-/* ---- unexplained days ---- */
+/* ---- CWU: unexplained days, two blocks ---- */
 {
-  ok(C.unexGe(rec(100, 30, 0, 30), 30), '30 in 100 is 30%'); ok(!C.unexGe(rec(100, 30, 0, 29), 30), '29 in 100 is not');
-  ok(C.unexGe(rec(190, 60, 0, 57), 30), 'the same rule scales with enrolled days'); ok(!C.unexGe(rec(0, 0, 0, 0), 30), 'no days, no flag');
+  ok(C.cwuHit(rec(100, 30, 0, 30), 30), '30 unexplained days is flagged'); ok(!C.cwuHit(rec(100, 30, 0, 29), 30), '29 is not');
+  ok(!C.cwuHit(rec(190, 60, 0, 57), 60), 'a straight count: enrolled days do not scale it'); ok(C.cwuHit(rec(40, 40, 0, 30), 30), 'a short enrolment still counts 30 days');
+  const st = C.newStore(), add = (t, list) => C.addSnapshot(st, 'main', t, 10, C.ingestRows(mainRows(list)), 't' + t);
+  add(1, [{ n: 1, enr: 50, wh: 20, unex: 20 }, { n: 2, enr: 50, wh: 5, unex: 5 }, { n: 3, enr: 50, wh: 30, unex: 30 }]);
+  let bl = C.cwuBlocks(st);
+  eq(bl.map(b => b.missing), [[2], [3, 4]], 'a block with a term missing says which');
+  ok(bl[0].students.size === 0 && bl[1].students.size === 0, 'no students until the block is complete');
+  add(2, [{ n: 1, enr: 48, wh: 15, unex: 12 }, { n: 2, enr: 48, wh: 2, unex: 2 }, { n: 3, enr: 48, wh: 20, unex: 1 }]);
+  bl = C.cwuBlocks(st);
+  const b1 = new Map(Array.from(bl[0].students, ([k, e]) => [k, e.rec]));
+  eq([b1.get(srn(1)).unex, b1.get(srn(1)).enr], [32, 98], 'Terms 1 and 2 are added together');
+  eq(Array.from(bl[0].students.values()).filter(e => C.cwuHit(e.rec, 30)).map(e => e.srn).sort(), [srn(1), srn(3)], 'flagged in block 1: 32 and 31 days, not 7');
+  eq(bl[1].missing, [3, 4], 'block 2 still waits for Terms 3 and 4');
+  add(3, [{ n: 1, enr: 50, wh: 10, unex: 10 }, { n: 3, enr: 50, wh: 25, unex: 25 }, { n: 4, enr: 50, wh: 12, unex: 12 }]);
+  add(4, [{ n: 1, enr: 47, wh: 8, unex: 8 }, { n: 3, enr: 47, wh: 6, unex: 6 }, { n: 4, enr: 47, wh: 20, unex: 20 }]);
+  bl = C.cwuBlocks(st);
+  eq(Array.from(bl[1].students.values()).filter(e => C.cwuHit(e.rec, 30)).map(e => e.srn).sort(), [srn(3), srn(4)], 'block 2 is its own 100 days, not added to block 1');
+  eq(bl[1].students.has(srn(2)), false, 'a student absent from Terms 3 and 4 is not in block 2');
 }
 
 /* ---- early warning ---- */

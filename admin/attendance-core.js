@@ -148,7 +148,7 @@ function pctText(r) {
   return (Math.floor((2 * r.enr - lost2(r)) * 1000 / (2 * r.enr)) / 10).toFixed(1) + '%';
 }
 function pctOf(x) { return x == null ? '' : (Math.floor(x * 1000 + 1e-9) / 10).toFixed(1) + '%' }
-const unexGe = (r, pct) => r.enr > 0 && (r.unex || 0) * 100 >= pct * r.enr;
+const cwuHit = (r, days) => (r.unex || 0) >= days;                // CWU: a straight count of whole-day unexplained absences
 
 function zero() { const o = {}; MAIN_KEYS.concat(SHORT_KEYS).forEach(k => o[k] = 0); return o }
 function addInto(acc, rec, keys) { keys.forEach(k => acc[k] = (acc[k] || 0) + (rec[k] || 0)) }
@@ -173,6 +173,23 @@ function scopeRecs(store, through) {
     }
   }
   return out;
+}
+
+/* ---------- CWU: two blocks, Terms 1-2 and Terms 3-4, each added together (days summed) ---------- */
+const CWU_BLOCKS = [[1, 2], [3, 4]];
+function cwuBlocks(store) {
+  const have = termsOf(store, 'main');
+  return CWU_BLOCKS.map(terms => {
+    const missing = terms.filter(t => !have.includes(t)), students = new Map();
+    if (!missing.length) for (const t of terms) {
+      for (const [srn, rec] of finalSnap(store, 'main', t).students) {
+        let e = students.get(srn);
+        if (!e) { e = { srn, name: rec.name, rec: zero() }; students.set(srn, e) }
+        e.name = rec.name; addInto(e.rec, rec, MAIN_KEYS);
+      }
+    }
+    return { terms, missing, students };
+  });
 }
 
 function summarise(recs) {
@@ -200,7 +217,7 @@ function checkTotals(snap) {                                    // does the Tota
 }
 
 /* ---------- early warning: this Friday's term-to-date file minus an earlier Friday's ---------- */
-const DEFAULTS = { unexPct: 30, unexMinDays: 20, drop: 15, minLost: 3, unex: 2, shortMins: 300, minDays: 5 };
+const DEFAULTS = { cwuDays: 30, drop: 15, minLost: 3, unex: 2, shortMins: 300, minDays: 5 };
 
 function evaluateWeek(store, term, week, P) {
   P = Object.assign({}, DEFAULTS, P || {});
@@ -327,7 +344,7 @@ function possiblyLeft(store, roster) {
 }
 
 const api = { readXlsx, readCsv, toCSV, splitStudent, ingestRows, newStore, addSnapshot, weeksOf, termsOf, finalSnap,
-  lost2, lostDays, rateOf, geRate, isPerfect, tierOf, pctText, pctOf, unexGe, scopeRecs, summarise, checkTotals,
+  lost2, lostDays, rateOf, geRate, isPerfect, tierOf, pctText, pctOf, cwuHit, cwuBlocks, scopeRecs, summarise, checkTotals,
   DEFAULTS, evaluateWeek, earlyWarning, spareDays, parseRosterRows, rosterCSV, rosterIndex, possiblyLeft, zero };
 root.AttCore = api;
 if (typeof module !== 'undefined' && module.exports) module.exports = api;

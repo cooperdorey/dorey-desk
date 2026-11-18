@@ -127,7 +127,7 @@ details summary{cursor:pointer;color:var(--muted);margin:8px 0}
   <div class="tabs" id="tabs" role="tablist" hidden>
     <button type="button" role="tab" data-tab="overview">Overview</button>
     <button type="button" role="tab" data-tab="tiers">Tiers</button>
-    <button type="button" role="tab" data-tab="unexplained">Unexplained</button>
+    <button type="button" role="tab" data-tab="cwu">CWU</button>
     <button type="button" role="tab" data-tab="warning">Early warning</button>
     <button type="button" role="tab" data-tab="setup">Setup</button>
   </div>
@@ -382,17 +382,23 @@ function viewTiers() {
   return withNotes(h);
 }
 
-function viewUnexplained() {
-  const ps = people();
-  const hit = ps.filter(p => C.unexGe(p.rec, S.P.unexPct)).sort((a, b) => b.rec.unex / b.rec.enr - a.rec.unex / a.rec.enr);
-  const list = hit.filter(p => p.rec.enr >= S.P.unexMinDays), few = hit.filter(p => p.rec.enr < S.P.unexMinDays);
-  let h = '<div class="row" style="margin-top:0"><label class="f">Unexplained days at least (% of enrolled)<input type="number" min="1" max="100" data-p="unexPct" value="' + S.P.unexPct + '"></label>' +
-    '<label class="f">Only students enrolled at least (days)<input type="number" min="1" max="400" data-p="unexMinDays" value="' + S.P.unexMinDays + '"></label></div>';
-  h += '<h2>Unexplained days <small>' + list.length + ' student' + (list.length === 1 ? '' : 's') + '</small></h2>';
-  const table = l => '<div class="card"><table><thead><tr><th>Student</th><th>Year</th><th class="n">Enrolled days</th><th class="n">Unexplained days</th><th class="n">Share</th><th class="n">Attendance</th></tr></thead><tbody>' +
-    l.map(p => '<tr><td>' + esc(p.name) + '</td><td>' + yearTxt(p) + '</td><td class="n">' + p.rec.enr + '</td><td class="n">' + p.rec.unex + '</td><td class="n">' + Math.floor(1000 * p.rec.unex / p.rec.enr) / 10 + '%</td><td class="n">' + pill(p.rec) + '</td></tr>').join('') + '</tbody></table></div>';
-  h += list.length ? table(list) : '<p class="empty">No students at or above ' + S.P.unexPct + '%.</p>';
-  if (few.length) h += '<h2>Fewer than ' + S.P.unexMinDays + ' enrolled days <small>' + few.length + '</small></h2>' + table(few);
+function viewCwu() {
+  const days = S.P.cwuDays, blocks = C.cwuBlocks(S.store);
+  const hits = blocks.map(b => b.missing.length ? null : Array.from(b.students.values())
+    .map(e => { const v = vis(e.srn); return v ? Object.assign({}, e, v) : null })
+    .filter(p => p && C.cwuHit(p.rec, days))
+    .sort((a, b) => b.rec.unex - a.rec.unex || a.name.localeCompare(b.name)));
+  const first = new Set((hits[0] || []).map(p => p.srn));
+  let h = '<div class="row" style="margin-top:0"><label class="f">Unexplained days at least<input type="number" min="1" max="400" data-p="cwuDays" value="' + days + '"></label></div>';
+  blocks.forEach((b, i) => {
+    const title = 'Terms ' + b.terms[0] + ' to ' + b.terms[1], list = hits[i];
+    if (!list) { h += '<h2>' + title + '</h2><p class="empty">Needs the ' + b.missing.map(t => 'Term ' + t).join(' and ') + ' export' + (b.missing.length > 1 ? 's' : '') + '.</p>'; return }
+    const both = i ? list.filter(p => first.has(p.srn)).length : 0;
+    h += '<h2>' + title + ' <small>' + list.length + ' student' + (list.length === 1 ? '' : 's') + (i && both ? ' · ' + both + ' also in Terms 1 to 2' : '') + '</small></h2>';
+    h += list.length ? '<div class="card"><table><thead><tr><th>Student</th><th>Year</th><th class="n">Enrolled days</th><th class="n">Unexplained days</th><th class="n">Attendance</th>' + (i ? '<th>Also in Terms 1 to 2</th>' : '') + '</tr></thead><tbody>' +
+      list.map(p => '<tr><td>' + esc(p.name) + '</td><td>' + yearTxt(p) + '</td><td class="n">' + p.rec.enr + '</td><td class="n">' + p.rec.unex + '</td><td class="n">' + pill(p.rec) + '</td>' + (i ? '<td>' + (first.has(p.srn) ? 'Yes' : '') + '</td>' : '') + '</tr>').join('') + '</tbody></table></div>'
+      : '<p class="empty">No students with ' + days + ' or more unexplained days.</p>';
+  });
   return h;
 }
 
@@ -475,7 +481,7 @@ function viewSetup() {
   return h;
 }
 
-const VIEWS = { overview: viewOverview, tiers: viewTiers, unexplained: viewUnexplained, warning: viewWarning, setup: viewSetup };
+const VIEWS = { overview: viewOverview, tiers: viewTiers, cwu: viewCwu, warning: viewWarning, setup: viewSetup };
 function render() {
   document.querySelectorAll('#tabs button').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === S.tab)));
   $('view').innerHTML = S.loaded ? VIEWS[S.tab]() : '';
