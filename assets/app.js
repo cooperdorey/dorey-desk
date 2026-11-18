@@ -206,13 +206,39 @@ async function showGenerators(){
   const g = await loadGenerators();
   if (!g.length){ tiles.innerHTML = '<p class="empty-note">No generators yet.</p>'; return }
   const colourOf = s => { for (const y of M.years) for (const c of y.courses) if (c.short===s) return c.colour; return '' };
-  tiles.replaceChildren(...g.map(x=>{
+  const tile = x=>{
     const a = document.createElement('a'); a.className = 'generator'; a.href = 'generators/' + encodeURI(x.file);
     a.innerHTML = `<span class="t">${esc(x.name)}</span><span class="d">${esc(x.desc||'')}</span>
       <span class="chips">${(x.courses||[]).map(s=>{const col=colourOf(s)||'#5E6672';return `<span class="course-chip" style="--course:${esc(col)};--course-ink:${inkFor(col)}">${esc(s)}</span>`}).join('')}</span>`;
     return a;
-  }));
+  };
+  // a grid: one column per generator type (first-seen order in generators.json), one row per course family, hardest first;
+  // a generator sits in the row of the hardest course it lists. Type is `type` if set, else the name less " generator (…)".
+  const typeOf = x=>x.type || x.name.replace(/\s*\(.*\)\s*$/,'').replace(/\s+generator$/i,'');
+  const types = [...new Set(g.map(typeOf))];
+  const rank = x=>Math.min(...(x.courses||[]).map(genFamily), GEN_FAMILIES.length-1);
+  const rows = GEN_FAMILIES.map((f,i)=>({f, i, items:g.filter(x=>rank(x)===i)})).filter(r=>r.items.length);
+  tiles.style.setProperty('--cols', types.length);
+  const out = types.map(t=>{const h=document.createElement('h2');h.className='gen-colhead';h.textContent=t;return h});
+  rows.forEach(r=>{
+    const shade = r.items.flatMap(x=>x.courses||[]).filter(s=>genFamily(s)===r.i).map(colourOf).find(Boolean)||'#5E6672';
+    const h = document.createElement('h3'); h.className = 'gen-rowhead'; h.textContent = r.f; h.style.setProperty('--course', shade);
+    out.push(h);
+    types.forEach(t=>{const cell=document.createElement('div');cell.className='gen-cell';
+      const its=r.items.filter(x=>typeOf(x)===t);if(!its.length)cell.classList.add('empty');
+      cell.append(...its.map(tile));out.push(cell)});
+  });
+  tiles.replaceChildren(...out);
 }
+const GEN_FAMILIES = ['Extension 2','Extension 1','Advanced','Standard 2','Standard','Standard 1','Other'];
+function genFamily(short){const s=String(short).toUpperCase().replace(/\s+/g,' ');
+  if (/EXT(ENSION)? ?2|X2/.test(s)) return 0;
+  if (/EXT|X1/.test(s)) return 1;
+  if (/ADV/.test(s)) return 2;
+  if (/STD ?2|STANDARD ?2/.test(s)) return 3;
+  if (/STD ?1|STANDARD ?1/.test(s)) return 5;
+  if (/STD|STANDARD/.test(s)) return 4;
+  return 6}
 
 // ---------- home: year ----------
 function showYears(){

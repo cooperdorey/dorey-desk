@@ -133,7 +133,18 @@ a{color:inherit}
 .side-drb:hover{background:var(--course-tint)}
 
 /* Generator list */
-.gens{grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
+.gens{grid-template-columns:repeat(var(--cols,1),minmax(0,1fr));gap:14px 22px;align-items:stretch}
+.gen-colhead{margin:0;font-family:var(--card);font-weight:700;font-size:24px;line-height:1.2;padding-bottom:6px;border-bottom:2px solid var(--ink)}
+.gen-rowhead{grid-column:1/-1;margin:18px 0 0;display:flex;align-items:center;gap:10px;font-family:var(--ui);font-weight:700;font-size:13px;
+  letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.gen-rowhead::before{content:"";width:14px;height:14px;border-radius:4px;background:var(--course)}
+.gen-rowhead::after{content:"";flex:1;border-top:1px solid var(--line)}
+.gen-cell{display:flex;flex-direction:column;gap:14px;min-width:0}
+.gen-cell>.generator{flex:1}
+.gen-cell.empty{border:1px dashed var(--line);border-radius:12px;min-height:60px;opacity:.6}
+.gens .generator{min-height:150px;padding:18px}
+.gens .generator .t{font-size:20px}
+@media (max-width:760px){.gens{grid-template-columns:minmax(0,1fr)}.gen-colhead,.gen-cell.empty{display:none}}
 .generator{display:flex;flex-direction:column;gap:8px;min-height:170px;padding:22px;background:var(--sheet);border:1px solid var(--line);
   border-top:5px solid var(--brand);border-radius:4px 4px 12px 12px;text-decoration:none;color:var(--ink)}
 .generator .t{font-family:var(--card);font-weight:700;font-size:24px;line-height:1.2}
