@@ -212,18 +212,23 @@ async function showGenerators(){
       <span class="chips">${(x.courses||[]).map(s=>{const col=colourOf(s)||'#5E6672';return `<span class="course-chip" style="--course:${esc(col)};--course-ink:${inkFor(col)}">${esc(s)}</span>`}).join('')}</span>`;
     return a;
   };
-  // one column per course family, hardest first; a generator sits under the hardest course it is tagged with
+  // a grid: one column per generator type (first-seen order in generators.json), one row per course family, hardest first;
+  // a generator sits in the row of the hardest course it lists. Type is `type` if set, else the name less " generator (…)".
+  const typeOf = x=>x.type || x.name.replace(/\s*\(.*\)\s*$/,'').replace(/\s+generator$/i,'');
+  const types = [...new Set(g.map(typeOf))];
   const rank = x=>Math.min(...(x.courses||[]).map(genFamily), GEN_FAMILIES.length-1);
-  const cols = GEN_FAMILIES.map((f,i)=>({f, items:g.filter(x=>rank(x)===i)})).filter(c=>c.items.length);
-  tiles.style.setProperty('--cols', cols.length);
-  tiles.replaceChildren(...cols.map(c=>{
-    const col = document.createElement('section'); col.className = 'gen-col';
-    const shade = c.items.flatMap(x=>x.courses||[]).filter(s=>genFamily(s)===GEN_FAMILIES.indexOf(c.f)).map(colourOf).find(Boolean)||'#5E6672';
-    col.style.setProperty('--course', shade);
-    const h = document.createElement('h2'); h.className = 'gen-head'; h.textContent = c.f;
-    col.append(h, ...c.items.map(tile));
-    return col;
-  }));
+  const rows = GEN_FAMILIES.map((f,i)=>({f, i, items:g.filter(x=>rank(x)===i)})).filter(r=>r.items.length);
+  tiles.style.setProperty('--cols', types.length);
+  const out = types.map(t=>{const h=document.createElement('h2');h.className='gen-colhead';h.textContent=t;return h});
+  rows.forEach(r=>{
+    const shade = r.items.flatMap(x=>x.courses||[]).filter(s=>genFamily(s)===r.i).map(colourOf).find(Boolean)||'#5E6672';
+    const h = document.createElement('h3'); h.className = 'gen-rowhead'; h.textContent = r.f; h.style.setProperty('--course', shade);
+    out.push(h);
+    types.forEach(t=>{const cell=document.createElement('div');cell.className='gen-cell';
+      const its=r.items.filter(x=>typeOf(x)===t);if(!its.length)cell.classList.add('empty');
+      cell.append(...its.map(tile));out.push(cell)});
+  });
+  tiles.replaceChildren(...out);
 }
 const GEN_FAMILIES = ['Extension 2','Extension 1','Advanced','Standard 2','Standard','Standard 1','Other'];
 function genFamily(short){const s=String(short).toUpperCase().replace(/\s+/g,' ');
