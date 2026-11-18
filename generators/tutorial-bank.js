@@ -1,5 +1,5 @@
 // Tutorial question bank for the tutorial generator. Loaded after engine.js.
-// Hard and unfamiliar questions on Year 11 Advanced and Year 12 differential calculus: the sort a student
+// Hard and unfamiliar questions on Year 11 Advanced and Year 12 differential and integral calculus: the sort a student
 // can't answer by copying a worked example. Each template is one question TYPE with random numbers:
 //   id      unique and stable (used in share links)
 //   topic   a topic id from engine.js (TOPICS), so the year buttons and topic names come for free
@@ -18,7 +18,9 @@ const TUT_MARKS={
  'tt-tangent-k':[4],'tt-selfinv':[2,1,2],'tt-composite':[2,2,2],'tt-abssum':[3,3],'tt-sector-max':[2,2,1],
  'tt-ambiguous':[2,3,2],'tt-identity':[2,3],'tt-cosgraph':[3,2],'tt-logdomain':[3],'tt-reciplog':[3],'tt-logsimul':[3],
  'tt-tangents-from-point':[4],'tt-cubic-again':[2,3,2],'tt-prob-indep':[1,2,2],'tt-prob-marbles':[2,3],
- 'tt-ode':[3],'tt-sqrt-quot':[2,1],'tt-exp-origin':[4],'tt-ln-origin':[4],'tt-touching':[4],'tt-chain-data':[2,2],'tt-ln-show':[2]};
+ 'tt-ode':[3],'tt-sqrt-quot':[2,1],'tt-exp-origin':[4],'tt-ln-origin':[4],'tt-touching':[4],'tt-chain-data':[2,2],'tt-ln-show':[2],
+ 'tt-int-findk':[3],'tt-int-oddeven':[3],'tt-int-accum':[2,2],'tt-int-hence':[2,2],'tt-int-cubic-area':[2,3],'tt-int-yaxis':[2,2],
+ 'tt-int-trap':[2,2,1],'tt-int-limits':[1,2,2]};
 const TUT_MIN_PER_MARK=1.8;
 const TUT=[];
 const tut=(id,topic,name,mins,level,hint,gen)=>TUT.push({id,topic,name,mins,level,hint,gen});
@@ -349,6 +351,139 @@ tut('tt-ln-show','12adv-differentiation','Show that the derivative of a log is s
    ans:`$\\dfrac{dy}{dx}=\\dfrac{1}{${rt}}$, as required.`,
    chk:()=>{const f=x=>Math.log(x+Math.sqrt(x*x+a));return [0.3,1.1,2.4,-0.8].every(x=>tNear(tFx(f,x),1/Math.sqrt(x*x+a)))}}});
 
+// =====================================================================
+// YEAR 12 · INTEGRAL CALCULUS
+// (follows the 12ADV integration episode map: no area between two curves; ∫tan x and ∫ln x only through "hence")
+// =====================================================================
+
+const tInt=(f,a,b,n=2000)=>{const h=(b-a)/n;let s=f(a)+f(b);for(let i=1;i<n;i++)s+=(i%2?4:2)*f(a+i*h);return s*h/3};
+const tNum=v=>String(+(+v).toFixed(4));
+
+tut('tt-int-findk','12adv-integration','Find the limit k from a definite integral',5,2,
+ 'Find a primitive and substitute the limits, which gives an equation in k. An exponential needs a log to undo it; logs need the log laws.',
+ R=>{if(R.next()<0.5){const m=R.pick([2,3]),c=R.pick([1,2,3,4]),N=m*c+1;
+   return{q:tOne(`Find the exact value of $k$ such that $\\int_{0}^{k}e^{${m}x}\\,dx=${c}$.`,TUT_MARKS['tt-int-findk'][0]),
+    sol:[`$$\\int_{0}^{k}e^{${m}x}\\,dx=\\left[\\frac{1}{${m}}e^{${m}x}\\right]_{0}^{k}=\\frac{1}{${m}}(e^{${m}k}-1)$$`,
+     `So $\\dfrac{1}{${m}}(e^{${m}k}-1)=${c}$, which gives $e^{${m}k}=${N}$.`,
+     `$$${m}k=\\ln ${N}\;\\Rightarrow\;k=\\frac{1}{${m}}\\ln ${N}$$`],
+    ans:`$k=\\dfrac{1}{${m}}\\ln ${N}$`,
+    chk:()=>tNear(tInt(x=>Math.exp(m*x),0,Math.log(N)/m),c)}}
+  const a=R.pick([1,2,3,5,6,7]),n=R.pick([2,3]),K=a*(n*n-1);
+  return{q:tOne(`Find the exact value of $k>0$ such that $\\int_{0}^{k}\\frac{x}{x^{2}+${a}}\\,dx=\\ln ${n}$.`,TUT_MARKS['tt-int-findk'][0]),
+   sol:[`The numerator is half the derivative of the denominator: $$\\int_{0}^{k}\\frac{x}{x^{2}+${a}}\\,dx=\\frac{1}{2}\\int_{0}^{k}\\frac{2x}{x^{2}+${a}}\\,dx=\\frac{1}{2}\\left[\\ln(x^{2}+${a})\\right]_{0}^{k}=\\frac{1}{2}\\ln\\frac{k^{2}+${a}}{${a}}$$`,
+    `So $\\ln\\dfrac{k^{2}+${a}}{${a}}=2\\ln ${n}=\\ln ${n*n}$, which gives $k^{2}+${a}=${a*n*n}$ and $k^{2}=${K}$.`,
+    `Since $k>0$, $k=${surdRoot(K)}$.`],
+   ans:`$k=${surdRoot(K)}$`,
+   chk:()=>tNear(tInt(x=>x/(x*x+a),0,Math.sqrt(K)),Math.log(n))}});
+
+tut('tt-int-oddeven','12adv-integration','Odd and even functions in a definite integral',5,2,
+ 'Split the integrand into two parts. You cannot find a primitive for the first part, and you do not need one: what happens to it over a symmetric interval?',
+ R=>{const o=R.pick([{t:'x^{3}\\cos x',f:x=>x**3*Math.cos(x),A:3},{t:'x\\,e^{x^{2}}',f:x=>x*Math.exp(x*x),A:2},{t:'\\sin^{3}x',f:x=>Math.sin(x)**3,A:3},{t:'x^{2}\\sin x',f:x=>x*x*Math.sin(x),A:3}]),
+   a=R.int(1,o.A),p=R.pick([3,6,9,-3,-6]),q=R.nz(-5,5),ev=poly([[p,'x^{2}'],[q,'']]),P=poly([[p/3,'x^{3}'],[q,'x']]),half=p/3*a**3+q*a,v=2*half;
+  return{q:tOne(`Evaluate $\\int_{-${a}}^{${a}}(${o.t}${term(p,'x^{2}',false)}${term(q,'',false)})\\,dx$.`,TUT_MARKS['tt-int-oddeven'][0]),
+   sol:[`Let $g(x)=${o.t}$. Then $g(-x)=-g(x)$, so $g$ is odd. Over $-${a}\\le x\\le ${a}$ its signed areas cancel, so $\\int_{-${a}}^{${a}}g(x)\\,dx=0$.`,
+    `$${ev}$ is even, so $$\\int_{-${a}}^{${a}}(${ev})\\,dx=2\\int_{0}^{${a}}(${ev})\\,dx=2\\left[${P}\\right]_{0}^{${a}}=2(${p/3*a**3}${term(q*a,'',false)})=${v}$$`,
+    `So the integral is $0+${tPar(v)}=${v}$.`],
+   ans:`$${v}$`,
+   chk:()=>tNear(tInt(x=>o.f(x)+p*x*x+q,-a,a),v)}});
+
+tut('tt-int-accum','12adv-integration','Differentiating an integral with a variable limit',7,3,
+ 'Let F be a primitive of the integrand and write g(x) using F. The chain rule does the rest. What is g(1)?',
+ R=>{const n=R.pick([2,3]),k=R.pick([3,8,15,24]),s=Math.sqrt(1+k),g=`g(x)=\\int_{x^{${n}}}^{1}\\sqrt{t^{2}+${k}}\\,dt`,d=`-${n}${xp(n-1)}\\sqrt{x^{${2*n}}+${k}}`,L=lin(-n*s,n*s);
+  return{q:tParts(`Let $${g}$.`,[`Find $g'(x)$.`,`Find the equation of the tangent to $y=g(x)$ at the point where $x=1$.`],TUT_MARKS['tt-int-accum']),
+   sol:[`(a) Let $F$ be a primitive of $f(t)=\\sqrt{t^{2}+${k}}$, so $F'(t)=f(t)$. Then $$g(x)=F(1)-F(x^{${n}})$$`,
+    `By the chain rule, $$g'(x)=0-F'(x^{${n}})\\times ${n}${xp(n-1)}=${d}$$`,
+    `(b) At $x=1$ both limits are 1, so $g(1)=\\int_{1}^{1}\\sqrt{t^{2}+${k}}\\,dt=0$.`,
+    `$g'(1)=-${n}\\sqrt{1+${k}}=-${n*s}$, so the tangent is $$y-0=-${n*s}(x-1)\;\\Rightarrow\;y=${L}$$`],
+   ans:`(a) $g'(x)=${d}$; (b) $y=${L}$`,
+   chk:()=>{const G=x=>tInt(t=>Math.sqrt(t*t+k),x**n,1),D=x=>-n*x**(n-1)*Math.sqrt(x**(2*n)+k);
+    return [0.7,1,1.2].every(x=>Math.abs(tFx(G,x,1e-4)-D(x))<1e-5*Math.max(1,Math.abs(D(x))))&&tNear(G(1),0)&&tNear(D(1),-n*s)&&Number.isInteger(s)}}});
+
+tut('tt-int-hence','12adv-integration','Differentiate, hence integrate',7,2,
+ 'Rearrange the derivative from part (a) so the integrand stands on its own, then integrate both sides between the limits.',
+ R=>{const v=R.pick(['e','t','l']),M=TUT_MARKS['tt-int-hence'];
+  if(v==='e'){const k=R.pick([2,3,4]),X=tKx(k),A=`\\frac{${coefTex(k-1)}e^{${k}}+1}{${k*k}}`;
+   return{q:tParts('',[`Differentiate $xe^{${X}}$.`,`Hence find the exact value of $\\int_{0}^{1}xe^{${X}}\\,dx$.`],M),
+    sol:[`(a) By the product rule, $$\\frac{d}{dx}(xe^{${X}})=e^{${X}}+${k}xe^{${X}}$$`,
+     `(b) Rearrange: $${k}xe^{${X}}=\\dfrac{d}{dx}(xe^{${X}})-e^{${X}}$. Integrate from 0 to 1:`,
+     `$$${k}\\int_{0}^{1}xe^{${X}}\\,dx=\\left[xe^{${X}}\\right]_{0}^{1}-\\left[\\frac{1}{${k}}e^{${X}}\\right]_{0}^{1}=e^{${k}}-\\frac{1}{${k}}(e^{${k}}-1)=\\frac{${coefTex(k-1)}e^{${k}}+1}{${k}}$$`,
+     `$$\\int_{0}^{1}xe^{${X}}\\,dx=${A}$$`],
+    ans:`(a) $e^{${X}}+${k}xe^{${X}}$; (b) $${A}$`,
+    chk:()=>tNear(tInt(x=>x*Math.exp(k*x),0,1),((k-1)*Math.exp(k)+1)/(k*k))&&tNear(tFx(x=>x*Math.exp(k*x),0.3),Math.exp(0.3*k)*(1+0.3*k))}}
+  if(v==='t'){const k=R.pick([1,2,3]),X=tKx(k),lim=piTex(F(1,2*k)),ck=coefTex(k),A=`\\frac{\\pi-2}{${2*k*k}}`,
+    cosP=k===1?'-\\cos x':`-\\frac{1}{${k}}\\cos ${X}`,inv=k===1?'1':`\\frac{1}{${k}}`;
+   return{q:tParts('',[`Differentiate $x\\sin ${X}$.`,`Hence find the exact value of $\\int_{0}^{${lim}}x\\cos ${X}\\,dx$.`],M),
+    sol:[`(a) By the product rule, $$\\frac{d}{dx}(x\\sin ${X})=\\sin ${X}+${ck}x\\cos ${X}$$`,
+     `(b) Rearrange: $${ck}x\\cos ${X}=\\dfrac{d}{dx}(x\\sin ${X})-\\sin ${X}$. Integrate from 0 to $${lim}$:`,
+     `$$${ck}\\int_{0}^{${lim}}x\\cos ${X}\\,dx=\\left[x\\sin ${X}\\right]_{0}^{${lim}}-\\left[${cosP}\\right]_{0}^{${lim}}=${lim}\\sin\\frac{\\pi}{2}-${inv}=${lim}-${inv}$$`,
+     `$$\\int_{0}^{${lim}}x\\cos ${X}\\,dx=${A}$$`],
+    ans:`(a) $\\sin ${X}+${ck}x\\cos ${X}$; (b) $${A}$`,
+    chk:()=>tNear(tInt(x=>x*Math.cos(k*x),0,Math.PI/(2*k)),(Math.PI-2)/(2*k*k))}}
+  const n=R.pick([2,3,4]),A=`${coefTex(n-1)}e^{${n}}+1`;
+  return{q:tParts('',[`Differentiate $x\\ln x$.`,`Hence find the exact value of $\\int_{1}^{e^{${n}}}\\ln x\\,dx$.`],M),
+   sol:[`(a) By the product rule, $$\\frac{d}{dx}(x\\ln x)=\\ln x+x\\times\\frac{1}{x}=\\ln x+1$$`,
+    `(b) Rearrange: $\\ln x=\\dfrac{d}{dx}(x\\ln x)-1$. Integrate from 1 to $e^{${n}}$:`,
+    `$$\\int_{1}^{e^{${n}}}\\ln x\\,dx=\\left[x\\ln x-x\\right]_{1}^{e^{${n}}}=(${n}e^{${n}}-e^{${n}})-(0-1)=${A}$$`],
+   ans:`(a) $\\ln x+1$; (b) $${A}$`,
+   chk:()=>tNear(tInt(Math.log,1,Math.exp(n),20000),(n-1)*Math.exp(n)+1)}});
+
+tut('tt-int-cubic-area','12adv-integration','Integral versus area for a cubic',9,2,
+ 'The integral counts area below the x-axis as negative. Factorise to find where the curve crosses the axis, then integrate each piece separately.',
+ R=>{const a=R.int(1,3),b=a+R.int(1,3),cs=[0,a*b,-(a+b),1],f=pTex(cs),P=pInt(cs),I1=pEval(P,a),Ib=pEval(P,b),I2=Ib.sub(I1),A=I1.sub(I2);
+  return{q:tParts(`Let $f(x)=${f}$.`,[`Evaluate $\\int_{0}^{${b}}f(x)\\,dx$.`,`Find the total area enclosed between the curve $y=f(x)$ and the $x$-axis.`],TUT_MARKS['tt-int-cubic-area']),
+   sol:[`(a) $$\\int_{0}^{${b}}(${f})\\,dx=\\left[${pTex(P)}\\right]_{0}^{${b}}=${Ib.tex()}$$`,
+    `(b) $f(x)=x(${poly([[1,'x^{2}'],[-(a+b),'x'],[a*b,'']])})=x(x-${a})(x-${b})$, so the curve cuts the $x$-axis at $x=0$, $${a}$ and $${b}$. It is above the axis for $0<x<${a}$ and below it for $${a}<x<${b}$.`,
+    `$$\\int_{0}^{${a}}f(x)\\,dx=${I1.tex()}\\qquad\\int_{${a}}^{${b}}f(x)\\,dx=${I2.tex()}$$`,
+    `$$\\text{Area}=${I1.tex()}+\\left|${I2.tex()}\\right|=${A.tex()}\\text{ square units}$$`,
+    `The answer to (a) is smaller because the region below the axis counts as negative in the integral.`],
+   ans:`(a) $${Ib.tex()}$; (b) $${A.tex()}$ square units`,
+   chk:()=>{const g=x=>x*(x-a)*(x-b);return tNear(tInt(g,0,b),Ib.val())&&tNear(tInt(x=>Math.abs(g(x)),0,a)+tInt(x=>Math.abs(g(x)),a,b),A.val())}}});
+
+tut('tt-int-yaxis','12adv-integration','Area to the y-axis, then to the x-axis',7,3,
+ 'Write the curve with x as the subject and integrate with respect to y. For the second region, look for a rectangle made of the two regions together.',
+ R=>{const base=R.pick(['e',2,3]),n=R.int(1,3);let logT,inv,AT,prim,a1,a2,a1v,a2v,lnb,nAT;
+  if(base==='e'){logT='\\ln x';inv='e^{y}';AT=n===1?'e':`e^{${n}}`;prim=`\\left[e^{y}\\right]_{0}^{${n}}`;a1=`${AT}-1`;nAT=`${coefTex(n)}${AT}`;
+   a2=n===1?'1':`${coefTex(n-1)}${AT}+1`;lnb=1;a1v=Math.exp(n)-1;a2v=(n-1)*Math.exp(n)+1}
+  else{const A=base**n;lnb=Math.log(base);logT=`\\log_{${base}}x`;inv=`${base}^{y}`;AT=String(A);prim=`\\left[\\frac{${base}^{y}}{\\ln ${base}}\\right]_{0}^{${n}}`;
+   a1=`\\frac{${A-1}}{\\ln ${base}}`;nAT=String(n*A);a2=`${n*A}-\\frac{${A-1}}{\\ln ${base}}`;a1v=(A-1)/lnb;a2v=n*A-(A-1)/lnb}
+  return{q:tParts(`Consider the curve $y=${logT}$.`,[`Find the exact area of the region bounded by the curve, the $y$-axis and the lines $y=0$ and $y=${n}$.`,`Hence find the exact area of the region bounded by the curve, the $x$-axis and the line $x=${AT}$.`],TUT_MARKS['tt-int-yaxis']),
+   sol:[`(a) With $x$ as the subject, $x=${inv}$. The region lies between the curve and the $y$-axis, so $$\\text{Area}=\\int_{0}^{${n}}${inv}\\,dy=${prim}=${a1}$$`,
+    `(b) The curve passes through $(1,\\ 0)$ and $(${AT},\\ ${n})$. The rectangle with corners $(0,\\ 0)$ and $(${AT},\\ ${n})$ has area $${n}\\times ${AT}=${nAT}$.`,
+    `That rectangle is exactly the region in (a) together with the region in (b), so $$\\text{Area}=${nAT}-(${a1})=${a2}$$`],
+   ans:`(a) $${a1}$; (b) $${a2}$`,
+   chk:()=>{const B=base==='e'?Math.E:base;return tNear(tInt(y=>B**y,0,n),a1v)&&tNear(tInt(x=>Math.log(x)/lnb,1,B**n,20000),a2v)}}});
+
+tut('tt-int-trap','12adv-integration','Trapezoidal rule: estimate, exact and error',9,2,
+ 'With n subintervals there are n + 1 function values. For the last part, think about whether the curve bends above or below the chords.',
+ R=>{const v=R.pick(['inv','sqrt','exp']);let a,b,n,f,fT,prim,exT,exV,over,d2T,dom;
+  if(v==='inv'){const c=R.pick([1,2,4,6]);b=R.pick([2,3,5]);a=1;n=4;f=x=>c/x;fT=`\\frac{${c}}{x}`;prim=`\\left[${coefTex(c)}\\ln x\\right]_{1}^{${b}}`;exT=`${coefTex(c)}\\ln ${b}`;exV=c*Math.log(b);over=true;d2T=`\\frac{${2*c}}{x^{3}}`;dom='for $x>0$'}
+  else if(v==='sqrt'){const c=R.pick([1,3]),o=R.pick([[1,4,3],[1,9,4],[0,4,4]]);[a,b,n]=o;f=x=>c*Math.sqrt(x);fT=`${coefTex(c)}\\sqrt{x}`;const k=F(2*c,3),e=k.mul(F(b*Math.sqrt(b)-a*Math.sqrt(a)));
+   prim=`\\left[${term(k,'x^{\\frac{3}{2}}',true)}\\right]_{${a}}^{${b}}`;exT=e.tex();exV=e.val();over=false;d2T=`-\\frac{${c}}{4x\\sqrt{x}}`;dom='for $x>0$'}
+  else{b=R.pick([1,2]);a=0;n=4;f=Math.exp;fT='e^{x}';prim=`\\left[e^{x}\\right]_{0}^{${b}}`;exT=b===1?'e-1':`e^{${b}}-1`;exV=Math.exp(b)-1;over=true;d2T='e^{x}';dom='for all $x$'}
+  const h=(b-a)/n,xs=[...Array(n+1)].map((_,i)=>tNum(a+i*h)),ys=xs.map(x=>f(+x)),est=h/2*(ys[0]+ys[n]+2*ys.slice(1,n).reduce((s,y)=>s+y,0)),
+   mids=xs.slice(1,n).map(x=>`f(${x})`).join('+'),I=`\\int_{${a}}^{${b}}${fT}\\,dx`,word=over?'overestimate':'underestimate';
+  return{q:tParts('',[`Use the trapezoidal rule with ${n} subintervals to estimate $${I}$, correct to 4 decimal places.`,`Find the exact value of $${I}$.`,`Is the estimate in (a) an overestimate or an underestimate? Justify your answer.`],TUT_MARKS['tt-int-trap']),
+   sol:[`(a) $h=\\dfrac{${b}-${a}}{${n}}=${tNum(h)}$, and $$${xs.map((x,i)=>`f(${x})=${ys[i].toFixed(4)}`).join(',\\quad ')}$$`,
+    `$$${I}\\approx\\frac{${tNum(h)}}{2}\\left[f(${xs[0]})+2(${mids})+f(${xs[n]})\\right]\\approx ${est.toFixed(4)}$$`,
+    `(b) $$${I}=${prim}=${exT}\\approx ${exV.toFixed(4)}$$`,
+    `(c) $f''(x)=${d2T}$, which is ${over?'positive':'negative'} ${dom}, so the curve is concave ${over?'up':'down'}. Each chord lies ${over?'above':'below'} the curve, so the trapezoidal rule gives an ${word}: $${est.toFixed(4)}${over?'>':'<'}${exV.toFixed(4)}$.`],
+   ans:`(a) $${est.toFixed(4)}$; (b) $${exT}$; (c) an ${word}, since the curve is concave ${over?'up':'down'}`,
+   chk:()=>tNear(tInt(f,a,b,20000),exV)&&(est>exV)===over&&Math.abs(est-exV)<0.2*Math.abs(exV)}});
+
+tut('tt-int-limits','12adv-integration','Using the rules for definite integrals',5,2,
+ 'Draw a number line with the three limits on it. Integrals over touching intervals add, and swapping the limits changes the sign.',
+ R=>{const a=R.int(0,2),b=a+R.int(1,3),c=b+R.int(1,3);let P,Q;do{P=R.nz(-9,12);Q=R.nz(-9,12)}while(P===Q);
+  const D=P-Q,vb=F(-4*D+b*b-a*a,2),k=F(-P,c-a),Ix=(l,u,g)=>`\\int_{${l}}^{${u}}${g}\\,dx`;
+  return{q:tParts(`The function $f$ is continuous, with $${Ix(a,c,'f(x)')}=${P}$ and $${Ix(b,c,'f(x)')}=${Q}$.`,
+    [`Find $${Ix(a,b,'f(x)')}$.`,`Evaluate $${Ix(b,a,'(2f(x)-x)')}$.`,`Find the value of $k$ such that $${Ix(a,c,'(f(x)+k)')}=0$.`],TUT_MARKS['tt-int-limits']),
+   sol:[`(a) $${Ix(a,c,'f(x)')}=${Ix(a,b,'f(x)')}+${Ix(b,c,'f(x)')}$, so $$${Ix(a,b,'f(x)')}=${P}-${tPar(Q)}=${D}$$`,
+    `(b) Reversing the limits changes the sign: $$${Ix(b,a,'(2f(x)-x)')}=-2${Ix(a,b,'f(x)')}+${Ix(a,b,'x')}$$`,
+    `$$=-2\\times ${tPar(D)}+\\left[\\frac{x^{2}}{2}\\right]_{${a}}^{${b}}=${-2*D}+\\frac{${b*b}-${a*a}}{2}=${vb.tex()}$$`,
+    `(c) $$${Ix(a,c,'(f(x)+k)')}=${Ix(a,c,'f(x)')}+${Ix(a,c,'k')}=${P}+${coefTex(c-a)}k$$`,
+    `Setting this equal to 0 gives $k=${k.tex()}$.`],
+   ans:`(a) $${D}$; (b) $${vb.tex()}$; (c) $k=${k.tex()}$`,
+   chk:()=>{const v1=D/(b-a),v2=Q/(c-b);return tNear(v1*(b-a)+v2*(c-b),P)&&tNear(-tInt(x=>2*v1-x,a,b),vb.val())&&tNear(tInt(()=>v1+k.val(),a,b)+tInt(()=>v2+k.val(),b,c),0)}}});
+
 // ================= building a tutorial =================
 // Where each question type comes from. "Similar to" means the same task adapted; "Style of" means the same kind of skill and wording.
 // Only questions found in the 2020-2026 HSC Mathematics Advanced papers are cited; everything else is ours.
@@ -360,7 +495,9 @@ const TUT_SRC={
  'tt-ode':'Style of HSC 2022 Q27(a)',
  'tt-ln-show':'Style of HSC 2026 Q21(a)',
  'tt-sqrt-quot':'Style of HSC 2025 Q25(a)',
- 'tt-touching':'Style of HSC 2025 Q24'};
+ 'tt-touching':'Style of HSC 2025 Q24',
+ 'tt-int-accum':'Similar to HSC 2026 Q32',
+ 'tt-int-trap':'Style of HSC 2025 Q27'};
 const TUT_BY_ID={};TUT.forEach(t=>{TUT_BY_ID[t.id]=t;t.src=TUT_SRC[t.id]||'Original question';t.marks=TUT_MARKS[t.id].reduce((a,b)=>a+b,0);t.mins=Math.max(1,Math.round(t.marks*TUT_MIN_PER_MARK));t.topicName=(TOPICS.find(x=>x.id===t.topic)||{name:t.topic}).name});
 
 // Picks questions whose estimated times add up to the target (within 2 minutes), spread over the ticked topics where possible,
