@@ -26,6 +26,14 @@
   ]
  },
  {
+  "file": "question-generator-std1.html",
+  "name": "Question generator (Standard 1)",
+  "desc": "Random Standard 1 questions with worked solutions, packed onto textbook-style pages or one per row with working space.",
+  "courses": [
+   "12 STD 1"
+  ]
+ },
+ {
   "file": "homework.html",
   "name": "Homework generator",
   "desc": "A weekly homework sheet, two A4 pages to print double-sided, set out like an HSC extended-response question, with past HSC questions as set or with new numbers. Downloads as a PDF with a separate sample-answers PDF, and makes the matching end-of-week LSQ.",
