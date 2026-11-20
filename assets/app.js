@@ -83,6 +83,8 @@ async function loadManifest(){
 }
 // Which version (A/B/C) this course last used; the first version if none yet
 const verKey = c => 'lc-version-' + c.id;
+// A course can name its versions in _meta.json, e.g. {"versions": {"B": "ATAR", "C": "HSC"}}
+const verLabel = (c, v) => (c.versions && c.versions[v]) || v;
 function pickVersion(l, c){
   const want = recall(verKey(c));
   return (l.versions.find(v=>v.v===want) || l.versions[0]);
@@ -416,11 +418,11 @@ async function openLesson(L){
   ver.hidden = !base; ver.replaceChildren();
   if (base) base.versions.forEach(v=>{
     const a = document.createElement('a'); a.className = 'btn' + (v.v===L.version ? ' solid' : ''); a.href = '#' + v.id;
-    a.textContent = v.v; a.title = 'Version ' + v.v;
+    a.textContent = verLabel(L.c, v.v); a.title = 'Version ' + verLabel(L.c, v.v);
     if (v.v===L.version) a.setAttribute('aria-current','true');
     ver.append(a);
   });
-  document.title = `${L.code}${L.version ? ' ('+L.version+')' : ''} ${L.title.replace(/\$/g,'')} – Dorey Desk`;
+  document.title = `${L.code}${L.version ? ' ('+verLabel(L.c, L.version)+')' : ''} ${L.title.replace(/\$/g,'')} – Dorey Desk`;
   const deck = $('deck');
   deck.replaceChildren(Object.assign(document.createElement('p'),{className:'status',textContent:'Loading…'}));
   let data;

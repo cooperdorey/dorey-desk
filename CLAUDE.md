@@ -8,6 +8,7 @@ We Do levels) live in the Lesson Creator project; this file covers the repo form
 - Versions: a lesson taught at several levels (11 STD A / B / C classes) is one file per version,
   `<code>-<slug>.A.html`, `.B.html`, `.C.html`, sharing code and title. The manifest groups them into one
   lesson with `versions`; the lesson view shows A / B / C buttons and each course remembers the last version used.
+  A course's `_meta.json` can rename the buttons: `"versions": {"B": "ATAR", "C": "HSC"}` (12 STD 1).
 - Cards use the existing `.c` / `.h` / `.b` markup with `$…$` maths (rendered at runtime
   by KaTeX as MathML). Do not paste pre-rendered MathML.
 - Worked solutions go inline as `<div class="ws">…</div>` under each question, including

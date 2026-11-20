@@ -145,7 +145,8 @@ Differentiate $y=3e^{2x+5}$.
   view, shown in green with **Show answers**.
 - A lesson can have **versions** for differently pitched classes (Year 11 Standard A, B and C):
   save them as `1.01-<slug>.A.html`, `1.01-<slug>.B.html`, `1.01-<slug>.C.html`. They show as one lesson
-  with A / B / C buttons, and the site remembers the version last used in each course.
+  with A / B / C buttons, and the site remembers the version last used in each course. A course can
+  rename its buttons in `_meta.json`, e.g. `"versions": {"B": "ATAR", "C": "HSC"}` for Standard 1.
 - Older lessons (Year 11, topic 8) keep their solutions as separate cards after a
   `<!-- solutions -->` line. Either style works.
 

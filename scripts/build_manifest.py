@@ -156,6 +156,7 @@ for y in subdirs(LESSONS):
         m = read_meta(cp)
         # courses with no lessons yet are kept, so the home page can show them as "coming soon"
         courses.append({'id': c, 'name': m.get('name', nice(c)), 'short': m.get('short', ''),
+                        'versions': m.get('versions', {}),
                         'colour': m.get('colour', ''), 'order': m.get('order', 99), 'topics': topics})
     courses.sort(key=lambda k: (k['order'], k['name']))
     if courses:
