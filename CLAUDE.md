@@ -23,8 +23,9 @@ We Do levels) live in the Lesson Creator project; this file covers the repo form
 - Brackets: use plain `( )`; use `\left( … \right)` only around fractions. Don't use `\big`.
   (The app draws non-fraction `\left…\right` pairs at normal size so pairs always match.)
 - Before committing, run `python3 scripts/build_manifest.py`; it must report no problems.
-- Lesson PDFs: `pages.yml` runs `scripts/build_pdfs.py _site` after collecting the site (headless Chromium,
-  each card row screenshotted at 2x, one row per page) into `pdf/<lesson id>.pdf` and `pdf/<lesson id>-answers.pdf`,
+- Lesson PDFs: `pages.yml` runs `scripts/build_pdfs.py _site` after collecting the site (headless Chromium
+  prints the rendered cards as vector PDFs on A4-landscape-shaped pages at natural size; rows never split unless
+  taller than a page, cards never split) into `pdf/<lesson id>.pdf` and `pdf/<lesson id>-answers.pdf`,
   cached in `.pdf-cache` so only changed lessons rebuild; the step is `continue-on-error`. The lesson view's
   Download PDF button links to them. Chromium draws a superscript prime (f') tiny, so the script sets primes inline.
 - Classroom tools: one self-contained page per tool in `classroom/`, registered in
