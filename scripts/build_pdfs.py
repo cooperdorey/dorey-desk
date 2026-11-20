@@ -83,9 +83,11 @@ def place(lid, suffix, data=None, src=None):
 build = []
 for lid, path in todo:
     k = key_for(path)
-    cached = [os.path.join(cache_dir, lid + s + '.pdf') for s in ('', '-answers')] if cache_dir else []
+    sfxs = index.get(lid + '#sfx', ['', '-answers'])
+    cached = [os.path.join(cache_dir, lid + x + '.pdf') for x in sfxs] if cache_dir else []
     if cache_dir and index.get(lid) == k and all(os.path.exists(c) for c in cached):
-        place(lid, '', src=cached[0]); place(lid, '-answers', src=cached[1])
+        for x, c in zip(sfxs, cached):
+            place(lid, x, src=c)
     else:
         build.append((lid, path, k))
 print(f'PDFs: {len(todo) - len(build)} reused, {len(build)} to build')
@@ -103,9 +105,14 @@ threading.Thread(target=srv.serve_forever, daemon=True).start()
 SHEET_W, MARGIN = 1560, 24
 PAGE_W = SHEET_W + 2 * MARGIN
 PAGE_H = round(PAGE_W * 210 / 297)
+# Re-teach PDFs: one 760px card per row, on A4 portrait-shaped pages, for importing into OneNote
+RE_W = 760 + 2 * MARGIN
+RE_H = round(RE_W * 297 / 210)
 PRINT_CSS = """
   :root{--card:"Palatino Linotype",Palatino,"Book Antiqua","URW Palladio L",P052,Georgia,serif}
   @page{size:%dpx %dpx;margin:%dpx}
+  @page re{size:%dpx %dpx;margin:%dpx}
+  #printwrap.re{page:re}
   @media print{
     body>*:not(#printwrap){display:none!important}
     html,body{background:#fff!important;margin:0}
@@ -115,19 +122,25 @@ PRINT_CSS = """
     #printwrap .row.tall{break-inside:auto}
     #printwrap .c{break-inside:avoid}
   }
-""" % (PAGE_W, PAGE_H, MARGIN)
+""" % (PAGE_W, PAGE_H, MARGIN, RE_W, RE_H, MARGIN)
 # Copy the rendered cards into a clean wrapper (with the course colours), scale it to the
 # page width, and mark rows too tall for one page so they may break between cards.
-BUILD_PRINT = """([pw, ph, answers]) => {
+BUILD_PRINT = """([pw, ph, answers, re]) => {
   document.getElementById('printwrap')?.remove();
   const L = document.getElementById('lesson'), cs = getComputedStyle(L);
-  const w = document.createElement('div'); w.id = 'printwrap'; if (answers) w.className = 'sol';
+  const w = document.createElement('div'); w.id = 'printwrap'; w.className = (answers ? 'sol ' : '') + (re ? 're' : '');
   ['--card-head','--card-ink','--card-sub','--card-title'].forEach(v => w.style.setProperty(v, cs.getPropertyValue(v)));
   const s = document.getElementById('sheet').cloneNode(true);
-  s.removeAttribute('id'); s.style.zoom = ''; s.classList.remove('one');
+  s.removeAttribute('id'); s.style.zoom = ''; if (!re) s.classList.remove('one');
   w.append(s); document.body.append(w);
   s.querySelectorAll('.row').forEach(r => { if (r.getBoundingClientRect().height > ph) r.classList.add('tall') });
 }"""
+MATH_FIX = """()=>document.querySelectorAll('#sheet msup').forEach(s=>{
+                        const k=s.children;
+                        if (k.length===2 && /^[\\u2032\\u2033\\u2034']+$/.test(k[1].textContent.trim())){
+                          const r=document.createElementNS('http://www.w3.org/1998/Math/MathML','mrow');
+                          r.append(k[0],k[1]); s.replaceWith(r);
+                        }})"""
 failed = []
 if build:
     with sync_playwright() as p:
@@ -147,17 +160,23 @@ if build:
                     page.evaluate("()=>document.fonts.ready")
                     # Chromium draws a prime set as a superscript (f') tiny and too high; the prime
                     # glyph is already raised, so set it inline instead (Safari, on the iPad, is fine).
-                    page.evaluate("""()=>document.querySelectorAll('#sheet msup').forEach(s=>{
-                        const k=s.children;
-                        if (k.length===2 && /^[\\u2032\\u2033\\u2034']+$/.test(k[1].textContent.trim())){
-                          const r=document.createElementNS('http://www.w3.org/1998/Math/MathML','mrow');
-                          r.append(k[0],k[1]); s.replaceWith(r);
-                        }})""")
-                    page.evaluate(BUILD_PRINT, [SHEET_W, PAGE_H - 2 * MARGIN, answers])
-                    pdf = page.pdf(prefer_css_page_size=True, print_background=True)
-                    place(lid, '-answers' if answers else '', data=pdf)
+                    page.evaluate(MATH_FIX)
+                    sa = '-answers' if answers else ''
+                    page.evaluate(BUILD_PRINT, [SHEET_W, PAGE_H - 2 * MARGIN, answers, False])
+                    place(lid, sa, data=page.pdf(prefer_css_page_size=True, print_background=True))
+                    sfx = ['', '-answers'] if answers else []
+                    # A lesson with Re-teach cards also gets re-teach PDFs: the cards alone, one per row
+                    if page.evaluate("()=>!document.getElementById('reBtn').hidden"):
+                        page.evaluate("()=>document.getElementById('reBtn').click()")
+                        page.wait_for_function("()=>document.getElementById('reBtn').getAttribute('aria-pressed')==='true' && document.querySelector('#sheet .c')", timeout=20000)
+                        page.evaluate("()=>document.fonts.ready")
+                        page.evaluate(MATH_FIX)
+                        page.evaluate(BUILD_PRINT, [760, RE_H - 2 * MARGIN, answers, True])
+                        place(lid, '-reteach' + sa, data=page.pdf(prefer_css_page_size=True, print_background=True))
+                        if answers: sfx = ['', '-answers', '-reteach', '-reteach-answers']
+                        page.evaluate("()=>document.getElementById('reBtn').click()")
                     if answers:
-                        index[lid] = k
+                        index[lid] = k; index[lid + '#sfx'] = sfx
                 except Exception as e:
                     failed.append(f'{lid} ({"answers" if answers else "lesson"}): {e}')
         browser.close()

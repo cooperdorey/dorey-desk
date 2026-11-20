@@ -11,11 +11,12 @@
 //             #year-12/…/1.01-…      → that lesson
 'use strict';
 const $ = id => document.getElementById(id);
-let M = null, LIST = [], BASE = {}, current = null, showSol = false, toastT = null;
+let M = null, LIST = [], BASE = {}, current = null, showSol = false, showRe = false, toastT = null;
 const cache = new Map();
 
 // ---------- helpers ----------
 function toast(msg){const t=$('toast');t.textContent=msg;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,2200)}
+function isRe(label){return /^re-teach/i.test(label)}
 function isRight(label){return /\b(we do|your turn)\b/i.test(label)}
 function math(el){
   if (typeof renderMathInElement !== 'function') return;
@@ -410,6 +411,7 @@ function withCopy(card){
   b.addEventListener('click',()=>copyNode(c,'Card copied')); c.append(b); return c;
 }
 async function openLesson(L){
+  if (!current || current.id !== L.id) showRe = false;
   current = L;
   $('home').hidden = true; $('drb').hidden = true; $('status').hidden = true; $('lesson').hidden = false;
   buildSide(L); remember(L);
@@ -425,21 +427,29 @@ async function openLesson(L){
   document.title = `${L.code}${L.version ? ' ('+verLabel(L.c, L.version)+')' : ''} ${L.title.replace(/\$/g,'')} – Dorey Desk`;
   // Every lesson has PDFs built on publish (scripts/build_pdfs.py): pdf/<id>.pdf and pdf/<id>-answers.pdf
   const pdf = $('pdfBtn'), vname = L.version ? ' (' + verLabel(L.c, L.version) + ')' : '';
-  pdf.href = 'pdf/' + L.id + (showSol ? '-answers' : '') + '.pdf';
-  pdf.download = `${L.code}${vname} ${L.title.replace(/\$/g,'')}${showSol ? ' - answers' : ''}.pdf`;
-  pdf.textContent = showSol ? 'Download answers PDF' : 'Download PDF';
+  const sfx = (showRe ? '-reteach' : '') + (showSol ? '-answers' : '');
+  pdf.href = 'pdf/' + L.id + sfx + '.pdf';
+  pdf.download = `${L.code}${vname} ${L.title.replace(/\$/g,'')}${showRe ? ' - re-teach' : ''}${showSol ? ' - answers' : ''}.pdf`;
+  pdf.textContent = (showRe ? 'Download re-teach ' : 'Download ') + (showSol ? 'answers PDF' : 'PDF');
   const deck = $('deck');
   deck.replaceChildren(Object.assign(document.createElement('p'),{className:'status',textContent:'Loading…'}));
   let data;
   try { data = await fetchLesson(L) } catch(e){ deck.firstChild.textContent = e.message; return }
   if (current !== L) return;
-  const list = showSol && data.solutions ? data.solutions : data.cards;
+  // Re-teach cards (label starts "Re-teach") stay out of the lesson; the Re-teach button shows only them, one per row.
+  const hasRe = data.cards.some(c => isRe(labelOf(c)));
+  if (!hasRe) showRe = false;
+  const reBtn = $('reBtn'); reBtn.hidden = !hasRe;
+  reBtn.setAttribute('aria-pressed', showRe); reBtn.classList.toggle('solid', showRe);
+  reBtn.textContent = showRe ? 'Show lesson' : 'Re-teach cards';
+  const pick = a => a.filter(c => isRe(labelOf(c)) === showRe);
+  const list = pick(showSol && data.solutions ? data.solutions : data.cards);
   deck.classList.toggle('sol-mode', showSol);
-  $('lmeta').textContent = showSol ? `Worked solutions · ${plural(list.length,'card')}` : `${plural(data.cards.length,'card')} · practice cards sit in the right column`;
+  $('lmeta').textContent = showSol ? `Worked solutions · ${plural(list.length,'card')}` : showRe ? `Re-teach · ${plural(list.length,'card')}` : `${plural(pick(data.cards).length,'card')} · practice cards sit in the right column`;
   const sheet = document.createElement('div'); sheet.className = 'sheet'; sheet.id = 'sheet';
   deck.replaceChildren(sheet); let r = null;
   list.forEach(card=>{
-    const el = withCopy(card), right = isRight(labelOf(card));
+    const el = withCopy(card), right = !showRe && isRight(labelOf(card));
     if (!right || !r){
       const row=document.createElement('div');row.className='row';
       const l=document.createElement('div'); r=document.createElement('div'); row.append(l,r); sheet.append(row);
@@ -457,7 +467,7 @@ function fit(){
   const deck = $('deck'), sheet = $('sheet'); if (!sheet) return;
   const cs = getComputedStyle(deck);
   const avail = deck.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
-  const one = avail < 700;
+  const one = avail < 700 || showRe;
   sheet.classList.toggle('one', one);
   const z = Math.min(1, avail / (one ? 760 : 1560));
   sheet.style.zoom = z < 1 ? z.toFixed(4) : '';
@@ -485,6 +495,7 @@ $('allBtn').addEventListener('click',()=>{
   const z=sheet.style.zoom; sheet.style.zoom='';           // copy at full size
   copyNode(sheet,'All cards copied', ()=>{ sheet.style.zoom=z });
 });
+$('reBtn').addEventListener('click',()=>{ showRe=!showRe; if (current) openLesson(current) });
 $('ansBtn').addEventListener('click',e=>{
   showSol=!showSol; const b=e.currentTarget;
   b.setAttribute('aria-pressed',showSol); b.textContent=showSol?'Show lesson':'Show answers'; b.classList.toggle('solid',showSol);

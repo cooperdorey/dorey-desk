@@ -23,6 +23,9 @@ We Do levels) live in the Lesson Creator project; this file covers the repo form
 - Brackets: use plain `( )`; use `\left( … \right)` only around fractions. Don't use `\big`.
   (The app draws non-fraction `\left…\right` pairs at normal size so pairs always match.)
 - Before committing, run `python3 scripts/build_manifest.py`; it must report no problems.
+- Re-teach cards: a card whose label starts `Re-teach` is hidden from the lesson view and the main PDFs. A lesson that has any shows a
+  Re-teach cards button (one card per row, 760px) and gets `pdf/<id>-reteach.pdf` and `-reteach-answers.pdf` (A4 portrait-shaped pages,
+  for importing into OneNote). Put them last in the lesson file.
 - Lesson PDFs: `pages.yml` runs `scripts/build_pdfs.py _site` after collecting the site (headless Chromium
   prints the rendered cards as vector PDFs on A4-landscape-shaped pages at natural size; rows never split unless
   taller than a page, cards never split) into `pdf/<lesson id>.pdf` and `pdf/<lesson id>-answers.pdf`,
