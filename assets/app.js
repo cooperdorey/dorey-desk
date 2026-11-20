@@ -11,7 +11,7 @@
 //             #year-12/…/1.01-…      → that lesson
 'use strict';
 const $ = id => document.getElementById(id);
-let M = null, LIST = [], current = null, showSol = false, toastT = null;
+let M = null, LIST = [], BASE = {}, current = null, showSol = false, toastT = null;
 const cache = new Map();
 
 // ---------- helpers ----------
@@ -69,21 +69,35 @@ function paint(el, course){
 async function loadManifest(){
   const r = await fetch('manifest.json',{cache:'no-store'});
   if (!r.ok) throw new Error('manifest');
-  M = await r.json(); LIST = [];
+  M = await r.json(); LIST = []; BASE = {};
   M.years.forEach(y=>y.courses.forEach(c=>c.topics.forEach(t=>{
     t.key = `${y.id}/${c.id}/${t.id}`;
-    t.lessons.forEach(l=>LIST.push(Object.assign({}, l, {y, c, t})));
+    t.lessons.forEach(l=>{
+      if (!l.versions) return LIST.push(Object.assign({}, l, {y, c, t}));
+      // A lesson with versions (e.g. A, B, C): one entry per version, plus its base id
+      BASE[l.id] = Object.assign({}, l, {y, c, t});
+      l.versions.forEach(v=>LIST.push(Object.assign({}, l, {id:v.id, path:v.path, cards:v.cards,
+        version:v.v, baseId:l.id, y, c, t})));
+    });
   })));
 }
-const byId = id => LIST.find(l=>l.id===id);
+// Which version (A/B/C) this course last used; the first version if none yet
+const verKey = c => 'lc-version-' + c.id;
+function pickVersion(l, c){
+  const want = recall(verKey(c));
+  return (l.versions.find(v=>v.v===want) || l.versions[0]);
+}
+const byId = id => LIST.find(l=>l.id===id) || (BASE[id] && LIST.find(l=>l.id===pickVersion(BASE[id], BASE[id].c).id));
 const lessonCount = c => c.topics.reduce((n,t)=>n+t.lessons.length,0);
 function lastIn(topic){
   let m={}; try{m=JSON.parse(recall('lc-topic-last')||'{}')}catch(e){}
-  return topic.lessons.find(l=>l.id===m[topic.key]) || topic.lessons[0];
+  const last = m[topic.key];
+  return topic.lessons.find(l=>l.id===last || (l.versions && l.versions.some(v=>v.id===last))) || topic.lessons[0];
 }
 function remember(L){
   let m={}; try{m=JSON.parse(recall('lc-topic-last')||'{}')}catch(e){}
   m[L.t.key]=L.id; store('lc-topic-last',JSON.stringify(m)); store('lc-lesson',L.id);
+  if (L.version) store(verKey(L.c), L.version);
 }
 
 // ---------- router ----------
@@ -92,7 +106,11 @@ function route(){
   const y = parts[0] && M.years.find(x=>x.id===parts[0]);
   const c = y && parts[1] && y.courses.find(x=>x.id===parts[1]);
   const t = c && parts[2] && c.topics.find(x=>x.id===parts[2]);
-  if (parts.length >= 4 && byId(parts.join('/'))) return openLesson(byId(parts.join('/')));
+  if (parts.length >= 4 && byId(parts.join('/'))){
+    const L = byId(parts.join('/'));
+    if (L.id !== parts.join('/')) return location.replace('#' + L.id);   // a base id goes to a version
+    return openLesson(L);
+  }
   if (t && parts[3]==='lessons' && t.lessons.length) return location.replace('#' + lastIn(t).id);
   if (t && parts[3]==='drb' && t.drb) return showDrb(y, c, t);
   if (t) return showTopicChoice(y, c, t);
@@ -359,8 +377,10 @@ function buildSide(L){
   const drb = $('sideDrb'); drb.hidden = !L.t.drb; drb.href = `#${L.y.id}/${L.c.id}/${L.t.id}/drb`;
   const list = $('sideList'); list.replaceChildren();
   L.t.lessons.forEach(l=>{
-    const a = document.createElement('a'); a.className='page'; a.href = '#'+l.id;
-    if (l.id===L.id) a.setAttribute('aria-current','page');
+    const a = document.createElement('a'); a.className='page';
+    const v = l.versions && (l.versions.find(x=>x.v===L.version) || pickVersion(l, L.c));
+    a.href = '#' + (v ? v.id : l.id);
+    if (l.id===(L.baseId||L.id)) a.setAttribute('aria-current','page');
     a.innerHTML = `<b>${esc(l.code)}</b><span></span>`; a.lastChild.textContent = l.title;
     a.addEventListener('click',()=>$('lesson').classList.remove('open'));
     list.append(a);
@@ -392,7 +412,15 @@ async function openLesson(L){
   $('home').hidden = true; $('drb').hidden = true; $('status').hidden = true; $('lesson').hidden = false;
   buildSide(L); remember(L);
   $('lname').textContent = `${L.code} – ${L.title}`; math($('lname'));
-  document.title = `${L.code} ${L.title.replace(/\$/g,'')} – Dorey Desk`;
+  const ver = $('verBtns'), base = L.baseId && BASE[L.baseId];
+  ver.hidden = !base; ver.replaceChildren();
+  if (base) base.versions.forEach(v=>{
+    const a = document.createElement('a'); a.className = 'btn' + (v.v===L.version ? ' solid' : ''); a.href = '#' + v.id;
+    a.textContent = v.v; a.title = 'Version ' + v.v;
+    if (v.v===L.version) a.setAttribute('aria-current','true');
+    ver.append(a);
+  });
+  document.title = `${L.code}${L.version ? ' ('+L.version+')' : ''} ${L.title.replace(/\$/g,'')} – Dorey Desk`;
   const deck = $('deck');
   deck.replaceChildren(Object.assign(document.createElement('p'),{className:'status',textContent:'Loading…'}));
   let data;

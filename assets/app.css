@@ -282,3 +282,7 @@ math{font-family:"Cambria Math","STIX Two Math","Latin Modern Math",math,serif}
   .lesson-head .lhead p{display:none}
   .lesson-head .btn{padding:6px 10px}
 }
+/* lesson versions (A / B / C) */
+.ver{display:inline-flex;gap:4px;margin-right:6px}
+.ver[hidden]{display:none}
+.ver .btn{min-width:34px;text-align:center;padding-left:10px;padding-right:10px}

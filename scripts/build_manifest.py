@@ -9,7 +9,9 @@ Each lesson file starts with front matter:
     code: 1.01
     title: The Derivative of Exponential Functions
     ---
-then its cards. Optional: a line <!-- solutions --> followed by separate
+then its cards. A lesson can have versions (e.g. for A, B and C classes) as
+<code>-<slug>.A.html, <code>-<slug>.B.html …; they share the code and title and
+show as one lesson with A / B / C buttons. Optional: a line <!-- solutions --> followed by separate
 solution cards; otherwise worked solutions sit inside cards as <div class="ws">.
 
 A topic folder may also hold the topic's Dorey's Resource Book as drb.pdf.
@@ -121,15 +123,30 @@ for y in subdirs(LESSONS):
             tp = os.path.join(cp, t)
             num = re.match(r'(\d+)-', t)
             lessons = []
-            for f in os.listdir(tp):
+            versioned = {}   # <code>-<slug>.A.html, .B.html … are versions of one lesson
+            for f in sorted(os.listdir(tp)):
                 if not f.endswith('.html'):
                     continue
                 rel = os.path.relpath(os.path.join(tp, f), ROOT).replace(os.sep, '/')
                 info = read_lesson(os.path.join(tp, f), rel)
                 if info:
                     lid = rel[len('lessons/'):-len('.html')]
+                    vm = re.match(r'(.+)\.([A-Z])$', lid)
+                    if vm:
+                        versioned.setdefault(vm.group(1), []).append(dict(info, v=vm.group(2), id=lid, path=rel))
+                        continue
                     lessons.append({'id': lid, 'code': info['code'], 'title': info['title'],
                                     'path': rel, 'cards': info['cards']})
+            for base, vs in versioned.items():
+                vs.sort(key=lambda v: v['v'])
+                if len({v['code'] for v in vs}) > 1:
+                    problems.append(f'lessons/{base}: its versions have different codes ({", ".join(v["code"] for v in vs)})')
+                if any(l['code'] == vs[0]['code'] for l in lessons):
+                    problems.append(f'lessons/{base}: lesson {vs[0]["code"]} exists both with and without versions')
+                lessons.append({'id': base, 'code': vs[0]['code'], 'title': vs[0]['title'],
+                                'path': vs[0]['path'], 'cards': vs[0]['cards'],
+                                'versions': [{'v': v['v'], 'id': v['id'], 'path': v['path'], 'cards': v['cards']}
+                                             for v in vs]})
             lessons.sort(key=lambda l: code_key(l['code']))
             drb = read_drb(tp)
             if lessons or drb:
