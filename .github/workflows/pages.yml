@@ -34,6 +34,21 @@ jobs:
           touch _site/.nojekyll
           # make browsers fetch the new styles and script after every update
           sed -i "s/?v=dev/?v=${GITHUB_SHA::7}/g" _site/index.html _site/generators/*.html _site/admin/*.html
+      # A PDF of every lesson (with and without worked solutions) for OneNote / GoodNotes.
+      # Only changed lessons are rebuilt. If this step fails the site still publishes.
+      - name: Restore lesson PDF cache
+        uses: actions/cache@v4
+        with:
+          path: .pdf-cache
+          key: lesson-pdfs-${{ github.sha }}
+          restore-keys: lesson-pdfs-
+      - name: Build lesson PDFs
+        continue-on-error: true
+        run: |
+          sudo apt-get install -y -q fonts-urw-base35 > /dev/null
+          pip install -q playwright pillow
+          python -m playwright install --with-deps chromium > /dev/null
+          python3 scripts/build_pdfs.py _site --cache .pdf-cache
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

@@ -423,6 +423,11 @@ async function openLesson(L){
     ver.append(a);
   });
   document.title = `${L.code}${L.version ? ' ('+verLabel(L.c, L.version)+')' : ''} ${L.title.replace(/\$/g,'')} – Dorey Desk`;
+  // Every lesson has PDFs built on publish (scripts/build_pdfs.py): pdf/<id>.pdf and pdf/<id>-answers.pdf
+  const pdf = $('pdfBtn'), vname = L.version ? ' (' + verLabel(L.c, L.version) + ')' : '';
+  pdf.href = 'pdf/' + L.id + (showSol ? '-answers' : '') + '.pdf';
+  pdf.download = `${L.code}${vname} ${L.title.replace(/\$/g,'')}${showSol ? ' - answers' : ''}.pdf`;
+  pdf.textContent = showSol ? 'Download answers PDF' : 'Download PDF';
   const deck = $('deck');
   deck.replaceChildren(Object.assign(document.createElement('p'),{className:'status',textContent:'Loading…'}));
   let data;

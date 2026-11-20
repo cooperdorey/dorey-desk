@@ -1,3 +1,4 @@
 manifest.json
 _site/
+.pdf-cache/
 .DS_Store

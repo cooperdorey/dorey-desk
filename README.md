@@ -150,6 +150,14 @@ Differentiate $y=3e^{2x+5}$.
 - Older lessons (Year 11, topic 8) keep their solutions as separate cards after a
   `<!-- solutions -->` line. Either style works.
 
+## Lesson PDFs
+
+Every push builds a PDF of every lesson (`scripts/build_pdfs.py`, run by `pages.yml`): one with the
+worked solutions hidden, for writing on in OneNote or GoodNotes, and one with them shown. Each
+row of cards is one page, so nothing is cut in half. The lesson page's **Download PDF** button
+gets the one that matches the view (press **Show answers** first for the answers PDF). Only
+lessons that changed are rebuilt; if the PDF step fails, the site still publishes.
+
 ## Editing
 
 - **On github.com:** open the lesson file, press `.` to open the editor, make the change,
