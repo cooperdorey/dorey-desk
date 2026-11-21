@@ -297,3 +297,13 @@ math{font-family:"Cambria Math","STIX Two Math","Latin Modern Math",math,serif}
 #presBar .btn{font-size:22px;padding:14px 28px}
 #presBar #pPos{flex:1;text-align:center;font-size:18px;color:#555}
 #pres .copy{display:none!important}
+#pres{position:fixed}
+#presMap{position:absolute;right:14px;bottom:84px;max-width:46%;display:flex;flex-wrap:wrap;justify-content:flex-end;gap:5px;padding:7px 9px;background:rgba(255,255,255,.88);border:1px solid #ddd;border-radius:10px}
+#presMap .dot{width:18px;height:18px;padding:0;border-radius:50%;border:2px solid transparent;cursor:pointer;opacity:.45}
+#presMap .dot.done{opacity:.9}
+#presMap .dot.cur{opacity:1;width:26px;height:26px;margin:-4px 0;border-color:#222}
+#presMap .dot.title{background:#999}
+#presMap .dot.warm{background:#E0A100}
+#presMap .dot.atom{background:#0F766E}
+#presMap .dot.ido{background:#1F3A93}
+#presMap .dot.wedo{background:#2E9E4F}

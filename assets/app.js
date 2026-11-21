@@ -535,13 +535,22 @@ window.addEventListener('hashchange',route);
 // Show answers reveals the worked solutions; Re-teach (on a Warm-up) shows that atom's Re-teach
 // cards, and Next then carries on from the Warm-up. Arrow keys, space, Escape and a clicker work.
 let P = null;
-function presRows(cards){
-  const rows = []; let cur = null;
-  cards.forEach(c=>{
-    const right = isRight(labelOf(c));
-    if (!right || !cur){ cur = {cards:[c]}; rows.push(cur); } else cur.cards.push(c);
+// one card per slide, so an I Do has the whole screen and its We Dos stay hidden until their turn
+function presRows(cards){ return cards.map(c=>({cards:[c]})) }
+function presKind(label){
+  if (/^warm-up/i.test(label)) return 'warm';
+  if (/^i do/i.test(label)) return 'ido';
+  if (/^we do/i.test(label)) return 'wedo';
+  if (/^title|^year /i.test(label)) return 'title';
+  return 'atom';
+}
+function presMap(){
+  const m = $('presMap'); m.replaceChildren();
+  P.rows.forEach((r,i)=>{
+    const l = labelOf(r.cards[0]), d = document.createElement('button'); d.type = 'button';
+    d.className = 'dot ' + presKind(l) + (i === P.i ? ' cur' : '') + (i < P.i ? ' done' : '');
+    d.title = (i + 1) + '. ' + l; d.addEventListener('click', ()=>{ P.i = i; P.sub = null; presDraw() }); m.append(d);
   });
-  return rows;
 }
 async function startPresent(){
   if (!current) return;
@@ -553,18 +562,13 @@ async function startPresent(){
   presDraw();
 }
 function presDraw(){
-  const stage = $('presStage'), one = !!P.sub;
+  const stage = $('presStage');
   const cards = P.sub || P.rows[P.i].cards;
-  const sheet = document.createElement('div'); sheet.className = 'sheet' + (one ? ' one' : '');
-  const row = document.createElement('div'); row.className = 'row';
-  const l = document.createElement('div'), r = document.createElement('div'); row.append(l, r); sheet.append(row);
-  cards.forEach(c=>{ const el = c.cloneNode(true); (!one && isRight(labelOf(c)) ? r : l).append(el); });
-  stage.replaceChildren(sheet); math(sheet);
-  const width = one ? 760 : 1560;
-  const hasRight = !one && cards.some(c=>isRight(labelOf(c)));
-  if (!one && !hasRight){ sheet.classList.add('one'); row.style.gridTemplateColumns = '760px'; }
-  const w = (one || !hasRight) ? 760 : width;
-  const z = Math.min(stage.clientWidth / w, stage.clientHeight / sheet.offsetHeight, 1.6) * 0.97;
+  const sheet = document.createElement('div'); sheet.className = 'sheet one';
+  const row = document.createElement('div'); row.className = 'row'; const l = document.createElement('div'); row.append(l); sheet.append(row);
+  cards.forEach(c=>l.append(c.cloneNode(true)));
+  stage.replaceChildren(sheet); math(sheet); presMap();
+  const z = Math.min(stage.clientWidth / 760, stage.clientHeight / sheet.offsetHeight, 2.4) * 0.97;
   sheet.style.zoom = z.toFixed(4);
   const label = P.sub ? `Re-teach ${P.si + 1} of ${P.reList.length}` : `${P.i + 1} / ${P.rows.length}`;
   $('pPos').textContent = label;
