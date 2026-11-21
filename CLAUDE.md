@@ -26,6 +26,9 @@ We Do levels) live in the Lesson Creator project; this file covers the repo form
 - Re-teach cards: a card whose label starts `Re-teach` is hidden from the lesson view and the main PDFs. A lesson that has any shows a
   Re-teach cards button (one card per row, 760px) and gets `pdf/<id>-reteach.pdf` and `-reteach-answers.pdf` (A4 portrait-shaped pages,
   for importing into OneNote). Put them last in the lesson file.
+- Present mode (lesson view's Present button): full screen, one row of cards at a time scaled to fit; Next / Back, Show answers
+  and, on a Warm-up, Re-teach (shows that atom's Re-teach cards, matched by the `atom:` id in the metadata comment above each card,
+  else every Re-teach card; Next returns to the lesson). Keys: arrows, space, Esc, A (answers), R (re-teach).
 - Lesson PDFs: `pages.yml` runs `scripts/build_pdfs.py _site` after collecting the site (headless Chromium
   prints the rendered cards as vector PDFs on A4-landscape-shaped pages at natural size; rows never split unless
   taller than a page, cards never split) into `pdf/<lesson id>.pdf` and `pdf/<lesson id>-answers.pdf`,

@@ -397,7 +397,11 @@ async function fetchLesson(L){
   let text = await r.text();
   text = text.replace(/^﻿?---[\s\S]*?\n---\s*\n/, '');
   const [main, sols] = text.split(/<!--\s*solutions\s*-->/i);
-  const parse = h => { const t=document.createElement('template'); t.innerHTML=h||''; return [...t.content.children].filter(n=>n.classList.contains('c')); };
+  const parse = h => { const t=document.createElement('template'); t.innerHTML=h||''; const out=[]; let atom='';
+    t.content.childNodes.forEach(n=>{
+      if (n.nodeType===8){ const m=/atom:\s*([^|\s]+)/.exec(n.data); atom=m?m[1]:''; }
+      else if (n.nodeType===1 && n.classList.contains('c')){ if (atom) n.dataset.atom=atom; out.push(n); atom=''; }
+    }); return out; };
   const out = {cards: parse(main), solutions: sols ? parse(sols) : null};
   cache.set(L.id, out); return out;
 }
@@ -524,3 +528,92 @@ window.addEventListener('hashchange',route);
   if (!matchMedia('(max-width:900px)').matches){ $('sideToggle').textContent='Hide lessons'; $('sideToggle').setAttribute('aria-expanded','true') }
   route();
 })();
+
+
+// ---------- presentation mode ----------
+// One row of cards at a time, scaled to fill the screen. Next / Back step through the lesson;
+// Show answers reveals the worked solutions; Re-teach (on a Warm-up) shows that atom's Re-teach
+// cards, and Next then carries on from the Warm-up. Arrow keys, space, Escape and a clicker work.
+let P = null;
+function presRows(cards){
+  const rows = []; let cur = null;
+  cards.forEach(c=>{
+    const right = isRight(labelOf(c));
+    if (!right || !cur){ cur = {cards:[c]}; rows.push(cur); } else cur.cards.push(c);
+  });
+  return rows;
+}
+async function startPresent(){
+  if (!current) return;
+  const data = await fetchLesson(current);
+  const main = data.cards.filter(c=>!isRe(labelOf(c))), re = data.cards.filter(c=>isRe(labelOf(c)));
+  P = {rows: presRows(main), re, i:0, sub:null, ans:false};
+  $('pres').hidden = false; $('pres').classList.remove('ans'); $('pAns').textContent = 'Show answers';
+  const el = document.documentElement; if (el.requestFullscreen) el.requestFullscreen().catch(()=>{});
+  presDraw();
+}
+function presDraw(){
+  const stage = $('presStage'), one = !!P.sub;
+  const cards = P.sub || P.rows[P.i].cards;
+  const sheet = document.createElement('div'); sheet.className = 'sheet' + (one ? ' one' : '');
+  const row = document.createElement('div'); row.className = 'row';
+  const l = document.createElement('div'), r = document.createElement('div'); row.append(l, r); sheet.append(row);
+  cards.forEach(c=>{ const el = c.cloneNode(true); (!one && isRight(labelOf(c)) ? r : l).append(el); });
+  stage.replaceChildren(sheet); math(sheet);
+  const width = one ? 760 : 1560;
+  const hasRight = !one && cards.some(c=>isRight(labelOf(c)));
+  if (!one && !hasRight){ sheet.classList.add('one'); row.style.gridTemplateColumns = '760px'; }
+  const w = (one || !hasRight) ? 760 : width;
+  const z = Math.min(stage.clientWidth / w, stage.clientHeight / sheet.offsetHeight, 1.6) * 0.97;
+  sheet.style.zoom = z.toFixed(4);
+  const label = P.sub ? `Re-teach ${P.si + 1} of ${P.reList.length}` : `${P.i + 1} / ${P.rows.length}`;
+  $('pPos').textContent = label;
+  const warm = !P.sub && cards.some(c=>/^warm-up/i.test(labelOf(c)));
+  $('pRe').hidden = !(warm && P.re.length) && !P.sub;
+  $('pRe').textContent = P.sub ? 'Back to lesson' : 'Re-teach';
+  $('pNext').textContent = P.sub && P.si < P.reList.length - 1 ? 'Next re-teach' : (P.i >= P.rows.length - 1 && !P.sub ? 'Finish' : 'Next');
+}
+function presNext(){
+  if (!P) return;
+  if (P.sub){
+    if (P.si < P.reList.length - 1){ P.si++; P.sub = [P.reList[P.si]]; } else { P.sub = null; if (P.i < P.rows.length - 1) P.i++; }
+  } else if (P.i < P.rows.length - 1) P.i++;
+  else return presExit();
+  presDraw();
+}
+function presBack(){
+  if (!P) return;
+  if (P.sub){ if (P.si > 0){ P.si--; P.sub = [P.reList[P.si]]; } else P.sub = null; }
+  else if (P.i > 0) P.i--;
+  presDraw();
+}
+function presRe(){
+  if (!P) return;
+  if (P.sub){ P.sub = null; return presDraw(); }
+  // this Warm-up's atoms, if the cards say which; otherwise every Re-teach card in order
+  const atoms = P.rows[P.i].cards.map(c=>c.dataset.atom).filter(Boolean);
+  let list = atoms.length ? P.re.filter(c=>atoms.includes(c.dataset.atom)) : [];
+  if (!list.length) list = P.re;
+  P.reList = list; P.si = 0; P.sub = [list[0]]; presDraw();
+}
+function presExit(){
+  $('pres').hidden = true; P = null;
+  if (document.fullscreenElement) document.exitFullscreen().catch(()=>{});
+}
+$('presBtn').addEventListener('click', startPresent);
+$('pNext').addEventListener('click', presNext);
+$('pBack').addEventListener('click', presBack);
+$('pRe').addEventListener('click', presRe);
+$('pExit').addEventListener('click', presExit);
+$('pAns').addEventListener('click', ()=>{
+  const on = $('pres').classList.toggle('ans'); $('pAns').textContent = on ? 'Hide answers' : 'Show answers';
+});
+window.addEventListener('keydown', e=>{
+  if ($('pres').hidden) return;
+  if (['ArrowRight','ArrowDown','PageDown',' ','Enter'].includes(e.key)){ e.preventDefault(); presNext(); }
+  else if (['ArrowLeft','ArrowUp','PageUp','Backspace'].includes(e.key)){ e.preventDefault(); presBack(); }
+  else if (e.key==='Escape') presExit();
+  else if (e.key==='a' || e.key==='A') $('pAns').click();
+  else if ((e.key==='r' || e.key==='R') && !$('pRe').hidden) presRe();
+});
+window.addEventListener('resize', ()=>{ if (P && !$('pres').hidden) presDraw(); });

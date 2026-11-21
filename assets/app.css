@@ -286,3 +286,14 @@ math{font-family:"Cambria Math","STIX Two Math","Latin Modern Math",math,serif}
 .ver{display:inline-flex;gap:4px;margin-right:6px}
 .ver[hidden]{display:none}
 .ver .btn{min-width:34px;text-align:center;padding-left:10px;padding-right:10px}
+
+/* ---------- presentation mode: one row at a time, scaled to the screen ---------- */
+#pres{position:fixed;inset:0;z-index:50;background:#fff;display:flex;flex-direction:column}
+#pres[hidden]{display:none}
+#presStage{flex:1;min-height:0;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#f4f4f4}
+#presStage .sheet{flex:none;transform-origin:center center}
+#pres:not(.ans) .ws{display:none}
+#presBar{display:flex;align-items:center;gap:12px;padding:10px 16px;border-top:1px solid #ddd;background:#fff}
+#presBar .btn{font-size:22px;padding:14px 28px}
+#presBar #pPos{flex:1;text-align:center;font-size:18px;color:#555}
+#pres .copy{display:none!important}

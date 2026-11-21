@@ -59,6 +59,7 @@
       <div class="lhead"><h1 id="lname"></h1><p id="lmeta"></p></div>
       <div class="tools">
         <div class="ver" id="verBtns" role="group" aria-label="Lesson version" hidden></div>
+        <button class="btn" id="presBtn" type="button">Present</button>
         <button class="btn" id="reBtn" type="button" aria-pressed="false" hidden>Re-teach cards</button>
         <button class="btn" id="ansBtn" type="button" aria-pressed="false">Show answers</button>
         <a class="btn" id="pdfBtn" href="#" download>Download PDF</a>
@@ -67,6 +68,18 @@
     </div>
     <div id="deck"></div>
   </main>
+</div>
+
+<div id="pres" hidden>
+  <div id="presStage"></div>
+  <div id="presBar">
+    <button class="btn" id="pExit" type="button">Exit</button>
+    <button class="btn" id="pBack" type="button">Back</button>
+    <span id="pPos"></span>
+    <button class="btn" id="pAns" type="button">Show answers</button>
+    <button class="btn" id="pRe" type="button" hidden>Re-teach</button>
+    <button class="btn solid" id="pNext" type="button">Next</button>
+  </div>
 </div>
 
 <p class="status" id="status">Loading…</p>
