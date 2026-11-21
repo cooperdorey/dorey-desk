@@ -29,6 +29,7 @@ We Do levels) live in the Lesson Creator project; this file covers the repo form
 - Present mode (lesson view's Present button): full screen, one card per slide scaled to fit (so a We Do stays hidden during its I Do), with a clickable dot map bottom right; Next / Back, Show answers
   and, on a Warm-up, Re-teach (shows that atom's Re-teach cards, matched by the `atom:` id in the metadata comment above each card,
   else every Re-teach card; Next returns to the lesson). Keys: arrows, space, Esc, A (answers), R (re-teach).
+  Elements with class `step` (the examples in a Category model) appear one per forward click in Present mode and all at once elsewhere.
 - Lesson PDFs: `pages.yml` runs `scripts/build_pdfs.py _site` after collecting the site (headless Chromium
   prints the rendered cards as vector PDFs on A4-landscape-shaped pages at natural size; rows never split unless
   taller than a page, cards never split) into `pdf/<lesson id>.pdf` and `pdf/<lesson id>-answers.pdf`,

@@ -561,7 +561,13 @@ async function startPresent(){
   const el = document.documentElement; if (el.requestFullscreen) el.requestFullscreen().catch(()=>{});
   presDraw();
 }
-function presDraw(){
+function presApply(){
+  const st = $('presStage').querySelectorAll('.step');
+  st.forEach((e,i)=>e.classList.toggle('hid', i >= P.k));
+  const base = P.sub ? P.reList.length : P.rows.length;
+  $('pPos').textContent = (P.sub ? `Re-teach ${P.si + 1} of ${P.reList.length}` : `${P.i + 1} / ${P.rows.length}`) + (P.n ? ` · step ${P.k}/${P.n}` : '');
+}
+function presDraw(full){
   const stage = $('presStage');
   const cards = P.sub || P.rows[P.i].cards;
   const sheet = document.createElement('div'); sheet.className = 'sheet one';
@@ -570,8 +576,9 @@ function presDraw(){
   stage.replaceChildren(sheet); math(sheet); presMap();
   const z = Math.min(stage.clientWidth / 760, stage.clientHeight / sheet.offsetHeight, 2.4) * 0.97;
   sheet.style.zoom = z.toFixed(4);
-  const label = P.sub ? `Re-teach ${P.si + 1} of ${P.reList.length}` : `${P.i + 1} / ${P.rows.length}`;
-  $('pPos').textContent = label;
+  // examples marked class="step" appear one at a time (e.g. the N P P P N of a Category model); going Back onto a card shows them all
+  P.n = sheet.querySelectorAll('.step').length; P.k = P.n ? (full ? P.n : 1) : 0;
+  presApply();
   const warm = !P.sub && cards.some(c=>/^warm-up/i.test(labelOf(c)));
   $('pRe').hidden = !(warm && P.re.length) && !P.sub;
   $('pRe').textContent = P.sub ? 'Back to lesson' : 'Re-teach';
@@ -579,6 +586,7 @@ function presDraw(){
 }
 function presNext(){
   if (!P) return;
+  if (P.k < P.n){ P.k++; return presApply(); }
   if (P.sub){
     if (P.si < P.reList.length - 1){ P.si++; P.sub = [P.reList[P.si]]; } else { P.sub = null; if (P.i < P.rows.length - 1) P.i++; }
   } else if (P.i < P.rows.length - 1) P.i++;
@@ -587,9 +595,10 @@ function presNext(){
 }
 function presBack(){
   if (!P) return;
+  if (P.k > 1){ P.k--; return presApply(); }
   if (P.sub){ if (P.si > 0){ P.si--; P.sub = [P.reList[P.si]]; } else P.sub = null; }
   else if (P.i > 0) P.i--;
-  presDraw();
+  presDraw(true);
 }
 function presRe(){
   if (!P) return;
