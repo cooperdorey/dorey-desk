@@ -574,7 +574,10 @@ function presDraw(full){
   const row = document.createElement('div'); row.className = 'row'; const l = document.createElement('div'); row.append(l); sheet.append(row);
   cards.forEach(c=>l.append(c.cloneNode(true)));
   stage.replaceChildren(sheet); math(sheet); presMap();
-  const z = Math.min(stage.clientWidth / 760, stage.clientHeight / sheet.offsetHeight, 2.4) * 0.97;
+  // size for the tallest state (answers showing), so Show answers never pushes the card off the screen
+  const wasAns = $('pres').classList.contains('ans'); $('pres').classList.add('ans');
+  const hFull = sheet.offsetHeight; if (!wasAns) $('pres').classList.remove('ans');
+  const z = Math.min(stage.clientWidth / 760, stage.clientHeight / hFull, 2.4) * 0.97;
   sheet.style.zoom = z.toFixed(4);
   // examples marked class="step" appear one at a time (e.g. the N P P P N of a Category model); going Back onto a card shows them all
   P.n = sheet.querySelectorAll('.step').length; P.k = P.n ? (full ? P.n : 1) : 0;
