@@ -47,7 +47,7 @@ function buildHomeworkSet(ids,target,seed,mode){const R=makeRng('hw|'+seed+'|'+i
 // ================= Linked LSQ =================
 // hwParts: the parts of the homework sheet (in sheet order). Each gets a twin: a different question on the same
 // skill. reviewIds: lessons from earlier weeks; nRev review questions are drawn from them after the twins.
-// target > 0 trims the smallest twins until twins + review fit; target 0 keeps everything.
+// target > 0 trims twins (middle marks first, keeping the easiest and the hardest) until twins + review fit; target 0 keeps everything.
 function buildLinkedQuiz(hwParts,reviewIds,nRev,target,seed,mode){
  const R=makeRng('lsq|link|'+seed+'|'+hwParts.map(p=>p.lesson.id).join(',')+'|'+reviewIds.join(','));
  const seen=new Set(hwParts.map(p=>p.q));                                   // a twin never repeats its homework part
@@ -58,7 +58,13 @@ function buildLinkedQuiz(hwParts,reviewIds,nRev,target,seed,mode){
  const review=[];const pool=R.sample(reviewIds,reviewIds.length);
  for(let i=0;i<nRev&&pool.length;i++)review.push(make(LESSONS[pool[i%pool.length]],{kind:'review'}));
  const sum=a=>a.reduce((s,Q)=>s+Q.marks,0);
- if(target>0)while(sum(twins)+sum(review)>target&&twins.length>1){const lo=Math.min(...twins.map(Q=>Q.marks));let k=-1;twins.forEach((Q,i)=>{if(Q.marks===lo)k=i});twins.splice(k,1)}
+ // keep a mix of easy and hard: the easiest and the hardest twin are kept for as long as possible, and the
+ // twins nearest the middle mark go first (the easiest goes only when just two twins are left)
+ if(target>0)while(sum(twins)+sum(review)>target&&twins.length>1){
+  const mk=twins.map(Q=>Q.marks),lo=Math.min(...mk),hi=Math.max(...mk);let iLo=mk.lastIndexOf(lo),iHi=mk.indexOf(hi);if(iHi===iLo)iHi=-1;
+  const mid=(lo+hi)/2;let k=-1,best=1e9;
+  twins.forEach((Q,i)=>{if(i===iLo||i===iHi)return;const d=Math.abs(Q.marks-mid);if(d<=best){best=d;k=i}});
+  if(k<0)k=iLo;twins.splice(k,1)}
  return[...twins,...review]}
 
 // ================= Sheet codes =================
