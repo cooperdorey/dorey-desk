@@ -557,6 +557,9 @@ async function startPresent(){
   const data = await fetchLesson(current);
   const main = data.cards.filter(c=>!isRe(labelOf(c))), re = data.cards.filter(c=>isRe(labelOf(c)));
   P = {rows: presRows(main), re, i:0, sub:null, ans:false};
+  // the overlay sits outside the lesson view, so give it the course's card colours too
+  const cs = getComputedStyle($('lesson'));
+  ['--card-head','--card-ink','--card-sub','--card-title'].forEach(v => $('pres').style.setProperty(v, cs.getPropertyValue(v)));
   $('pres').hidden = false; $('pres').classList.remove('ans'); $('pAns').textContent = 'Show answers';
   const el = document.documentElement; if (el.requestFullscreen) el.requestFullscreen().catch(()=>{});
   presDraw();
