@@ -186,6 +186,15 @@ dialog .row{margin-top:12px}
   #printArea .natSec .yn .bx{width:7mm;margin:0}
   #printArea .natSec .top{font-size:7pt;color:#333;text-align:center;line-height:1.2}
   #printArea .sumPrint .pct{display:inline-block;min-width:15mm;padding:1mm 2mm;border-radius:3mm;color:#fff;font-weight:bold;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  #printArea .owePrint{font-family:Arial,Helvetica,sans-serif;color:#000;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  #printArea .owePrint .cls{font-size:12pt;font-weight:bold;margin:0 0 2mm}
+  #printArea .owePrint .ptitle{font-size:15pt;border-bottom:1px solid #000;margin:0 0 4mm;padding-bottom:1mm}
+  #printArea .owePrint table{width:100%;border-collapse:collapse;font-size:10.5pt}
+  #printArea .owePrint th{text-align:left;border-bottom:1.5px solid #000;padding:2mm}
+  #printArea .owePrint td{border-bottom:1px solid #000;padding:2mm;vertical-align:middle}
+  #printArea .owePrint td.n,#printArea .owePrint th.n{text-align:center;width:22mm}
+  #printArea .owePrint .pill{display:inline-block;min-width:11mm;padding:1mm 3mm;border-radius:3mm;color:#fff;font-weight:bold;text-align:center}
+  #printArea .owePrint tr{page-break-inside:avoid}
   #printArea .bwPrint{font-family:Arial,Helvetica,sans-serif;color:#000;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   #printArea .bwPrint .cls{font-size:12pt;font-weight:bold;margin:0 0 2mm}
   #printArea .bwPrint .ptitle{font-size:14pt;border-bottom:1px solid #000;margin:0 0 3mm;padding-bottom:1mm}
@@ -239,6 +248,7 @@ dialog .row{margin-top:12px}
       <label class="f">Class<select id="dClass"></select></label>
       <label class="f">Fortnight ending<input type="date" id="dEnd"></label>
       <label class="f">Lessons<input type="number" id="dN" min="1" value="8" style="width:72px"></label>
+      <button class="solid" id="dPrint">Print book work (4+ missed)</button><span id="dMsg" class="note" style="margin:0"></span>
     </div>
     <div class="tiles" id="dTiles"></div>
     <h2 style="margin:0 0 8px">Fortnight attendance</h2>
@@ -1331,6 +1341,23 @@ function drawDash(){
       return '<tr><td>'+esc(s.last)+', '+esc(s.first)+'</td><td style="text-align:center">'+(un?'<span style="display:inline-block;min-width:34px;padding:2px 12px;border-radius:999px;background:#C0392B;color:#fff;font-weight:700;font-size:16px">'+un+'</span>':'')+'</td><td style="text-align:center">'+missPill(owed.length)+'</td><td>'+
         (lessons.length?'<div class="lg">'+strip(s)+'</div>':'<span class="note" style="margin:0">No book work ticked yet</span>')+'</td></tr>'}).join('')+'</tbody></table>';
 }
+$('dPrint').onclick=()=>{
+  const cls=$('dClass').value,msg=$('dMsg');
+  if(!S.loaded||!cls){msg.textContent='Choose a class first.';return}
+  const students=studentsIn(cls),idset=new Set(students.map(s=>s.id)),active=new Set();
+  S.book.forEach((v,k)=>{const i=k.indexOf('|');if(idset.has(k.slice(0,i)))active.add(k.slice(i+1))});
+  const lessons=[...active].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));
+  const rows=students.map(s=>({s,owed:lessons.filter(l=>!S.book.has(bKey(s.id,l)))})).filter(r=>r.owed.length>=4)
+    .sort((a,b)=>b.owed.length-a.owed.length||fullName(a.s).localeCompare(fullName(b.s)));
+  if(!rows.length){msg.textContent='No students have 4 or more lessons missed.';return}
+  msg.textContent='';
+  const body=rows.map(({s,owed})=>'<tr><td>'+esc(fullName(s))+'</td><td class="n"><span class="pill" style="background:'+(owed.length>=8?'#C0392B':'#D9850A')+'">'+owed.length+'</span></td><td>'+owed.map(esc).join(', ')+'</td></tr>').join('');
+  $('printArea').innerHTML='<div class="owePrint"><p class="cls">'+esc(cls)+'</p><div class="ptitle">Book work to catch up · 4 or more lessons missed</div>'+
+    '<table><thead><tr><th>Student</th><th class="n">Missed</th><th>Lessons owed</th></tr></thead><tbody>'+body+'</tbody></table></div>';
+  const pg=document.createElement('style');pg.textContent='@media print{@page{size:A4 portrait;margin:12mm}}';document.head.append(pg);
+  window.addEventListener('afterprint',()=>pg.remove(),{once:true});
+  window.print();
+};
 $('dClass').onchange=drawDash;$('dEnd').oninput=drawDash;$('dN').oninput=drawDash;
 
 /* ---------- one class for every tab (each tab can still override) ---------- */
