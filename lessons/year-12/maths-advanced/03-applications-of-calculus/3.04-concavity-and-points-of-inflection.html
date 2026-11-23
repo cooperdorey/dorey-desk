@@ -1,0 +1,178 @@
+---
+code: 3.04
+title: Concavity and Points of Inflection
+---
+
+<div class="c"><div class="h">Year 12 Mathematics Advanced<span>Episode 4</span></div><div class="b">
+<div class="title">3.04 – Concavity and Points of Inflection</div>
+</div></div>
+<div class="c"><div class="h">Warm-up<span>Episode 4 · Concavity and inflection</span></div><div class="b" style="min-height:360px">
+<b>1.</b> Find $f''(x)$ for $f(x)=x^{4}-2x^{3}+5x$, giving your answer in factorised form.
+<div class="ws">$f'(x)=4x^{3}-6x^{2}+5$<br/>
+$f''(x)=12x^{2}-12x$<br/>
+Common factor $12x$.<br/>
+$f''(x)=12x(x-1)$</div>
+<div style="margin-top:30px"><b>2.</b> State whether $3x^{2}(x+5)$ is positive or negative at each value of $x$.</div>
+<div class="g" style="grid-template-columns:1fr 1fr 1fr;font-size:22px;gap:30px 20px;margin:24px 0 20px 20px">
+<div>a) $x=-6$<div class="ws">$3x^{2}>0$ and $x+5<0$, so negative.</div></div>
+<div>b) $x=-1$<div class="ws">$3x^{2}>0$ and $x+5>0$, so positive.</div></div>
+<div>c) $x=2$<div class="ws">$3x^{2}>0$ and $x+5>0$, so positive.</div></div>
+</div>
+</div></div>
+<div class="c"><div class="h">Fact<span>Episode 4 · Concavity and inflection</span></div><div class="b">
+<div class="rule">Concavity
+<div class="m">$f''(x)>0$: concave up<br/>$f''(x)<0$: concave down</div></div>
+<div class="fig"><svg viewBox="0 0 520 150" width="520" xmlns="http://www.w3.org/2000/svg">
+<path d="M 40 20 Q 130 150 220 20" fill="none" stroke="#C55A11" stroke-width="3"/>
+<path d="M 300 110 Q 390 -20 480 110" fill="none" stroke="#C55A11" stroke-width="3"/>
+<text x="130" y="140" text-anchor="middle" font-family="Georgia" font-style="italic" font-size="18" fill="#333">concave up</text>
+<text x="390" y="140" text-anchor="middle" font-family="Georgia" font-style="italic" font-size="18" fill="#333">concave down</text>
+</svg></div>
+<div class="key">$f''$ is the gradient of $f'$.</div>
+</div></div>
+<div class="c"><div class="h">I Do 1<span>Episode 4 · Concavity and inflection</span></div><div class="b" style="min-height:360px">
+Let $f(x)=x^{4}+4x^{3}-7$. Find the values of $x$ for which the curve is concave down.
+<div class="ws">$f'(x)=4x^{3}+12x^{2}$<br/>
+$f''(x)=12x^{2}+24x$<br/>
+$\phantom{f''(x)}=12x(x+2)$<br/>
+Concavity can change only where $f''(x)=0$.<br/>
+$12x(x+2)=0$, so $x=0$ or $x=-2$.<br/>
+Test either side of each zero.<br/>
+$f''(-3)=12\times(-3)\times(-1)=36>0$<br/>
+$f''(-1)=12\times(-1)\times 1=-12<0$<br/>
+$f''(1)=12\times 1\times 3=36>0$<br/>
+Concave down where $f''(x)<0$.<br/>
+The curve is concave down for $-2<x<0$.</div>
+</div></div>
+<div class="c"><div class="h">Fact<span>Episode 4 · Concavity and inflection</span></div><div class="b">
+<div class="rule">Point of inflection
+<div class="m">A point where the concavity changes</div></div>
+<div class="key">A point of inflection can occur only where $f''(x)=0$.</div>
+</div></div>
+<div class="c"><div class="h">I Do 2<span>Episode 4 · Concavity and inflection</span></div><div class="b" style="min-height:360px">
+Let $f(x)=x^{3}+9x^{2}-4x$. Find the coordinates of the point of inflection.
+<div class="ws">$f'(x)=3x^{2}+18x-4$<br/>
+$f''(x)=6x+18$<br/>
+$\phantom{f''(x)}=6(x+3)$<br/>
+A point of inflection can occur only where $f''(x)=0$.<br/>
+$6(x+3)=0$, so $x=-3$.<br/>
+Test either side of the zero.<br/>
+$f''(-4)=6\times(-1)=-6<0$<br/>
+$f''(-2)=6\times 1=6>0$<br/>
+The concavity changes from down to up, so there is a point of inflection.<br/>
+Substitute into $f(x)$, not $f''(x)$.<br/>
+$f(-3)=-27+81+12$<br/>
+$\phantom{f(-3)}=66$<br/>
+The point of inflection is $(-3,\,66)$.</div>
+</div></div>
+
+<!-- Critical features: (1) f''(a)=0; (2) the sign of f''(x) changes across a. Ex 1 N breaks (2) (squared factor); Ex 5 N breaks (2) (squared zero of a longer expression); Ex 6 N breaks (1) (f''(a) not zero) -->
+<div class="c"><div class="h">Category · model<span>Episode 4 · Concavity and inflection</span></div><div class="b">
+<div class="cq">Is there a point of inflection at this value of $x$?</div>
+<div class="g" style="grid-template-columns:1fr 1fr;font-size:22px;gap:40px 20px;text-align:center">
+<div class="step">$f''(x)=4(x-1)^{2}$<br/>at $x=1$<div class="ws">No.<br/>$f''(0)=4>0$ and $f''(2)=4>0$, so no change of sign.</div></div>
+<div class="step">$f''(x)=4(x-1)$<br/>at $x=1$<div class="ws">Yes.<br/>$f''(0)=-4<0$ and $f''(2)=4>0$, so the sign changes.</div></div>
+<div class="step">$f''(x)=(x+7)e^{x}$<br/>at $x=-7$<div class="ws">Yes.<br/>$f''(-8)<0$ and $f''(0)=7>0$, so the sign changes.</div></div>
+<div class="step">$f''(x)=5x^{3}(x-6)^{2}$<br/>at $x=0$<div class="ws">Yes.<br/>$f''(-1)=-245<0$ and $f''(1)=125>0$, so the sign changes.</div></div>
+<div class="step">$f''(x)=5x^{3}(x-6)^{2}$<br/>at $x=6$<div class="ws">No.<br/>$f''(5)=625>0$ and $f''(7)=1715>0$, so no change of sign.</div></div>
+<div class="step">$f''(x)=5x^{3}(x-6)^{2}$<br/>at $x=2$<div class="ws">No.<br/>$f''(2)=640\neq 0$, so $x=2$ is not a zero of $f''(x)$.</div></div>
+</div>
+</div></div>
+<div class="c"><div class="h">Category · rule<span>Episode 4 · Concavity and inflection</span></div><div class="b" style="padding:40px 34px">
+<div class="key solo">A point of inflection needs $f''(a)=0$ and a change of sign.<br>A squared factor does not change sign.<br>A cubed factor does change sign.</div>
+</div></div>
+<div class="c"><div class="h">Category · your turn<span>Episode 4 · Concavity and inflection</span></div><div class="b" style="min-height:460px">
+<b>3.</b> Is there a point of inflection at this value of $x$?
+<div class="g pad" style="grid-template-columns:1fr 1fr;font-size:22px;gap:34px 24px">
+<div>a) $f''(x)=2(x+4)^{2}(x-1)$<br/>at $x=-4$<div class="ws">No.<br/>$f''(-5)=-12<0$ and $f''(-3)=-8<0$, so no change of sign.</div></div>
+<div>b) $f''(x)=(x-5)e^{3x}$<br/>at $x=5$<div class="ws">Yes.<br/>$f''(4)<0$ and $f''(6)>0$, so the sign changes.</div></div>
+<div>c) $f''(x)=(x+6)^{2}e^{-x}$<br/>at $x=-6$<div class="ws">No.<br/>$e^{-x}>0$ and $(x+6)^{2}\geq 0$, so $f''(x)>0$ on both sides.</div></div>
+<div>d) $f''(x)=2(x+4)^{2}(x-1)$<br/>at $x=1$<div class="ws">Yes.<br/>$f''(0)=-32<0$ and $f''(2)=72>0$, so the sign changes.</div></div>
+<div>e) $f''(x)=-2(x-3)^{3}$<br/>at $x=3$<div class="ws">Yes.<br/>$f''(2)=2>0$ and $f''(4)=-2<0$, so the sign changes.</div></div>
+<div>f) $f''(x)=4(x+1)(x-7)$<br/>at $x=2$<div class="ws">No.<br/>$f''(2)=-60\neq 0$, so $x=2$ is not a zero of $f''(x)$.</div></div>
+<div>g) $f''(x)=-7x^{2}$<br/>at $x=0$<div class="ws">No.<br/>$f''(-1)=-7<0$ and $f''(1)=-7<0$, so no change of sign.</div></div>
+<div>h) $f''(x)=3x^{2}(x+9)$<br/>at $x=-9$<div class="ws">Yes.<br/>$f''(-10)=-300<0$ and $f''(-8)=192>0$, so the sign changes.</div></div>
+</div>
+</div></div>
+<div class="c"><div class="h">I Do 3<span>Episode 4 · Concavity and inflection</span></div><div class="b" style="min-height:460px">
+Find the values of $x$ for which the curve $f(x)=x^{5}-5x^{4}+2x$ is concave up, and find the coordinates of any points of inflection.
+<div class="ws">$f'(x)=5x^{4}-20x^{3}+2$<br/>
+$f''(x)=20x^{3}-60x^{2}$<br/>
+$\phantom{f''(x)}=20x^{2}(x-3)$<br/>
+Concavity can change only where $f''(x)=0$.<br/>
+$20x^{2}(x-3)=0$, so $x=0$ or $x=3$.<br/>
+Test either side of each zero.<br/>
+$f''(-1)=20\times 1\times(-4)=-80<0$<br/>
+$f''(1)=20\times 1\times(-2)=-40<0$<br/>
+$f''(4)=20\times 16\times 1=320>0$<br/>
+Concave up where $f''(x)>0$.<br/>
+The curve is concave up for $x>3$.<br/>
+At $x=0$, $f''(x)<0$ on both sides, so the concavity does not change.<br/>
+There is no point of inflection at $x=0$.<br/>
+At $x=3$, $f''(x)$ changes from negative to positive, so the concavity changes.<br/>
+There is a point of inflection at $x=3$.<br/>
+Substitute into $f(x)$, not $f''(x)$.<br/>
+$f(3)=243-405+6$<br/>
+$\phantom{f(3)}=-156$<br/>
+The point of inflection is $(3,\,-156)$.</div>
+</div></div>
+<div class="c"><div class="h">We Do 1<span>Episode 4 · Concavity and inflection</span></div><div class="b" style="min-height:460px">
+Find the values of $x$ for which the curve $f(x)=x^{6}-3x^{5}+7$ is concave down, and find the coordinates of any points of inflection.
+<div class="ws">$f'(x)=6x^{5}-15x^{4}$<br/>
+$f''(x)=30x^{4}-60x^{3}$<br/>
+$\phantom{f''(x)}=30x^{3}(x-2)$<br/>
+Concavity can change only where $f''(x)=0$.<br/>
+$30x^{3}(x-2)=0$, so $x=0$ or $x=2$.<br/>
+Test either side of each zero.<br/>
+$f''(-1)=30\times(-1)\times(-3)=90>0$<br/>
+$f''(1)=30\times 1\times(-1)=-30<0$<br/>
+$f''(3)=30\times 27\times 1=810>0$<br/>
+Concave down where $f''(x)<0$.<br/>
+The curve is concave down for $0<x<2$.<br/>
+At $x=0$, $f''(x)$ changes from positive to negative, so the concavity changes.<br/>
+At $x=2$, $f''(x)$ changes from negative to positive, so the concavity changes.<br/>
+There are points of inflection at $x=0$ and $x=2$.<br/>
+Substitute into $f(x)$, not $f''(x)$.<br/>
+$f(0)=7$<br/>
+$f(2)=64-96+7=-25$<br/>
+The points of inflection are $(0,\,7)$ and $(2,\,-25)$.</div>
+</div></div>
+<div class="c"><div class="h">We Do 2<span>Episode 4 · Concavity and inflection</span></div><div class="b" style="min-height:520px">
+Let $f(x)=(x-5)e^{-2x}$.
+<div style="margin:18px 0 0 20px">(a) Show that $f''(x)=4(x-6)e^{-2x}$. <span style="float:right">(2 marks)</span>
+<div class="ws">Product rule: $u=x-5$, $u'=1$; $v=e^{-2x}$, $v'=-2e^{-2x}$<br/>
+$f'(x)=e^{-2x}-2(x-5)e^{-2x}$<br/>
+$\phantom{f'(x)}=(11-2x)e^{-2x}$<br/>
+Product rule again: $u=11-2x$, $u'=-2$; $v=e^{-2x}$, $v'=-2e^{-2x}$<br/>
+$f''(x)=-2e^{-2x}-2(11-2x)e^{-2x}$<br/>
+$\phantom{f''(x)}=(4x-24)e^{-2x}$<br/>
+$\phantom{f''(x)}=4(x-6)e^{-2x}$</div></div>
+<div style="margin:18px 0 0 20px">(b) Find the coordinates of the point of inflection, and justify that it is a point of inflection. <span style="float:right">(3 marks)</span>
+<div class="ws">Concavity can change only where $f''(x)=0$.<br/>
+$e^{-2x}>0$ for all $x$, so $f''(x)=0$ only when $x-6=0$.<br/>
+$x=6$<br/>
+Test either side of the zero. The sign of $f''(x)$ is the sign of $x-6$.<br/>
+$f''(5)=4\times(-1)\times e^{-10}<0$<br/>
+$f''(7)=4\times 1\times e^{-14}>0$<br/>
+$f''(x)$ changes from negative to positive, so the concavity changes.<br/>
+There is a point of inflection at $x=6$.<br/>
+Substitute into $f(x)$, not $f''(x)$.<br/>
+$f(6)=(6-5)e^{-12}$<br/>
+$\phantom{f(6)}=e^{-12}$<br/>
+The point of inflection is $(6,\,e^{-12})$.</div></div>
+<div style="font-size:16px;color:#777;margin-top:8px">Modelled on HSC 2022 Q27(a),(c).</div>
+</div></div>
+<div class="c"><div class="h">We Do 3<span>Episode 4 · Concavity and inflection</span></div><div class="b" style="min-height:400px">
+Show that the curve $y=\ln(x^{2}+9)$ is concave up for $-3<x<3$.
+<div class="ws">Chain rule: the derivative of $\ln$ of the inside is the derivative of the inside over the inside.<br/>
+$\dfrac{dy}{dx}=\dfrac{2x}{x^{2}+9}$<br/>
+Quotient rule: $u=2x$, $u'=2$; $v=x^{2}+9$, $v'=2x$<br/>
+$\dfrac{d^{2}y}{dx^{2}}=\dfrac{2(x^{2}+9)-2x\times 2x}{(x^{2}+9)^{2}}$<br/>
+$\phantom{\dfrac{d^{2}y}{dx^{2}}}=\dfrac{18-2x^{2}}{(x^{2}+9)^{2}}$<br/>
+$\phantom{\dfrac{d^{2}y}{dx^{2}}}=\dfrac{2(9-x^{2})}{(x^{2}+9)^{2}}$<br/>
+Concave up where $\dfrac{d^{2}y}{dx^{2}}>0$.<br/>
+$(x^{2}+9)^{2}>0$ for all $x$, so the sign is the sign of $9-x^{2}$.<br/>
+For $-3<x<3$, $x^{2}<9$, so $9-x^{2}>0$.<br/>
+So $\dfrac{d^{2}y}{dx^{2}}>0$, and the curve is concave up for $-3<x<3$.</div>
+<div style="font-size:16px;color:#777;margin-top:8px">Modelled on HSC 2024 Q22(a).</div>
+</div></div>
