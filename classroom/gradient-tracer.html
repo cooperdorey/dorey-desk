@@ -1,0 +1,392 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Gradient tracer – Dorey Desk</title>
+<link rel="icon" href="../assets/icons/icon.svg" type="image/svg+xml">
+<link rel="icon" href="../assets/icons/icon-32.png" sizes="32x32" type="image/png">
+<meta name="theme-color" content="#0F766E">
+<style>
+/* Matches the Dorey Desk site (assets/app.css) */
+:root{--paper:#F2F3F5;--panel:#FFFFFF;--ink:#1D232B;--muted:#5E6672;--line:#D9DDE3;--brand:#0F766E;--brand-ink:#FFFFFF;--tint:#E3F2F0;
+ --up:#0F766E;--down:#C55A11;--rise:#1F4E79;--fall:#B3261E;--flat:#2E7D32;--d1:#6A1B9A;--d2:#9A3412;--left:#1F4E79;--right:#C55A11;
+ --ui:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+ --card:"Palatino Linotype",Palatino,"Book Antiqua","URW Palladio L",Georgia,serif}
+@media (prefers-color-scheme:dark){:root{--paper:#16191E;--panel:#20242B;--ink:#ECEEF1;--muted:#A5ACB7;--line:#343A43;
+ --brand:#5FCFC2;--brand-ink:#062A26;--tint:#1B3A37;--up:#5FCFC2;--down:#F0A064;--rise:#7DB7EA;--fall:#F28B82;--flat:#7FCB84;--d1:#C99BEA;--d2:#F0A064;--left:#7DB7EA;--right:#F0A064;color-scheme:dark}}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0}
+html,body{overflow-x:hidden}
+body{background:var(--paper);color:var(--ink);font-family:var(--ui);font-size:15px;line-height:1.45}
+:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+header{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;padding:12px 18px;background:var(--tint);border-bottom:1px solid var(--line)}
+header a{color:var(--brand);text-decoration:none;font-family:var(--card);font-weight:700;font-size:16px}
+header .crumbs{font-size:13px;color:var(--muted)}
+header .crumbs a{font-family:var(--ui);font-weight:400;color:var(--muted)}
+header h1{margin:0;font-family:var(--card);font-size:20px}
+.controls{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;padding:12px 18px}
+.controls label{display:inline-flex;align-items:center;gap:6px;font-size:14px;color:var(--ink)}
+select{max-width:100%}
+.controls label:first-child{max-width:100%;flex-wrap:wrap}
+select,button{font:inherit;font-size:14px;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:7px 12px}
+button{cursor:pointer}
+button:hover{border-color:var(--brand)}
+button.primary{background:var(--brand);color:var(--brand-ink);border-color:var(--brand);font-weight:600}
+input[type=checkbox]{accent-color:var(--brand);width:16px;height:16px}
+.main{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:14px;padding:0 18px 18px;align-items:start}
+@media (max-width:980px){.main{grid-template-columns:1fr}}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:10px;min-width:0}
+#plotBox{padding:8px}
+canvas{display:block;width:100%;touch-action:none}
+#plot{cursor:ew-resize}
+.side{display:flex;flex-direction:column;gap:14px}
+.read{padding:12px 14px}
+.read h2,.zoom h2{margin:0 0 6px;font-family:var(--card);font-size:16px}
+.read table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
+.read td{padding:2px 0}
+.read td:first-child{color:var(--muted);width:48px}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.tag{padding:3px 9px;border-radius:999px;font-size:13px;font-weight:600;color:#fff}
+.tag.rise{background:var(--rise)}.tag.fall{background:var(--fall)}.tag.flat{background:var(--flat)}
+.tag.up{background:var(--up);color:var(--brand-ink)}.tag.down{background:var(--down);color:#1D232B}
+.tag.neutral{background:var(--muted)}
+.note{margin-top:8px;padding:8px 10px;border-left:4px solid var(--brand);background:var(--tint);border-radius:0 8px 8px 0;font-size:14px}
+.note.warn{border-left-color:var(--fall)}
+.zoom{padding:12px 14px}
+.zoom .row{display:flex;align-items:center;gap:10px;margin:8px 0}
+.zoom input[type=range]{flex:1}
+.zoom .grad{font-size:14px;font-variant-numeric:tabular-nums}
+.zoom .grad b.l{color:var(--left)}.zoom .grad b.r{color:var(--right)}
+.hint{padding:0 18px 16px;color:var(--muted);font-size:13px}
+</style>
+</head>
+<body>
+<header>
+ <a href="../index.html">Dorey Desk</a>
+ <span class="crumbs"><a href="../index.html#classroom">Classroom</a> › Gradient tracer</span>
+ <h1>Gradient tracer</h1>
+</header>
+
+<div class="controls">
+ <label>Function <select id="fn" aria-label="Function"></select></label>
+ <button id="prev" type="button" title="Jump to the previous stationary point or inflection">◀ Previous point</button>
+ <button id="next" type="button" title="Jump to the next stationary point or inflection">Next point ▶</button>
+ <button id="play" type="button" class="primary">▶ Play</button>
+ <label><input type="checkbox" id="showD1" checked> f′</label>
+ <label><input type="checkbox" id="showD2" checked> f″</label>
+ <label><input type="checkbox" id="trace" checked> Reveal f′ and f″ as you go</label>
+ <label><input type="checkbox" id="conc" checked> Colour concavity</label>
+ <label><input type="checkbox" id="marks" checked> Mark special points</label>
+</div>
+
+<div class="main">
+ <div class="box" id="plotBox"><canvas id="plot" tabindex="0" aria-label="Graphs of f, f′ and f″. Drag, or use the left and right arrow keys, to move the point."></canvas></div>
+ <div class="side">
+  <div class="box read" aria-live="polite">
+   <h2>At the point</h2>
+   <table>
+    <tr><td>x</td><td id="rx"></td></tr>
+    <tr><td>f(x)</td><td id="rf"></td></tr>
+    <tr><td>f′(x)</td><td id="r1"></td></tr>
+    <tr><td>f″(x)</td><td id="r2"></td></tr>
+   </table>
+   <div class="tags" id="tags"></div>
+   <div class="note" id="note" hidden></div>
+  </div>
+  <div class="box zoom">
+   <h2>Zoom in on the point</h2>
+   <canvas id="zoomCv" width="300" height="300" aria-label="Zoomed view of the curve at the point"></canvas>
+   <div class="row"><span id="zlab">×1</span><input type="range" id="zoom" min="0" max="1000" value="0" aria-label="Zoom"></div>
+   <div class="grad" id="grad"></div>
+  </div>
+ </div>
+</div>
+<p class="hint">Drag on the graphs (or use the ← → keys) to move the point. Switch off “Reveal as you go” to see all three graphs at once. Choose a function from the lists, including the ones that are not differentiable.</p>
+
+<script>
+(function(){
+'use strict';
+const TAU = Math.PI*2, cbrt = Math.cbrt;
+const P = [ // smooth
+ {g:'Smooth functions',name:'x³ − 3x',f:x=>x**3-3*x,d1:x=>3*x*x-3,d2:x=>6*x,xr:[-2.6,2.6],x0:-2},
+ {g:'Smooth functions',name:'x³ (horizontal inflection at 0)',f:x=>x**3,d1:x=>3*x*x,d2:x=>6*x,xr:[-1.6,1.6],x0:-1.2},
+ {g:'Smooth functions',name:'x⁴ (f″ = 0 but no inflection)',f:x=>x**4,d1:x=>4*x**3,d2:x=>12*x*x,xr:[-1.5,1.5],x0:-1.2},
+ {g:'Smooth functions',name:'3x⁵ − 5x³ + 4 (lesson 3.03 anchor)',f:x=>3*x**5-5*x**3+4,d1:x=>15*x**4-15*x*x,d2:x=>60*x**3-30*x,xr:[-1.6,1.6],x0:-1.5},
+ {g:'Smooth functions',name:'x⁵ − 5x⁴ + 2x (lesson 3.04 anchor)',f:x=>x**5-5*x**4+2*x,d1:x=>5*x**4-20*x**3+2,d2:x=>20*x**3-60*x*x,xr:[-1,4.2],x0:-0.9},
+ {g:'Smooth functions',name:'x²e^(−3x)',f:x=>x*x*Math.exp(-3*x),d1:x=>(2*x-3*x*x)*Math.exp(-3*x),d2:x=>(9*x*x-12*x+2)*Math.exp(-3*x),xr:[-0.5,3],x0:-0.4},
+ {g:'Smooth functions',name:'e^(−x) sin x',f:x=>Math.exp(-x)*Math.sin(x),d1:x=>Math.exp(-x)*(Math.cos(x)-Math.sin(x)),d2:x=>-2*Math.exp(-x)*Math.cos(x),xr:[0,TAU],x0:0.1},
+ {g:'Smooth functions',name:'sin x',f:x=>Math.sin(x),d1:x=>Math.cos(x),d2:x=>-Math.sin(x),xr:[-0.5,6.8],x0:-0.4},
+ {g:'Smooth functions',name:'ln(x² + 9)',f:x=>Math.log(x*x+9),d1:x=>2*x/(x*x+9),d2:x=>2*(9-x*x)/((x*x+9)**2),xr:[-7,7],x0:-6.5},
+ {g:'Not differentiable at a point',name:'|x| (corner at 0)',f:x=>Math.abs(x),d1:x=>x>0?1:x<0?-1:NaN,d2:x=>x===0?NaN:0,xr:[-2,2],x0:-1.5},
+ {g:'Not differentiable at a point',name:'x² − 5 then 8x − 20 (lesson 3.01 anchor, corner at 3)',f:x=>x<=3?x*x-5:8*x-20,d1:x=>x<3?2*x:x>3?8:NaN,d2:x=>x===3?NaN:(x<3?2:0),xr:[0,5],x0:0.5},
+ {g:'Not differentiable at a point',name:'x^(2/3) (cusp at 0)',f:x=>cbrt(x)**2,d1:x=>x===0?NaN:(2/3)/cbrt(x),d2:x=>x===0?NaN:-(2/9)/(cbrt(x)**4),xr:[-2,2],x0:-1.5},
+ {g:'Not differentiable at a point',name:'x^(1/3) (vertical tangent at 0)',f:x=>cbrt(x),d1:x=>x===0?NaN:1/(3*cbrt(x)**2),d2:x=>x===0?NaN:-2/(9*cbrt(x)**5),xr:[-2,2],x0:-1.5},
+ {g:'Not differentiable at a point',name:'Jump at x = 1 (not continuous)',f:x=>x<1?x+1:x*x+2,d1:x=>x<1?1:x>1?2*x:NaN,d2:x=>x<1?0:x>1?2:NaN,xr:[-1,3],x0:-0.5}
+];
+const $ = id => document.getElementById(id);
+const cv = $('plot'), ctx = cv.getContext('2d'), zcv = $('zoomCv'), zctx = zcv.getContext('2d');
+const S = {p:null, x:0, play:false, last:0, xs:[], F:[], D1:[], D2:[], yr:{}, special:[], dragging:false};
+const N = 900;
+
+function css(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim()}
+function fin(v){return typeof v==='number' && isFinite(v)}
+function fmt(v){
+  if(!fin(v)) return 'undefined';
+  if(Math.abs(v)<1e-9) return '0';
+  const a=Math.abs(v); if(a>=1e4||a<1e-3) return v.toExponential(2);
+  return String(+v.toFixed(a<1?4:a<100?3:2));
+}
+function niceStep(raw){const e=Math.pow(10,Math.floor(Math.log10(raw))),f=raw/e;return (f<1.5?1:f<3.5?2:f<7.5?5:10)*e}
+
+// ---------- the chosen function ----------
+function setup(p){
+  S.p = p; const [a,b] = p.xr; S.xs = []; S.F=[];S.D1=[];S.D2=[];
+  for(let i=0;i<=N;i++){const x=a+(b-a)*i/N; S.xs.push(x); S.F.push(p.f(x)); S.D1.push(p.d1(x)); S.D2.push(p.d2(x))}
+  const range=(arr,clip,incl0)=>{let lo=Infinity,hi=-Infinity;for(const v of arr){if(fin(v)&&Math.abs(v)<=clip){if(v<lo)lo=v;if(v>hi)hi=v}}
+    if(!fin(lo)){lo=-1;hi=1} if(incl0){lo=Math.min(lo,0);hi=Math.max(hi,0)}
+    if(hi-lo<1e-9){lo-=1;hi+=1} const pad=(hi-lo)*0.12; return [lo-pad,hi+pad]};
+  S.yr = {f:range(S.F,60,false), d1:range(S.D1,10,true), d2:range(S.D2,14,true)};
+  findSpecial(); S.x = p.x0;
+}
+// where f' = 0 (stationary) and f'' = 0 (inflection candidates)
+function roots(fn, lo, hi){
+  const M=6000, out=[], h=(hi-lo)/M; let prev=fn(lo), prevX=lo;
+  const scale = 1e-6;
+  for(let i=1;i<=M;i++){
+    const x=lo+h*i, v=fn(x);
+    if(fin(prev)&&fin(v)){
+      if(prev===0&&v!==0){out.push(prevX)}
+      else if(prev*v<0){let a=prevX,b=x;for(let k=0;k<60;k++){const m=(a+b)/2,fm=fn(m);if(!fin(fm))break;if(fn(a)*fm<=0)b=m;else a=m}out.push((a+b)/2)}
+    }
+    prev=v; prevX=x;
+  }
+  // touching zeros without a sign change (e.g. x² factors): look for local minima of |fn| that are ~0
+  let g0=null,g1=null,g2=null;
+  for(let i=1;i<M;i++){
+    const xa=lo+h*(i-1), xb=lo+h*i, xc=lo+h*(i+1), a=Math.abs(fn(xa)),b=Math.abs(fn(xb)),c=Math.abs(fn(xc));
+    if(fin(a)&&fin(b)&&fin(c)&&b<=a&&b<c&&b<0.02){
+      let l=xa,r=xc;for(let k=0;k<80;k++){const m1=l+(r-l)/3,m2=r-(r-l)/3;if(Math.abs(fn(m1))<Math.abs(fn(m2)))r=m2;else l=m1}
+      const x=(l+r)/2; if(Math.abs(fn(x))<1e-7 && !out.some(o=>Math.abs(o-x)<h*2)) out.push(x);
+    }
+  }
+  out.sort((p,q)=>p-q); return out.filter((x,i)=>i===0||Math.abs(x-out[i-1])>h*2);
+}
+function findSpecial(){
+  const p=S.p,[a,b]=p.xr,eps=(b-a)*1e-3,sp=[];
+  for(const x of roots(p.d1,a,b)){
+    if(Math.abs(x-a)<eps||Math.abs(x-b)<eps)continue;
+    const l=p.d1(x-eps),r=p.d1(x+eps);
+    let kind='horizontal point of inflection';
+    if(l>0&&r<0)kind='local maximum'; else if(l<0&&r>0)kind='local minimum';
+    sp.push({x,type:'stat',kind});
+  }
+  for(const x of roots(p.d2,a,b)){
+    if(Math.abs(x-a)<eps||Math.abs(x-b)<eps)continue;
+    const l=p.d2(x-eps),r=p.d2(x+eps);
+    sp.push({x,type:'infl',kind:(l*r<0)?'point of inflection':'f″ = 0, but the concavity does not change'});
+  }
+  sp.sort((u,v)=>u.x-v.x); S.special=sp;
+}
+// what the curve is doing at x: smooth, corner, cusp, vertical tangent, jump
+function behaviour(x){
+  const p=S.p,[a,b]=p.xr,h=1e-8*Math.max(1,Math.abs(x)),f0=p.f(x);
+  const fl=p.f(x-h),fr=p.f(x+h);
+  if(!fin(f0)||!fin(fl)||!fin(fr)) return {kind:'undefined'};
+  const g=(h2,sg)=>Math.abs(f0-p.f(x+sg*h2));
+  const noShrink=sg=>{const d1=g(h,sg),d2=g(h/1000,sg);return d1>1e-6&&d2/d1>0.5};
+  if(noShrink(-1)||noShrink(1)) return {kind:'jump'};
+  const dl=(f0-fl)/h,dr=(fr-f0)/h;
+  if(Math.abs(dl)>300||Math.abs(dr)>300) return {kind:(dl*dr<0)?'cusp':'vertical',dl,dr};
+  if(Math.abs(dl-dr)>1e-3*(1+Math.abs(dl)+Math.abs(dr))) return {kind:'corner',dl,dr};
+  const m=fin(p.d1(x))?p.d1(x):(dl+dr)/2;
+  return {kind:'smooth',m,dl:m,dr:m};
+}
+
+// ---------- drawing the three graphs ----------
+const GEO={L:58,R:14,PT:26,GAP:30,HF:300,HD:170};
+function panels(){
+  const list=[{k:'f',h:GEO.HF,title:'y = f(x)'}];
+  if($('showD1').checked) list.push({k:'d1',h:GEO.HD,title:'y = f′(x)  (gradient of f)'});
+  if($('showD2').checked) list.push({k:'d2',h:GEO.HD,title:'y = f″(x)  (gradient of f′)'});
+  let y=0; for(const q of list){q.y=y+GEO.PT;q.top=y;y+=GEO.PT+q.h+GEO.GAP-GEO.PT}
+  return {list,total:y};
+}
+function sizeCanvas(c,w,h){const d=window.devicePixelRatio||1;c.style.height=h+'px';const W=Math.round(w*d),H=Math.round(h*d);if(c.width!==W||c.height!==H){c.width=W;c.height=H}return d}
+
+function draw(){
+  const {list,total}=panels(), W=cv.clientWidth, dpr=sizeCanvas(cv,W,total);
+  ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,W,total);
+  const ink=css('--ink'),muted=css('--muted'),line=css('--line'),panel=css('--panel');
+  ctx.font='13px '+css('--ui'); ctx.textBaseline='middle';
+  const [xa,xb]=S.p.xr, pxX=x=>GEO.L+(x-xa)/(xb-xa)*(W-GEO.L-GEO.R);
+  const cx=pxX(S.x), beh=behaviour(S.x);
+  for(const q of list){
+    const yr=S.yr[q.k], rx=GEO.L, rw=W-GEO.L-GEO.R, ry=q.y, rh=q.h, pxY=v=>ry+rh-(v-yr[0])/(yr[1]-yr[0])*rh;
+    ctx.fillStyle=ink; ctx.textAlign='left'; ctx.font='600 14px '+css('--card'); ctx.fillText(q.title,rx,q.top+11); ctx.font='12px '+css('--ui');
+    ctx.save(); ctx.beginPath(); ctx.rect(rx,ry,rw,rh); ctx.clip();
+    ctx.fillStyle=panel; ctx.fillRect(rx,ry,rw,rh);
+    // grid
+    const sx=niceStep((xb-xa)/7), sy=niceStep((yr[1]-yr[0])/5);
+    ctx.lineWidth=1; ctx.strokeStyle=line; ctx.beginPath();
+    for(let x=Math.ceil(xa/sx)*sx;x<=xb+1e-9;x+=sx){const px=pxX(x);ctx.moveTo(px,ry);ctx.lineTo(px,ry+rh)}
+    for(let y=Math.ceil(yr[0]/sy)*sy;y<=yr[1]+1e-9;y+=sy){const py=pxY(y);ctx.moveTo(rx,py);ctx.lineTo(rx+rw,py)}
+    ctx.stroke();
+    ctx.strokeStyle=muted; ctx.lineWidth=1.5; ctx.beginPath();
+    if(yr[0]<0&&yr[1]>0){ctx.moveTo(rx,pxY(0));ctx.lineTo(rx+rw,pxY(0))}
+    if(xa<0&&xb>0){ctx.moveTo(pxX(0),ry);ctx.lineTo(pxX(0),ry+rh)}
+    ctx.stroke();
+    // the curve
+    const arr=q.k==='f'?S.F:q.k==='d1'?S.D1:S.D2, trace=$('trace').checked&&q.k!=='f';
+    ctx.lineWidth=2.6; ctx.lineCap='round';
+    for(let i=1;i<=N;i++){
+      const x1=S.xs[i]; if(trace&&x1>S.x)break;
+      const v0=arr[i-1],v1=arr[i]; if(!fin(v0)||!fin(v1))continue;
+      const y0=pxY(v0),y1=pxY(v1); if(Math.abs(y1-y0)>rh*0.7)continue;
+      let col;
+      if(q.k==='f') col=$('conc').checked?concCol((S.D2[i-1]+S.D2[i])/2):ink; else col=q.k==='d1'?css('--d1'):css('--d2');
+      ctx.strokeStyle=col; ctx.beginPath(); ctx.moveTo(pxX(S.xs[i-1]),y0); ctx.lineTo(pxX(x1),y1); ctx.stroke();
+    }
+    // tangent on f
+    if(q.k==='f') drawTangent(q,pxX,pxY,beh,W);
+    // special points
+    if($('marks').checked){
+      for(const s of S.special){
+        const v=q.k==='f'?S.p.f(s.x):q.k==='d1'?S.p.d1(s.x):S.p.d2(s.x); if(!fin(v))continue;
+        const hit=(q.k==='f')||(q.k==='d1'&&s.type==='stat')||(q.k==='d2'&&s.type==='infl'); if(!hit)continue;
+        if(trace&&s.x>S.x)continue;
+        ctx.beginPath(); ctx.arc(pxX(s.x),pxY(v),5,0,TAU);
+        ctx.fillStyle=s.type==='stat'?css('--flat'):css('--down'); ctx.fill(); ctx.strokeStyle=panel; ctx.lineWidth=1.5; ctx.stroke();
+      }
+    }
+    // the moving point
+    const v=q.k==='f'?S.p.f(S.x):q.k==='d1'?(beh.kind==='smooth'?beh.m:NaN):(beh.kind==='smooth'?S.p.d2(S.x):NaN);
+    ctx.setLineDash([5,4]); ctx.strokeStyle=ink; ctx.lineWidth=1; ctx.globalAlpha=.55; ctx.beginPath(); ctx.moveTo(cx,ry); ctx.lineTo(cx,ry+rh); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha=1;
+    if(fin(v)&&v>=yr[0]&&v<=yr[1]){ctx.beginPath();ctx.arc(cx,pxY(v),6.5,0,TAU);ctx.fillStyle=ink;ctx.fill();ctx.strokeStyle=panel;ctx.lineWidth=2;ctx.stroke()}
+    ctx.restore();
+    ctx.strokeStyle=line; ctx.lineWidth=1; ctx.strokeRect(rx+.5,ry+.5,rw-1,rh-1);
+    // tick labels
+    ctx.fillStyle=muted; ctx.textAlign='right';
+    for(let y=Math.ceil(yr[0]/sy)*sy;y<=yr[1]+1e-9;y+=sy){ctx.fillText(fmt(Math.abs(y)<1e-9?0:y),rx-6,pxY(y))}
+    if(q===list[list.length-1]){ctx.textAlign='center';for(let x=Math.ceil(xa/sx)*sx;x<=xb+1e-9;x+=sx){ctx.fillText(fmt(Math.abs(x)<1e-9?0:x),pxX(x),ry+rh+13)}}
+  }
+  // x label on the moving line, below the first panel
+  readout(beh); drawZoom(beh);
+}
+function concCol(d2){if(!fin(d2)||Math.abs(d2)<1e-9)return css('--muted');return d2>0?css('--up'):css('--down')}
+function drawTangent(q,pxX,pxY,beh,W){
+  const [xa,xb]=S.p.xr,x=S.x,y=S.p.f(x); if(!fin(y))return;
+  const half=(xb-xa)*0.16, draw=(m,x0,x1,col)=>{
+    ctx.strokeStyle=col;ctx.lineWidth=2.2;ctx.beginPath();ctx.moveTo(pxX(x0),pxY(y+m*(x0-x)));ctx.lineTo(pxX(x1),pxY(y+m*(x1-x)));ctx.stroke()};
+  if(beh.kind==='smooth'){const m=beh.m,col=Math.abs(m)<0.02?css('--flat'):m>0?css('--rise'):css('--fall');draw(m,x-half,x+half,col)}
+  else if(beh.kind==='corner'){draw(beh.dl,x-half,x,css('--left'));draw(beh.dr,x,x+half,css('--right'))}
+  else if(beh.kind==='vertical'||beh.kind==='cusp'){ctx.strokeStyle=css('--fall');ctx.lineWidth=2.2;ctx.setLineDash([4,3]);ctx.beginPath();ctx.moveTo(pxX(x),q.y);ctx.lineTo(pxX(x),q.y+q.h);ctx.stroke();ctx.setLineDash([])}
+}
+
+// ---------- readout and zoom ----------
+function tag(cls,txt){return '<span class="tag '+cls+'">'+txt+'</span>'}
+function readout(beh){
+  const x=S.x,p=S.p; $('rx').textContent=fmt(x); const f=p.f(x); $('rf').textContent=fmt(f);
+  let tags='',note='',warn=false;
+  if(beh.kind==='smooth'){
+    const m=beh.m,d2=p.d2(x); $('r1').textContent=fmt(Math.abs(m)<1e-6?0:m); $('r2').textContent=fmt(Math.abs(d2)<1e-6?0:d2);
+    tags+=Math.abs(m)<0.02?tag('flat','f′ = 0 (stationary)'):m>0?tag('rise','increasing (f′ > 0)'):tag('fall','decreasing (f′ < 0)');
+    tags+=!fin(d2)||Math.abs(d2)<0.02?tag('neutral','f″ = 0'):d2>0?tag('up','concave up (f″ > 0)'):tag('down','concave down (f″ < 0)');
+  }else{
+    $('r1').textContent='does not exist'; $('r2').textContent='—';
+    warn=true;
+    if(beh.kind==='corner'){tags+=tag('fall','not differentiable');note='A corner: the gradient from the left is '+fmt(beh.dl)+' but from the right it is '+fmt(beh.dr)+'. The two one-sided gradients differ, so there is no single tangent.'}
+    else if(beh.kind==='cusp'){tags+=tag('fall','not differentiable');note='A cusp: the gradient heads to −∞ on one side and +∞ on the other, so there is no tangent.'}
+    else if(beh.kind==='vertical'){tags+=tag('fall','not differentiable');note='The tangent is vertical, so the gradient does not exist.'}
+    else if(beh.kind==='jump'){tags+=tag('fall','not continuous');note='The curve jumps here, so it is not continuous, and so it cannot be differentiable.'}
+    else{tags+=tag('neutral','undefined')}
+  }
+  const range=S.p.xr[1]-S.p.xr[0], near=S.special.filter(s=>Math.abs(s.x-x)<range*0.012);
+  if(near.length){
+    const st=near.find(s=>s.type==='stat'), inf=near.find(s=>s.type==='infl'), msg=[];
+    if(st) msg.push('Stationary point: a '+st.kind+'.');
+    if(inf){
+      if(inf.kind==='point of inflection'){ if(!st||st.kind!=='horizontal point of inflection') msg.push((st?'It is also a':'A')+' point of inflection: f″ is zero and the concavity changes.') }
+      else msg.push('f″ = 0 here, but the concavity does not change, so this is not a point of inflection.');
+    }
+    note=(note?note+' ':'')+msg.join(' '); if(msg.length)warn=false;
+  }
+  $('tags').innerHTML=tags; const n=$('note'); n.hidden=!note; n.textContent=note; n.className='note'+(warn?' warn':'');
+}
+function drawZoom(beh){
+  const W=300,H=300,d=window.devicePixelRatio||1; if(zcv.width!==W*d){zcv.width=W*d;zcv.height=H*d} zcv.style.width=W+'px';zcv.style.height=H+'px'; zcv.style.maxWidth='100%';
+  zctx.setTransform(d,0,0,d,0,0); zctx.clearRect(0,0,W,H);
+  const panel=css('--panel'),line=css('--line'),ink=css('--ink'),muted=css('--muted');
+  zctx.fillStyle=panel; zctx.fillRect(0,0,W,H);
+  const z=Math.pow(10,$('zoom').value/1000*3.5), win=(S.p.xr[1]-S.p.xr[0])*0.5/z, x0=S.x, y0=S.p.f(x0);
+  $('zlab').textContent='×'+(z<10?z.toFixed(1):Math.round(z));
+  const pxX=x=>W/2+(x-x0)/win*(W/2), pxY=y=>H/2-(y-y0)/win*(W/2);
+  zctx.strokeStyle=line; zctx.lineWidth=1; zctx.beginPath(); zctx.moveTo(W/2,0);zctx.lineTo(W/2,H);zctx.moveTo(0,H/2);zctx.lineTo(W,H/2);zctx.stroke();
+  if(fin(y0)){
+    zctx.lineWidth=2.4; zctx.strokeStyle=ink; zctx.beginPath(); let pen=false;
+    for(let i=0;i<=240;i++){const x=x0-win+2*win*i/240,y=S.p.f(x),py=pxY(y); if(!fin(y)||Math.abs(py-H/2)>H*2){pen=false;continue} if(pen)zctx.lineTo(pxX(x),py);else{zctx.moveTo(pxX(x),py);pen=true}}
+    zctx.stroke();
+    if(beh.kind==='smooth'||beh.kind==='corner'){
+      const L=beh.dl,R=beh.dr; zctx.lineWidth=1.8;
+      zctx.setLineDash([6,4]);zctx.strokeStyle=css('--left');zctx.beginPath();zctx.moveTo(pxX(x0-win),pxY(y0-L*win));zctx.lineTo(pxX(x0),pxY(y0));zctx.stroke();
+      zctx.strokeStyle=css('--right');zctx.beginPath();zctx.moveTo(pxX(x0),pxY(y0));zctx.lineTo(pxX(x0+win),pxY(y0+R*win));zctx.stroke();zctx.setLineDash([]);
+    }
+    zctx.beginPath();zctx.arc(W/2,H/2,5,0,TAU);zctx.fillStyle=ink;zctx.fill();
+  }
+  zctx.strokeStyle=line; zctx.strokeRect(.5,.5,W-1,H-1);
+  zctx.fillStyle=muted; zctx.font='12px '+css('--ui'); zctx.textAlign='left'; zctx.fillText('window width '+fmt(2*win),8,H-9);
+  const g=$('grad');
+  if(beh.kind==='smooth'||beh.kind==='corner') g.innerHTML='Gradient from the left: <b class="l">'+fmt(beh.dl)+'</b><br>Gradient from the right: <b class="r">'+fmt(beh.dr)+'</b>'+(beh.kind==='smooth'?'<br>They agree, so the tangent exists.':'<br>They differ, so no tangent.');
+  else if(beh.kind==='cusp') g.innerHTML='Gradient from the left and right head to opposite infinities.';
+  else if(beh.kind==='vertical') g.innerHTML='The gradient is unbounded: a vertical tangent.';
+  else g.innerHTML='';
+}
+
+// ---------- interaction ----------
+function xFromEvent(e){
+  const r=cv.getBoundingClientRect(),W=cv.clientWidth,[xa,xb]=S.p.xr,t=(e.clientX-r.left-GEO.L)/(W-GEO.L-GEO.R);
+  return xa+Math.max(0,Math.min(1,t))*(xb-xa);
+}
+function setX(x){const [a,b]=S.p.xr;S.x=Math.max(a,Math.min(b,x));draw()}
+cv.addEventListener('pointerdown',e=>{cv.setPointerCapture(e.pointerId);S.dragging=true;stop();setX(xFromEvent(e));cv.focus()});
+cv.addEventListener('pointermove',e=>{if(S.dragging)setX(xFromEvent(e))});
+cv.addEventListener('pointerup',()=>{S.dragging=false});
+cv.addEventListener('keydown',e=>{
+  const r=S.p.xr[1]-S.p.xr[0];
+  if(e.key==='ArrowRight'){stop();setX(S.x+r*(e.shiftKey?0.05:0.004));e.preventDefault()}
+  else if(e.key==='ArrowLeft'){stop();setX(S.x-r*(e.shiftKey?0.05:0.004));e.preventDefault()}
+  else if(e.key===' '){toggle();e.preventDefault()}
+});
+function jump(dir){
+  stop(); const r=S.p.xr[1]-S.p.xr[0],tol=r*0.004; let t=null;
+  if(dir>0){t=S.special.find(s=>s.x>S.x+tol)}else{for(let i=S.special.length-1;i>=0;i--)if(S.special[i].x<S.x-tol){t=S.special[i];break}}
+  if(t)setX(t.x);
+}
+$('next').onclick=()=>jump(1); $('prev').onclick=()=>jump(-1);
+function stop(){S.play=false;$('play').textContent='▶ Play'}
+function toggle(){
+  S.play=!S.play; $('play').textContent=S.play?'⏸ Pause':'▶ Play';
+  if(S.play){S.last=performance.now(); if(S.x>=S.p.xr[1]-1e-9)S.x=S.p.xr[0]; requestAnimationFrame(tick)}
+}
+function tick(t){
+  if(!S.play)return; const dt=Math.min(0.05,(t-S.last)/1000); S.last=t; const [a,b]=S.p.xr;
+  S.x+=(b-a)*dt/14; if(S.x>=b){S.x=b;draw();stop();return} draw(); requestAnimationFrame(tick);
+}
+$('play').onclick=toggle;
+for(const id of ['showD1','showD2','trace','conc','marks'])$(id).addEventListener('change',draw);
+$('zoom').addEventListener('input',draw);
+window.addEventListener('resize',draw);
+matchMedia('(prefers-color-scheme:dark)').addEventListener('change',draw);
+
+// ---------- start ----------
+const sel=$('fn'); let grp=null,og=null;
+P.forEach((p,i)=>{if(p.g!==grp){og=document.createElement('optgroup');og.label=p.g;sel.append(og);grp=p.g} const o=document.createElement('option');o.value=i;o.textContent=p.name;og.append(o)});
+sel.addEventListener('change',()=>{stop();setup(P[+sel.value]);draw()});
+setup(P[0]); draw();
+window.__tracer={S,P,setup,draw,setX};
+})();
+</script>
+</body>
+</html>
