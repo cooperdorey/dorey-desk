@@ -186,15 +186,14 @@ dialog .row{margin-top:12px}
   #printArea .natSec .yn .bx{width:7mm;margin:0}
   #printArea .natSec .top{font-size:7pt;color:#333;text-align:center;line-height:1.2}
   #printArea .sumPrint .pct{display:inline-block;min-width:15mm;padding:1mm 2mm;border-radius:3mm;color:#fff;font-weight:bold;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  #printArea .owePrint{font-family:Arial,Helvetica,sans-serif;color:#000;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  #printArea .owePrint{font-family:Arial,Helvetica,sans-serif;color:#000;-webkit-print-color-adjust:exact;print-color-adjust:exact;--bad:#B42318;--badbg:#FDECEA;--muted:#5E6672;--ink:#000}
   #printArea .owePrint .cls{font-size:12pt;font-weight:bold;margin:0 0 2mm}
   #printArea .owePrint .ptitle{font-size:15pt;border-bottom:1px solid #000;margin:0 0 4mm;padding-bottom:1mm}
-  #printArea .owePrint table{width:100%;border-collapse:collapse;font-size:10.5pt}
+  #printArea .owePrint table{width:100%;border-collapse:collapse;font-size:10pt}
   #printArea .owePrint th{text-align:left;border-bottom:1.5px solid #000;padding:2mm}
-  #printArea .owePrint td{border-bottom:1px solid #000;padding:2mm;vertical-align:middle}
-  #printArea .owePrint td.n,#printArea .owePrint th.n{text-align:center;width:22mm}
-  #printArea .owePrint .pill{display:inline-block;min-width:11mm;padding:1mm 3mm;border-radius:3mm;color:#fff;font-weight:bold;text-align:center}
+  #printArea .owePrint td{border-bottom:1px solid #999;padding:2mm;vertical-align:middle}
   #printArea .owePrint tr{page-break-inside:avoid}
+  #printArea .owePrint .lt{width:6mm;height:6mm;font-size:8pt}
   #printArea .bwPrint{font-family:Arial,Helvetica,sans-serif;color:#000;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   #printArea .bwPrint .cls{font-size:12pt;font-weight:bold;margin:0 0 2mm}
   #printArea .bwPrint .ptitle{font-size:14pt;border-bottom:1px solid #000;margin:0 0 3mm;padding-bottom:1mm}
@@ -1315,13 +1314,8 @@ function drawFortnight(cls,students){
     rows.map(r=>'<tr><td>'+esc(r.name)+'</td><td class="n">'+r.away+'</td><td>'+bar(r.pct)+'</td><td>'+Object.keys(r.by).map(k=>'<span class="tag">'+esc(k)+(r.by[k]>1?' ×'+r.by[k]:'')+'</span>').join('')+'</td></tr>').join('')+
     '</tbody><tfoot><tr><th>Class</th><th class="n">'+rows.reduce((a,r)=>a+r.away,0)+'</th><td>'+bar(avg)+'</td><td></td></tr></tfoot></table>';
 }
-function drawDash(){
-  const box=$('dList');
-  if(!S.loaded){$('dTiles').innerHTML='';$('dFort').innerHTML='';box.innerHTML='<p class="empty">Open your folder or files first.</p>';return}
-  const cls=$('dClass').value,students=studentsIn(cls);
-  if(!students.length){$('dTiles').innerHTML='';$('dFort').innerHTML='';box.innerHTML='<p class="empty">No students in this class.</p>';return}
+function dashBook(cls,students){
   const idset=new Set(students.map(s=>s.id)),active=new Set();
-  drawDashTiles(cls,students);drawFortnight(cls,students);
   S.book.forEach((v,k)=>{const i=k.indexOf('|');if(idset.has(k.slice(0,i)))active.add(k.slice(i+1))});
   const lessons=[...active].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));
   const course=classCourse(cls),groups=[];
@@ -1335,26 +1329,34 @@ function drawDash(){
   const strip=s=>groups.map(g=>'<div class="lgrp"><div class="ltr">'+g.items.map(l=>{
     const owed=!S.book.has(bKey(s.id,l)),t=lessonTitle(cls,l);
     return '<div class="lt'+(owed?' owed':'')+'" title="'+esc(l+(t?' '+t:'')+(owed?' (owed)':''))+'">'+esc(lab(l))+'</div>'}).join('')+'</div><small title="'+esc(g.name)+'">'+esc(g.label)+'</small></div>').join('');
+  return {lessons,strip};
+}
+const unPill=un=>un?'<span style="display:inline-block;min-width:34px;padding:2px 12px;border-radius:999px;background:#C0392B;color:#fff;font-weight:700;font-size:16px">'+un+'</span>':'';
+function drawDash(){
+  const box=$('dList');
+  if(!S.loaded){$('dTiles').innerHTML='';$('dFort').innerHTML='';box.innerHTML='<p class="empty">Open your folder or files first.</p>';return}
+  const cls=$('dClass').value,students=studentsIn(cls);
+  if(!students.length){$('dTiles').innerHTML='';$('dFort').innerHTML='';box.innerHTML='<p class="empty">No students in this class.</p>';return}
+  drawDashTiles(cls,students);drawFortnight(cls,students);
+  const {lessons,strip}=dashBook(cls,students);
   box.innerHTML='<table><thead><tr><th>Student</th><th>N-awards unresolved</th><th>Total missed</th><th>Book work</th></tr></thead><tbody>'+
     students.map(s=>({s,un:nawFor(s.id).filter(r=>r.status!=='resolved').length,owed:lessons.filter(l=>!S.book.has(bKey(s.id,l)))}))
       .sort((a,b)=>b.un-a.un||b.owed.length-a.owed.length).map(({s,un,owed})=>{
-      return '<tr><td>'+esc(s.last)+', '+esc(s.first)+'</td><td style="text-align:center">'+(un?'<span style="display:inline-block;min-width:34px;padding:2px 12px;border-radius:999px;background:#C0392B;color:#fff;font-weight:700;font-size:16px">'+un+'</span>':'')+'</td><td style="text-align:center">'+missPill(owed.length)+'</td><td>'+
+      return '<tr><td>'+esc(s.last)+', '+esc(s.first)+'</td><td style="text-align:center">'+unPill(un)+'</td><td style="text-align:center">'+missPill(owed.length)+'</td><td>'+
         (lessons.length?'<div class="lg">'+strip(s)+'</div>':'<span class="note" style="margin:0">No book work ticked yet</span>')+'</td></tr>'}).join('')+'</tbody></table>';
 }
 $('dPrint').onclick=()=>{
   const cls=$('dClass').value,msg=$('dMsg');
   if(!S.loaded||!cls){msg.textContent='Choose a class first.';return}
-  const students=studentsIn(cls),idset=new Set(students.map(s=>s.id)),active=new Set();
-  S.book.forEach((v,k)=>{const i=k.indexOf('|');if(idset.has(k.slice(0,i)))active.add(k.slice(i+1))});
-  const lessons=[...active].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));
-  const rows=students.map(s=>({s,owed:lessons.filter(l=>!S.book.has(bKey(s.id,l)))})).filter(r=>r.owed.length>=4)
-    .sort((a,b)=>b.owed.length-a.owed.length||fullName(a.s).localeCompare(fullName(b.s)));
+  const students=studentsIn(cls),{lessons,strip}=dashBook(cls,students);
+  const rows=students.map(s=>({s,un:nawFor(s.id).filter(r=>r.status!=='resolved').length,owed:lessons.filter(l=>!S.book.has(bKey(s.id,l)))})).filter(r=>r.owed.length>=4)
+    .sort((a,b)=>b.un-a.un||b.owed.length-a.owed.length);
   if(!rows.length){msg.textContent='No students have 4 or more lessons missed.';return}
   msg.textContent='';
-  const body=rows.map(({s,owed})=>'<tr><td>'+esc(fullName(s))+'</td><td class="n"><span class="pill" style="background:'+(owed.length>=8?'#C0392B':'#D9850A')+'">'+owed.length+'</span></td><td>'+owed.map(esc).join(', ')+'</td></tr>').join('');
+  const body=rows.map(({s,un,owed})=>'<tr><td>'+esc(s.last)+', '+esc(s.first)+'</td><td style="text-align:center">'+unPill(un)+'</td><td style="text-align:center">'+missPill(owed.length)+'</td><td><div class="lg">'+strip(s)+'</div></td></tr>').join('');
   $('printArea').innerHTML='<div class="owePrint"><p class="cls">'+esc(cls)+'</p><div class="ptitle">Book work to catch up · 4 or more lessons missed</div>'+
-    '<table><thead><tr><th>Student</th><th class="n">Missed</th><th>Lessons owed</th></tr></thead><tbody>'+body+'</tbody></table></div>';
-  const pg=document.createElement('style');pg.textContent='@media print{@page{size:A4 portrait;margin:12mm}}';document.head.append(pg);
+    '<table><thead><tr><th>Student</th><th>N-awards unresolved</th><th>Total missed</th><th>Book work</th></tr></thead><tbody>'+body+'</tbody></table></div>';
+  const pg=document.createElement('style');pg.textContent='@media print{@page{size:A4 portrait;margin:10mm}}';document.head.append(pg);
   window.addEventListener('afterprint',()=>pg.remove(),{once:true});
   window.print();
 };
