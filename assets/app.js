@@ -570,6 +570,13 @@ function presApply(){
   const base = P.sub ? P.reList.length : P.rows.length;
   $('pPos').textContent = (P.sub ? `Re-teach ${P.si + 1} of ${P.reList.length}` : `${P.i + 1} / ${P.rows.length}`) + (P.n ? ` · step ${P.k}/${P.n}` : '');
 }
+// scale the slide to fill the stage in its current state (answers hidden or shown)
+function presFit(){
+  const stage = $('presStage'), sheet = stage.querySelector('.sheet'); if (!sheet) return;
+  sheet.style.zoom = 1;
+  const z = Math.min(stage.clientWidth / 760, stage.clientHeight / sheet.offsetHeight, 2.4) * 0.97;
+  sheet.style.zoom = z.toFixed(4);
+}
 function presDraw(full){
   const stage = $('presStage');
   const cards = P.sub || P.rows[P.i].cards;
@@ -577,11 +584,8 @@ function presDraw(full){
   const row = document.createElement('div'); row.className = 'row'; const l = document.createElement('div'); row.append(l); sheet.append(row);
   cards.forEach(c=>l.append(c.cloneNode(true)));
   stage.replaceChildren(sheet); math(sheet); presMap();
-  // size for the tallest state (answers showing), so Show answers never pushes the card off the screen
-  const wasAns = $('pres').classList.contains('ans'); $('pres').classList.add('ans');
-  const hFull = sheet.offsetHeight; if (!wasAns) $('pres').classList.remove('ans');
-  const z = Math.min(stage.clientWidth / 760, stage.clientHeight / hFull, 2.4) * 0.97;
-  sheet.style.zoom = z.toFixed(4);
+  // size for what is showing now (answers hidden = bigger); Show answers / Hide answers refit it
+  presFit();
   // examples marked class="step" appear one at a time (e.g. the N P P P N of a Category model); going Back onto a card shows them all
   P.n = sheet.querySelectorAll('.step').length; P.k = P.n ? (full ? P.n : 1) : 0;
   presApply();
@@ -626,6 +630,7 @@ $('pRe').addEventListener('click', presRe);
 $('pExit').addEventListener('click', presExit);
 $('pAns').addEventListener('click', ()=>{
   const on = $('pres').classList.toggle('ans'); $('pAns').textContent = on ? 'Hide answers' : 'Show answers';
+  presFit();
 });
 window.addEventListener('keydown', e=>{
   if ($('pres').hidden) return;
