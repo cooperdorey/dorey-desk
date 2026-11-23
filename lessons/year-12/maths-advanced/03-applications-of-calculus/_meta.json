@@ -1,1 +1,10 @@
-{"name": "Applications of Calculus"}
+{
+ "name": "Applications of Calculus",
+ "tools": [
+  {
+   "file": "tools/gradient-tracer.html",
+   "name": "Gradient tracer",
+   "desc": "Drag a point along a curve and watch the tangent move while the graphs of f′ and f″ are traced underneath. Jump between stationary points and inflections, zoom in to see why a corner has no tangent, and try functions that are not differentiable."
+  }
+ ]
+}

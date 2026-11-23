@@ -18,6 +18,9 @@ A topic folder may also hold the topic's Dorey's Resource Book as drb.pdf.
 Extra editions sit beside it as drb-<label>.pdf (e.g. drb-student.pdf) and
 show as extra downloads.
 
+A topic's _meta.json may list interactive tools: "tools": [{"file": "tools/x.html", "name": "…", "desc": "…"}]
+(files relative to the topic folder, self-contained pages). They show as a Tools tab beside Lessons and DRB.
+
 Run from the repo root:  python3 scripts/build_manifest.py
 Exits non-zero (failing the deploy) if a lesson has a problem.
 """
@@ -112,6 +115,21 @@ def read_drb(tp):
         main['extras'] = extras
     return main
 
+def read_tools(tp, trel):
+    """Interactive tool pages listed in the topic's _meta.json."""
+    out = []
+    for item in (read_meta(tp).get('tools') or []):
+        f, name = item.get('file', ''), item.get('name', '')
+        fp = os.path.join(tp, f)
+        if not f or not name or not os.path.isfile(fp):
+            problems.append(f'{trel}/_meta.json: tool "{name or f}" needs a name and an existing file')
+            continue
+        with open(fp, 'rb') as fh:
+            data = fh.read()
+        out.append({'id': re.sub(r'\.html?$', '', os.path.basename(f)), 'name': name, 'desc': item.get('desc', ''),
+                    'path': os.path.relpath(fp, ROOT).replace(os.sep, '/'), 'v': hashlib.sha1(data).hexdigest()[:8]})
+    return out
+
 years = []
 for y in subdirs(LESSONS):
     yp = os.path.join(LESSONS, y)
@@ -149,10 +167,11 @@ for y in subdirs(LESSONS):
                                              for v in vs]})
             lessons.sort(key=lambda l: code_key(l['code']))
             drb = read_drb(tp)
-            if lessons or drb:
+            tools = read_tools(tp, os.path.relpath(tp, ROOT).replace(os.sep, '/'))
+            if lessons or drb or tools:
                 topics.append({'id': t, 'name': meta_name(tp, nice(t)),
                                'num': str(int(num.group(1))) if num else '', 'lessons': lessons,
-                               'drb': drb})
+                               'drb': drb, 'tools': tools})
         m = read_meta(cp)
         # courses with no lessons yet are kept, so the home page can show them as "coming soon"
         courses.append({'id': c, 'name': m.get('name', nice(c)), 'short': m.get('short', ''),
@@ -203,7 +222,8 @@ with open(os.path.join(ROOT, 'manifest.json'), 'w', encoding='utf-8') as fh:
 
 n = sum(len(t['lessons']) for y in years for c in y['courses'] for t in c['topics'])
 d = sum(1 for y in years for c in y['courses'] for t in c['topics'] if t['drb'])
-print(f'manifest.json: {len(years)} years, {n} lessons, {d} DRB')
+tl = sum(len(t['tools']) for y in years for c in y['courses'] for t in c['topics'])
+print(f'manifest.json: {len(years)} years, {n} lessons, {d} DRB' + (f', {tl} tools' if tl else ''))
 if problems:
     print('\nProblems:\n  ' + '\n  '.join(problems))
     sys.exit(1)

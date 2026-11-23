@@ -102,6 +102,9 @@ a{color:inherit}
 .pick-lessons .pick-icon i:nth-child(1){left:0;top:0;transform:rotate(-8deg)}
 .pick-lessons .pick-icon i:nth-child(2){left:9px;top:12px}
 .pick-lessons .pick-icon i:nth-child(3){left:18px;top:26px;transform:rotate(6deg)}
+/* Tools: a curve with a point */
+.pick-tools .pick-icon{color:var(--course)}
+.pick-tools .pick-icon svg{display:block}
 /* DRB: a booklet cover */
 .pick-drb .pick-icon i,.drb-cover .pick-icon i{position:absolute;inset:0 8px;border-radius:2px 7px 7px 2px;background:var(--course);
   box-shadow:inset 6px 0 0 rgba(0,0,0,.22)}

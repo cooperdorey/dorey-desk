@@ -8,6 +8,7 @@
 //             #year-12/maths-advanced/01-differential-calculus → Lessons or DRB
 //             #year-12/…/01-differential-calculus/lessons → last lesson used in that topic
 //             #year-12/…/01-differential-calculus/drb     → the topic's DRB (PDF)
+//             #year-12/…/03-applications-of-calculus/tools[/<tool id>] → the topic's interactive tools
 //             #year-12/…/1.01-…      → that lesson
 'use strict';
 const $ = id => document.getElementById(id);
@@ -116,6 +117,7 @@ function route(){
   }
   if (t && parts[3]==='lessons' && t.lessons.length) return location.replace('#' + lastIn(t).id);
   if (t && parts[3]==='drb' && t.drb) return showDrb(y, c, t);
+  if (t && parts[3]==='tools' && t.tools && t.tools.length) return showTools(y, c, t, parts[4]);
   if (t) return showTopicChoice(y, c, t);
   if (c) return showTopics(y, c);
   if (y) return showCourses(y);
@@ -125,7 +127,7 @@ function route(){
   if (parts[0]==='admin') return showAdmin();
   showStart();
 }
-function showHome(){ $('lesson').hidden = true; $('drb').hidden = true; $('home').hidden = false; $('status').hidden = true; window.scrollTo(0,0) }
+function showHome(){ $('lesson').hidden = true; $('drb').hidden = true; $('tools').hidden = true; $('home').hidden = false; $('status').hidden = true; window.scrollTo(0,0) }
 function crumbs(items, el){
   $(el||'homeCrumbs').innerHTML = items.map(i => i.href ? `<a href="${i.href}">${esc(i.label)}</a>` : `<span>${esc(i.label)}</span>`).join('');
 }
@@ -306,7 +308,7 @@ function showTopics(y, c){
   if (!c.topics.length){ tiles.innerHTML = '<p class="empty-note">No lessons in this course yet.</p>'; return }
   tiles.replaceChildren(...c.topics.map(t=>{
     const a = document.createElement('a'); a.className='topic'; a.href = `#${y.id}/${c.id}/${t.id}`;
-    const parts = []; if (t.lessons.length) parts.push(plural(t.lessons.length,'lesson')); if (t.drb) parts.push('DRB');
+    const parts = []; if (t.lessons.length) parts.push(plural(t.lessons.length,'lesson')); if (t.drb) parts.push('DRB'); if (t.tools && t.tools.length) parts.push(plural(t.tools.length,'tool'));
     a.innerHTML = `<span class="num">${esc(t.num||'')}</span><span class="t">${esc(t.name)}<span class="count">${esc(parts.join(' · '))}</span></span>`;
     return a;
   }));
@@ -334,15 +336,41 @@ function showTopicChoice(y, c, t){
     tile(n>0, base+'/lessons', 'pick-lessons', '<i></i><i></i><i></i>', 'Lessons',
          n ? `Teaching cards for OneNote · ${plural(n,'lesson')}` : 'Coming soon'),
     tile(!!d, base+'/drb', 'pick-drb', '<i></i>', 'DRB',
-         d ? `Dorey's Resource Book · ${d.pages ? plural(d.pages,'page') + ' · ' : ''}PDF` : 'Coming soon')
+         d ? `Dorey's Resource Book · ${d.pages ? plural(d.pages,'page') + ' · ' : ''}PDF` : 'Coming soon'),
+    ...(t.tools && t.tools.length ? [tile(true, base+'/tools', 'pick-tools',
+         '<svg viewBox="0 0 64 64" width="64" height="64" aria-hidden="true"><path d="M4 52 C 18 52 22 12 34 14 S 50 44 60 22" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"/><circle cx="34" cy="14" r="6" fill="currentColor"/></svg>',
+         'Tools', t.tools.map(x=>x.name).join(' · '))] : [])
   );
   document.title = `${t.name} – ${c.short||c.name} – Dorey Desk`;
+}
+
+// ---------- Tools: a topic's interactive pages ----------
+function showTools(y, c, t, which){
+  const list = t.tools, k = Math.max(0, list.findIndex(x=>x.id===which)), tool = list[k], base = `#${y.id}/${c.id}/${t.id}`;
+  $('home').hidden = true; $('lesson').hidden = true; $('drb').hidden = true; $('status').hidden = true; $('tools').hidden = false; window.scrollTo(0,0);
+  paint($('tools'), c);
+  crumbs([{label:'Home',href:'#'},{label:'Lessons',href:'#lessons'},{label:y.name,href:'#'+y.id},
+          {label:c.short||c.name,href:`#${y.id}/${c.id}`},{label:topicLabel(t),href:base},{label:'Tools'}], 'toolsCrumbs');
+  $('toolsKicker').textContent = `${c.short||c.name} · ${t.name}`;
+  $('toolsName').textContent = tool.name;
+  $('toolsMeta').textContent = tool.desc || '';
+  const url = tool.path + '?v=' + tool.v;
+  $('toolsBtns').innerHTML =
+    (list.length > 1 ? list.map((x,i)=>`<a class="btn${i===k?' solid':''}" href="${base}/tools/${esc(x.id)}">${esc(x.name)}</a>`).join('') : '') +
+    `<a class="btn" href="${esc(url)}" target="_blank" rel="noopener">Open full screen</a>` +
+    (t.lessons.length ? `<a class="btn quiet" href="${base}/lessons">Go to lessons</a>` : '');
+  const view = $('toolsView');
+  if (view.dataset.src !== tool.path + tool.v){
+    view.innerHTML = `<iframe src="${esc(url)}&embed=1" title="${esc(tool.name)}"></iframe>`;
+    view.dataset.src = tool.path + tool.v;
+  }
+  document.title = `${tool.name} – ${t.name} – Dorey Desk`;
 }
 
 // ---------- DRB: view and download the PDF ----------
 function showDrb(y, c, t){
   const d = t.drb;
-  $('home').hidden = true; $('lesson').hidden = true; $('status').hidden = true; $('drb').hidden = false; window.scrollTo(0,0);
+  $('home').hidden = true; $('lesson').hidden = true; $('tools').hidden = true; $('status').hidden = true; $('drb').hidden = false; window.scrollTo(0,0);
   paint($('drb'), c);
   crumbs([{label:'Home',href:'#'},{label:'Lessons',href:'#lessons'},{label:y.name,href:'#'+y.id},
           {label:c.short||c.name,href:`#${y.id}/${c.id}`},{label:topicLabel(t),href:`#${y.id}/${c.id}/${t.id}`},{label:'DRB'}], 'drbCrumbs');
@@ -378,6 +406,7 @@ function buildSide(L){
   const topic = $('sideTopic'); topic.href = `#${L.y.id}/${L.c.id}`;
   topic.innerHTML = `${L.t.num ? esc(L.t.num)+' · ' : ''}${esc(L.t.name)}<small>Change topic</small>`;
   const drb = $('sideDrb'); drb.hidden = !L.t.drb; drb.href = `#${L.y.id}/${L.c.id}/${L.t.id}/drb`;
+  const tls = $('sideTools'); tls.hidden = !(L.t.tools && L.t.tools.length); tls.href = `#${L.y.id}/${L.c.id}/${L.t.id}/tools`;
   const list = $('sideList'); list.replaceChildren();
   L.t.lessons.forEach(l=>{
     const a = document.createElement('a'); a.className='page';
@@ -417,7 +446,7 @@ function withCopy(card){
 async function openLesson(L){
   if (!current || current.id !== L.id) showRe = false;
   current = L;
-  $('home').hidden = true; $('drb').hidden = true; $('status').hidden = true; $('lesson').hidden = false;
+  $('home').hidden = true; $('drb').hidden = true; $('tools').hidden = true; $('status').hidden = true; $('lesson').hidden = false;
   buildSide(L); remember(L);
   $('lname').textContent = `${L.code} – ${L.title}`; math($('lname'));
   const ver = $('verBtns'), base = L.baseId && BASE[L.baseId];

@@ -47,7 +47,17 @@ We Do levels) live in the Lesson Creator project; this file covers the repo form
   the topic and lesson list read from the site's `manifest.json` (fetched at `../manifest.json`); a lesson bar reads the taught date(s) for a lesson from the absences (the dates that lesson is recorded against) and ticks present / unticks absent for that column. Its Print button makes a one-page A4 landscape grid of the class and topic (a temporary `@page` rule, removed after printing): ticked cells light grey, unticked blank, lesson code and title in each column header. A Missed column sits between the name and the first lesson (on screen and in print): lessons the class has started ticking (>=1 ticked) that the student hasn't, blank in print when zero. `course` links a class to a
   manifest course (key `<year-id>/<course-id>`, e.g. year-12/maths-advanced), so the Book work topic list filters to that course. Test with made-up names only.
   New top-level site folders must also be added to the `cp -r` line in `.github/workflows/pages.yml`.
-- Gradient tracer (`classroom/gradient-tracer.html`): a self-contained classroom page for Applications of calculus (no libraries, no network). Drag a point along y = f(x) (or use ← →, Play, and the Previous / Next point buttons that jump between stationary points and inflections): the tangent moves with it (blue rising, red falling, green flat) while y = f′(x) and y = f″(x) are traced underneath ("Reveal as you go" off shows them whole); the curve is coloured by concavity; a Zoom panel magnifies the point up to ×3000 and shows the gradients from the left and right, so a corner, cusp, vertical tangent or jump shows as not differentiable. Presets are `P` in the script (each has f, d1, d2 and a window); add a function by adding an entry. Special points are found numerically from d1 and d2. Test by loading the page in headless Chromium.
+- Topic tools: a topic's `_meta.json` may list interactive pages, `"tools": [{"file": "tools/x.html", "name": "…", "desc": "…"}]`
+  (files relative to the topic folder, self-contained: no libraries, no network). The manifest adds them to the topic (`tools`, each with
+  `id`, `name`, `desc`, `path`, `v`), and choosing the topic shows a third tile, Tools, beside Lessons and DRB (`#…/<topic>/tools[/<tool id>]`,
+  one button per tool, the page embedded with `?embed=1` so a tool can hide its own header, and Open full screen); the lesson view's side
+  list has a Tools link. A topic with no tools shows no tile. Tools are not lessons, so they get no PDFs.
+- Gradient tracer (`lessons/year-12/maths-advanced/03-applications-of-calculus/tools/gradient-tracer.html`, the Applications of calculus tool):
+  drag a point along y = f(x) (or use ← →, Play, and the Previous / Next point buttons that jump between stationary points and inflections):
+  the tangent moves with it (blue rising, red falling, green flat) while y = f′(x) and y = f″(x) are traced underneath ("Reveal as you go" off shows
+  them whole); the curve is coloured by concavity; a Zoom panel magnifies the point up to ×3000 and shows the gradients from the left and right, so
+  a corner, cusp, vertical tangent or jump shows as not differentiable. Presets are `P` in the script (each has f, d1, d2 and a window); add a function
+  by adding an entry. Special points are found numerically from d1 and d2. Test by loading the page in headless Chromium.
 - Generators: one page per generator in `generators/`, registered in
   `generators/generators.json`. The site's Generators page is a grid: one column per generator type (an entry's optional `type`, else its
   name less " generator" and any "(…)", so "LSQ generator (Standard 1)" is LSQ; columns in first-seen order) and one row per

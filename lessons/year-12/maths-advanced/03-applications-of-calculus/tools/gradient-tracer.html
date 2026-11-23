@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
 <title>Gradient tracer – Dorey Desk</title>
-<link rel="icon" href="../assets/icons/icon.svg" type="image/svg+xml">
-<link rel="icon" href="../assets/icons/icon-32.png" sizes="32x32" type="image/png">
+<link rel="icon" href="../../../../../assets/icons/icon.svg" type="image/svg+xml">
+<link rel="icon" href="../../../../../assets/icons/icon-32.png" sizes="32x32" type="image/png">
 <meta name="theme-color" content="#0F766E">
 <style>
 /* Matches the Dorey Desk site (assets/app.css) */
@@ -20,6 +20,7 @@
 [hidden]{display:none!important}
 html,body{margin:0}
 html,body{overflow-x:hidden}
+body.embed header{display:none}
 body{background:var(--paper);color:var(--ink);font-family:var(--ui);font-size:15px;line-height:1.45}
 :focus-visible{outline:2px solid var(--brand);outline-offset:2px}
 header{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;padding:12px 18px;background:var(--tint);border-bottom:1px solid var(--line)}
@@ -65,8 +66,8 @@ canvas{display:block;width:100%;touch-action:none}
 </head>
 <body>
 <header>
- <a href="../index.html">Dorey Desk</a>
- <span class="crumbs"><a href="../index.html#classroom">Classroom</a> › Gradient tracer</span>
+ <a href="../../../../../index.html">Dorey Desk</a>
+ <span class="crumbs"><a href="../../../../../index.html#year-12/maths-advanced/03-applications-of-calculus">Applications of Calculus</a> › Tools › Gradient tracer</span>
  <h1>Gradient tracer</h1>
 </header>
 
@@ -107,6 +108,7 @@ canvas{display:block;width:100%;touch-action:none}
 <p class="hint">Drag on the graphs (or use the ← → keys) to move the point. Switch off “Reveal as you go” to see all three graphs at once. Choose a function from the lists, including the ones that are not differentiable.</p>
 
 <script>
+if(/[?&]embed\b/.test(location.search))document.body.classList.add('embed');
 (function(){
 'use strict';
 const TAU = Math.PI*2, cbrt = Math.cbrt;
