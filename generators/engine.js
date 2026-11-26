@@ -126,17 +126,17 @@ function gArea(R){const k=R.pick([1,-1,2,-2,3]),p=R.int(-4,3),q=p+R.int(1,5);con
  const D=defIntSteps(cs,p,q),A=D.v.abs();
  return{q:`Find the area enclosed between the curve $y = ${pTex(cs)}$ and the $x$-axis.`,
   sol:[`Find the $x$-intercepts: $${pTex(cs)} = ${factored(k,p,q)} = 0$, so $x = ${p}$ or $x = ${q}$.`,...D.lines,
-   `${D.v.n<0?'The integral is negative because the region lies below the $x$-axis. ':''}Area $= \\left|${D.v.tex()}\\right| = ${A.tex()}$ square units.`],
-  ans:`$${A.tex()}$ units$^2$`}}
+   `${D.v.n<0?'The integral is negative because the region lies below the $x$-axis. ':''}Area $= \\left|${D.v.tex()}\\right| = ${dT(A)}$ square units.`],
+  ans:`$${dT(A)}$ units$^2$`}}
 
 function gSigned(R){const k=R.pick([1,-1]),p=R.int(-3,1),q=p+R.int(1,3),t=q+R.int(1,2);const cs=[k*p*q,-k*(p+q),k];
  const I1=defIntSteps(cs,p,q),I2=defIntSteps(cs,q,t),A=I1.v.abs().add(I2.v.abs());
  return{q:`Find the total area enclosed between $y = ${pTex(cs)}$, the $x$-axis and the lines $x = ${p}$ and $x = ${t}$.`,
   sol:[`$${pTex(cs)} = ${factored(k,p,q)}$, so the curve crosses the $x$-axis at $x = ${q}$ inside the interval. Split the integral there.`,
    ...I1.lines,...I2.lines,
-   `Area $= \\left|${I1.v.tex()}\\right| + \\left|${I2.v.tex()}\\right| = ${A.tex()}$ square units.`,
+   `Area $= \\left|${I1.v.tex()}\\right| + \\left|${I2.v.tex()}\\right| = ${dT(A)}$ square units.`,
    `(Integrating straight from $${p}$ to $${t}$ gives $${I1.v.add(I2.v).tex()}$, which is wrong because the regions cancel.)`],
-  ans:`$${A.tex()}$ units$^2$`}}
+  ans:`$${dT(A)}$ units$^2$`}}
 
 function gTrap(R){const n=R.pick([4,4,3,5,6]);
  if(R.next()<0.5){const cs=[R.int(-3,5),R.int(-4,4),R.nz(-2,2)],h=R.pick([F(1),F(1,2),F(2)]),a=F(R.int(0,2)),b=a.add(h.mul(n));
@@ -145,7 +145,7 @@ function gTrap(R){const n=R.pick([4,4,3,5,6]);
   return{q:`Use the trapezoidal rule with ${n+1} function values to approximate $\\displaystyle\\int_{${a.tex()}}^{${b.tex()}}\\left(${pTex(cs)}\\right)dx$.`,
    sol:[`$h = \\dfrac{${b.tex()} - ${a.btex()}}{${n}} = ${h.tex()}$`,tableHTML(xs.map(x=>x.tex()),ys.map(y=>y.tex())),
     `$$\\approx \\frac{${h.tex()}}{2}\\left[${ys[0].tex()} + 2\\left(${ys.slice(1,-1).map((y,i)=>i?y.btex():y.tex()).join(' + ')}\\right) + ${ys[n].btex()}\\right]$$`,
-    `$$= ${A.tex()}${A.isInt()?'':' \\approx '+A.val().toFixed(3)}$$`],ans:`$${A.tex()}$`}}
+    `$$= ${dT(A)}${A.isInt()?'':' \\approx '+A.val().toFixed(3)}$$`],ans:`$${dT(A)}$`}}
  const fns=[{t:'\\sqrt{x}',f:Math.sqrt,a:[0,1]},{t:'\\frac{1}{x}',f:x=>1/x,a:[1,2]},{t:'e^{x}',f:Math.exp,a:[0,1]},{t:'\\ln x',f:Math.log,a:[1,2]},{t:'\\frac{1}{1+x^{2}}',f:x=>1/(1+x*x),a:[0,1]}];
  const fn=R.pick(fns),h=R.pick([0.5,1]),a=R.pick(fn.a),b=a+h*n;
  const xs=[...Array(n+1)].map((_,i)=>a+h*i),ys=xs.map(x=>+fn.f(x).toFixed(4));
@@ -221,8 +221,8 @@ function gFracIdx(R){const frac=R.next()<0.35,r=R.int(2,5),s=frac?R.pick([2,3,4,
  if(p<0){const rb=frac?`\\frac{${s**q}}{${r**q}}`:`\\frac{1}{${r**q}}`;
   sol.push(`A negative index means take the reciprocal:`,`$$${qT} = \\left(${rb}\\right)^{${F(P,q).tex()}}$$`);base=rb;root=frac?`\\frac{${s}}{${r}}`:`\\frac{1}{${r}}`}
  sol.push(`The denominator $${q}$ of the index is the root${P===1?'':` and the numerator $${P}$ is the power`}:`,
-  `$$= ${P===1?rootTex(q,base):`${wrap(rootTex(q,base))}^{${P}}`} = ${P===1?root:`${wrap(root)}^{${P}}`}${P===1?'':` = ${val.tex()}`}$$`);
- return{q:`Evaluate $${qT}$ without a calculator.`,sol,ans:`$${val.tex()}$`}}
+  `$$= ${P===1?rootTex(q,base):`${wrap(rootTex(q,base))}^{${P}}`} = ${P===1?root:`${wrap(root)}^{${P}}`}${P===1?'':` = ${dT(val)}`}$$`);
+ return{q:`Evaluate $${qT}$ without a calculator.`,sol,ans:`$${dT(val)}$`}}
 
 function gExpand(R){const a=R.nz(-4,4),b=R.nz(-7,7),c=R.nz(-4,4),d=R.nz(-7,7),e=R.nz(-3,3),f=R.nz(-6,6),k=R.pick([1,-1,2,-2,3,-3]),sq2=R.next()<0.5,g=R.nz(-3,3),h=R.nz(-6,6);
  const P1=pMul(Lp(a,b),Lp(c,d)),P2=sq2?pMul(Lp(e,f),Lp(e,f)):pMul(Lp(e,f),Lp(g,h)),S=pAdd(P1,P2,k);
@@ -395,8 +395,8 @@ function gLinIneq(R){let a,c;do{a=R.nz(-6,6);c=R.int(-6,6)}while(a===c);const b=
  const k=a-c,rv=d-b,val=F(rv,k),fop=k<0?flipOp[op]:op,sol=[];
  if(c!==0||b!==0)sol.push(`Collect the $x$ terms on the left and the numbers on the right:`,`$$${lin(k,0)} ${ineq[op]} ${rv}$$`);
  if(k<0)sol.push(`Divide by $${k}$ and reverse the inequality sign:`);else if(k!==1)sol.push(`Divide by $${k}$:`);
- sol.push(`$$x ${ineq[fop]} ${val.tex()}$$`);
- return{q:`Solve $${lin(a,b)} ${ineq[op]} ${lin(c,d)}$.`,sol,ans:`$x ${ineq[fop]} ${val.tex()}$`}}
+ sol.push(`$$x ${ineq[fop]} ${dT(val)}$$`);
+ return{q:`Solve $${lin(a,b)} ${ineq[op]} ${lin(c,d)}$.`,sol,ans:`$x ${ineq[fop]} ${dT(val)}$`}}
 
 // ---------- Quadratic functions ----------
 function gParabola(R){
@@ -638,7 +638,7 @@ const logT=(b,x)=>`\\log_{${b}}${/^[\d.]+$|^[a-z]$/.test(String(x))?' '+x:x}`;
 function gLEval(R){const b=R.pick([2,3,5]),s=R.pick([1,1,2,3]),base=b**s;let t;do{t=R.int(-3,4)}while(b**Math.abs(t)>243||t===s);
  const arg=t>=0?String(b**t):`\\frac{1}{${b**-t}}`,val=F(t,s);
  return{q:`Evaluate $${logT(base,arg)}$.`,marks:1,
-  sol:s===1?[`$$${arg} = ${b}^{${t}}$$`,`$$${logT(base,arg)} = ${val.tex()}$$`]:[`Write both as powers of $${b}$: $${base} = ${b}^{${s}}$ and $${arg} = ${b}^{${t}}$.`,`$(${b}^{${s}})^{x} = ${b}^{${t}}$ gives $${s}x = ${t}$.`,`$$${logT(base,arg)} = ${val.tex()}$$`],ans:`$${val.tex()}$`}}
+  sol:s===1?[`$$${arg} = ${b}^{${t}}$$`,`$$${logT(base,arg)} = ${dT(val)}$$`]:[`Write both as powers of $${b}$: $${base} = ${b}^{${s}}$ and $${arg} = ${b}^{${t}}$.`,`$(${b}^{${s}})^{x} = ${b}^{${t}}$ gives $${s}x = ${t}$.`,`$$${logT(base,arg)} = ${dT(val)}$$`],ans:`$${dT(val)}$`}}
 
 function gLLaws(R){const b=R.pick([2,3,5,6,10]),v=R.int(0,2);let q,steps,val;
  if(v===0){const t=R.int(2,3),N=b**t;let ds=[];for(let d=2;d<N;d++)if(N%d===0&&d!==b)ds.push(d);if(!ds.length)ds=[b];const p=R.pick(ds),r=N/p;
@@ -836,7 +836,7 @@ function gTmExact(R){const A=()=>[R.pick(['sin','cos','tan']),R.pick([30,45,60])
    sol:[`$$${fnT(f1)} ${DEG(a1)}\\,${fnT(f2)} ${DEG(a2)} = ${show(EXT[a1][f1])}\\times ${show(EXT[a2][f2])} = ${val}$$`],ans:`$${val}$`}}
  const [c1,m1]=TVAL[a1][f1],[c2,m2]=TVAL[a2][f2],s1=c1.mul(c1).mul(m1),s2=c2.mul(c2).mul(m2),sgn=R.next()<0.5?1:-1,val=sgn>0?s1.add(s2):s1.sub(s2);
  return{q:`Find the exact value of $${fnT(f1)}^{2}${DEG(a1)} ${sgn>0?'+':'-'} ${fnT(f2)}^{2}${DEG(a2)}$.`,marks:1,
-  sol:[`$$= ${sqWrap(EXT[a1][f1])} ${sgn>0?'+':'-'} ${sqWrap(EXT[a2][f2])} = ${s1.tex()} ${sgn>0?'+':'-'} ${s2.tex()} = ${val.tex()}$$`],ans:`$${val.tex()}$`}}
+  sol:[`$$= ${sqWrap(EXT[a1][f1])} ${sgn>0?'+':'-'} ${sqWrap(EXT[a2][f2])} = ${s1.tex()} ${sgn>0?'+':'-'} ${s2.tex()} = ${dT(val)}$$`],ans:`$${dT(val)}$`}}
 
 function gTmAnyMag(R){const rad=R.next()<0.5;let fn,d,e;
  do{fn=R.pick(['sin','cos','tan']);d=R.pick([30,45,60,90])*R.int(1,7)*R.pick([1,1,1,-1]);const t=((d%360)+360)%360;
@@ -1193,6 +1193,140 @@ function gLGraph(R){
   sol:[`The logarithm needs $${L} \\gt 0$, so the domain is $x \\gt ${h}$ and the asymptote is $x = ${h}$.`,`$x$-intercept: $${fn} = 0$ when $${L} = 1$, so $x = ${h+1}$.`],ans:`Domain $x \\gt ${h}$, asymptote $x = ${h}$, $x$-intercept $(${h+1}, 0)$`}}
 
 
+// ================= YEAR 12: INTEGRAL CALCULUS (week 8 banks) =================
+// Each chk holds numbers for scripts/check_generators.js: f and df (f' = df, with f(x0) = y0), or g, lo, hi, val (numeric integral), or eq (pairs that must agree).
+function dT(c){c=Fr.of(c);return c.d===1?String(c.n):(c.n<0?'-':'')+'\\dfrac{'+Math.abs(c.n)+'}{'+c.d+'}'}
+function tD(c,v,first){c=Fr.of(c);const neg=c.n<0,a=c.abs();let body;
+ if(v){body=a.d===1?(a.n===1?v:a.n+v):'\\dfrac{'+a.n+'}{'+a.d+'}'+v}else body=a.d===1?String(a.n):'\\dfrac{'+a.n+'}{'+a.d+'}';
+ return first?(neg?'-':'')+body:(neg?' - ':' + ')+body}
+const par=n=>n<0?`(${n})`:String(n);
+const sgn=(n,first)=>first?(n<0?'-':''):(n<0?' - ':' + ');
+
+function gIcAx(R){const a=R.pick([2,3,5,10]),k=R.pick([-7,-6,-5,-4,-3,-2,2,3,4,5,6,7]),A=Math.abs(k),kb=`${k}\\times ${a}^{x}`;
+ const res=`${k<0?'-':''}\\dfrac{${A}\\times ${a}^{x}}{\\ln ${a}}+c`;
+ return{q:`Find $\\displaystyle\\int ${kb}\\,dx$.`,
+  sol:[`Using $\\displaystyle\\int a^{x}\\,dx=\\dfrac{a^{x}}{\\ln a}+c$:`,`$$\\int ${kb}\\,dx=${res}$$`],ans:`$${res}$`,
+  chk:{f:x=>k*Math.pow(a,x)/Math.log(a),df:x=>k*Math.pow(a,x)}}}
+
+function gIcGeom(R){
+ if(R.next()<0.2){const r=R.int(2,9),r2=r*r,area=r2%2===0?`${r2/2}\\pi`:`\\dfrac{${r2}\\pi}{2}`;
+  return{q:`Evaluate $\\displaystyle\\int_{-${r}}^{${r}}\\sqrt{${r2}-x^{2}}\\,dx$ using area.`,
+   sol:[`$y=\\sqrt{${r2}-x^{2}}$ is the upper half of the circle $x^{2}+y^{2}=${r2}$.`,`The circle has centre $(0,\\,0)$ and radius $${r}$.`,`The integral is the area of this semicircle.`,
+    `$$\\dfrac{1}{2}\\times\\pi\\times ${r}^{2}=${area}$$`],ans:`$${area}$`,
+   chk:{g:th=>(r*Math.cos(th))**2,lo:-Math.PI/2,hi:Math.PI/2,val:Math.PI*r2/2}}}
+ let m,r,a,b,mode,val,top;
+ do{m=R.pick([-3,-2,-1,1,2,3]);r=R.nz(-4,4);mode=R.pick(['cross','trap','tri']);const s=R.pick([-1,1]);
+  if(mode==='cross'){const p=R.int(1,5),q=R.int(1,5);a=r-p;b=r+q}
+  else if(mode==='tri'){const d=R.int(2,6);a=Math.min(r,r+s*d);b=Math.max(r,r+s*d)}
+  else{const d1=R.int(1,3),d2=d1+R.int(1,4);a=Math.min(r+s*d1,r+s*d2);b=Math.max(r+s*d1,r+s*d2)}
+  const c0=-m*r;val=F(m*(b*b-a*a),2).add(c0*(b-a));top=Math.max(Math.abs(m*(a-r)),Math.abs(m*(b-r)))}while(val.isZero()||top>12);
+ const c=-m*r,fa=m*(a-r),fb=m*(b-r),line=lin(m,c);
+ const sol=[`The line $y=${line}$ crosses the $x$-axis at $x=${r}$.`];
+ if(mode==='cross'){const p=r-a,q=b-r,A1=F(p*Math.abs(fa),2),A2=F(q*Math.abs(fb),2),up=fa>0?A1:A2,dn=fa>0?A2:A1;
+  sol.push(`The region is two triangles, one on each side of the $x$-axis.`,
+   `Left: base $${p}$, height $${Math.abs(fa)}$, area $\\dfrac{1}{2}\\times ${p}\\times ${Math.abs(fa)}=${dT(A1)}$, ${fa>0?'above':'below'} the axis.`,
+   `Right: base $${q}$, height $${Math.abs(fb)}$, area $\\dfrac{1}{2}\\times ${q}\\times ${Math.abs(fb)}=${dT(A2)}$, ${fb>0?'above':'below'} the axis.`,
+   `$$\\int_{${a}}^{${b}}(${line})dx=${dT(up)}-${dT(dn)}=${dT(val)}$$`)}
+ else if(mode==='tri'){const d=b-a,h=Math.abs(fa)||Math.abs(fb),A=F(d*h,2);
+  sol.push(`The region is a triangle with base $${d}$ and height $${h}$, ${val.n>0?'above':'below'} the $x$-axis.`,`$$\\text{area}=\\dfrac{1}{2}\\times ${d}\\times ${h}=${dT(A)}$$`,
+   val.n>0?`The integral equals the area.`:`The region is below the axis, so the integral is negative.`,`$$\\int_{${a}}^{${b}}(${line})dx=${dT(val)}$$`)}
+ else{const h1=Math.abs(fa),h2=Math.abs(fb),A=F((h1+h2)*(b-a),2);
+  sol.push(`The region is a trapezium. Its parallel sides are $${h1}$ and $${h2}$, and its width is $${b-a}$.`,`$$\\text{area}=\\dfrac{1}{2}\\times(${h1}+${h2})\\times ${b-a}=${dT(A)}$$`,
+   val.n>0?`The region is above the axis, so the integral equals the area.`:`The region is below the axis, so the integral is negative.`,`$$\\int_{${a}}^{${b}}(${line})dx=${dT(val)}$$`)}
+ return{q:`Evaluate $\\displaystyle\\int_{${a}}^{${b}}(${line})dx$ using area.`,sol,ans:`$${dT(val)}$`,
+  chk:{g:x=>m*x+c,lo:a,hi:b,val:val.val()}}}
+
+function gIcOddEven(R){const odd=R.next()<0.5,full=R.next()<0.5,a=R.int(2,7),k=R.pick([-9,-8,-7,-6,-5,-4,-3,3,4,5,6,7,8,9,12]);
+ const ans=odd?(full?0:-k):(full?2*k:k),kk=par(k),sym=odd?'odd':'even',hi=full?a:0;
+ const sol=odd?[`$f$ is odd, so $f(-x)=-f(x)$ and the graph has point symmetry about the origin.`,`$$\\int_{-${a}}^{0}f(x)\\,dx=-\\int_{0}^{${a}}f(x)\\,dx=${-k}$$`]
+  :[`$f$ is even, so $f(-x)=f(x)$ and the graph is symmetric about the $y$-axis.`,`$$\\int_{-${a}}^{0}f(x)\\,dx=\\int_{0}^{${a}}f(x)\\,dx=${k}$$`];
+ if(full)sol.push(`$$\\int_{-${a}}^{${a}}f(x)\\,dx=\\int_{-${a}}^{0}f(x)\\,dx+\\int_{0}^{${a}}f(x)\\,dx=${par(odd?-k:k)}+${kk}=${ans}$$`);
+ const co=odd?4*k/Math.pow(a,4):3*k/Math.pow(a,3);
+ return{q:`$f$ is an ${sym} function that is continuous for all $x$, and $\\displaystyle\\int_{0}^{${a}}f(x)\\,dx=${k}$. Find $\\displaystyle\\int_{-${a}}^{${hi}}f(x)\\,dx$.`,sol,ans:`$${ans}$`,
+  chk:{g:x=>odd?co*x*x*x:co*x*x,lo:-a,hi,val:ans}}}
+
+function gIcLimits(R){let a=R.int(-3,2),b=a+R.int(1,4),c=b+R.int(1,4),P,Q,S,p,q,v=R.int(0,2);
+ const pick=()=>R.pick([-9,-8,-7,-6,-5,-4,-3,-2,2,3,4,5,6,7,8,9]);
+ do{P=pick();Q=pick()}while(P+Q===0||Math.abs(P+Q)===1||P===Q);
+ const given=`$\\displaystyle\\int_{${a}}^{${b}}f(x)\\,dx=${P}$ and $\\displaystyle\\int_{${b}}^{${c}}f(x)\\,dx=${Q}$`;
+ const dens=(lo,hi)=>{const o=(l,h,l2,h2)=>Math.max(0,Math.min(h,h2)-Math.max(l,l2)),s=lo<=hi?1:-1,L=Math.min(lo,hi),H=Math.max(lo,hi);
+  return s*(P/(b-a)*o(L,H,a,b)+Q/(c-b)*o(L,H,b,c))};
+ const sum=`${P}${Q<0?' - '+(-Q):' + '+Q}`;
+ if(v===0){return{q:`Find $\\displaystyle\\int_{${a}}^{${c}}f(x)\\,dx$, given that ${given}.`,
+   sol:[`$$\\int_{${a}}^{${c}}f(x)\\,dx=\\int_{${a}}^{${b}}f(x)\\,dx+\\int_{${b}}^{${c}}f(x)\\,dx$$`,`$$=${sum}=${P+Q}$$`],ans:`$${P+Q}$`,chk:{eq:[[P+Q,dens(a,c)]]}}}
+ if(v===1){const w=R.pick(['ba','cb','ca']);
+  if(w==='ba')return{q:`Find $\\displaystyle\\int_{${b}}^{${a}}f(x)\\,dx$, given that ${given}.`,sol:[`Reversing the limits changes the sign.`,`$$\\int_{${b}}^{${a}}f(x)\\,dx=-\\int_{${a}}^{${b}}f(x)\\,dx=${-P}$$`],ans:`$${-P}$`,chk:{eq:[[-P,dens(b,a)]]}};
+  if(w==='cb')return{q:`Find $\\displaystyle\\int_{${c}}^{${b}}f(x)\\,dx$, given that ${given}.`,sol:[`Reversing the limits changes the sign.`,`$$\\int_{${c}}^{${b}}f(x)\\,dx=-\\int_{${b}}^{${c}}f(x)\\,dx=${-Q}$$`],ans:`$${-Q}$`,chk:{eq:[[-Q,dens(c,b)]]}};
+  return{q:`Find $\\displaystyle\\int_{${c}}^{${a}}f(x)\\,dx$, given that ${given}.`,sol:[`$$\\int_{${a}}^{${c}}f(x)\\,dx=\\int_{${a}}^{${b}}f(x)\\,dx+\\int_{${b}}^{${c}}f(x)\\,dx=${sum}=${P+Q}$$`,`Reversing the limits changes the sign.`,`$$\\int_{${c}}^{${a}}f(x)\\,dx=${-(P+Q)}$$`],ans:`$${-(P+Q)}$`,chk:{eq:[[-(P+Q),dens(c,a)]]}}}
+ const cf=()=>R.pick([-4,-3,-2,2,3,4]);let X=P+Q,ans;
+ do{p=cf();q=cf();S=R.pick([-8,-7,-6,-5,-4,-3,-2,2,3,4,5,6,7,8]);ans=p*X+q*S}while(ans===0||Math.abs(ans)===1);
+ const comb=`${p}f(x)${q<0?'-':'+'}${Math.abs(q)}g(x)`;
+ return{q:`Find $\\displaystyle\\int_{${a}}^{${c}}(${comb})dx$, given that ${given} and $\\displaystyle\\int_{${a}}^{${c}}g(x)\\,dx=${S}$.`,
+  sol:[`$$\\int_{${a}}^{${c}}f(x)\\,dx=\\int_{${a}}^{${b}}f(x)\\,dx+\\int_{${b}}^{${c}}f(x)\\,dx=${sum}=${X}$$`,
+   `$$\\int_{${a}}^{${c}}(${comb})dx=${p}\\int_{${a}}^{${c}}f(x)\\,dx${q<0?'-':'+'}${Math.abs(q)}\\int_{${a}}^{${c}}g(x)\\,dx$$`,
+   `$$=${p}\\times ${par(X)}${q<0?'-':'+'}${Math.abs(q)}\\times ${par(S)}=${ans}$$`],ans:`$${ans}$`,
+  chk:{eq:[[ans,p*dens(a,c)+q*S]]}}}
+
+function gIcRev(R){const shape=R.pick(['exact','off','neg','frac']),p=R.pick([2,3]),a=shape==='exact'?R.pick([1,1,2]):R.pick([1,2,3]),
+  d=(shape==='neg'||shape==='frac')?R.int(1,9):R.nz(-9,9),g=poly([[a,xp(p)],[d,'']]),gp=p*a;let j,nf;
+ if(shape==='exact'){j=gp;nf=F(R.int(3,6))}
+ else if(shape==='off'){do{j=R.int(1,5)}while(j===gp);nf=F(R.int(2,4))}
+ else if(shape==='neg'){j=R.int(1,5);nf=F(-R.int(2,3))}
+ else{j=R.int(1,5);nf=F(R.pick([1,-1]),2)}
+ const jx=(j===1?'':j)+xp(p-1),gpx=gp+xp(p-1),n1=nf.add(1),K=F(j).div(F(gp).mul(n1)),ratio=F(j,gp),nT=nf.isInt()?String(nf.n):`${nf.n<0?'-':''}\\frac{1}{2}`;
+ const integ=nf.isInt()?(nf.n>0?`${jx}(${g})^{${nf.n}}`:`\\dfrac{${jx}}{(${g})^{${-nf.n}}}`):(nf.n>0?`${jx}\\sqrt{${g}}`:`\\dfrac{${jx}}{\\sqrt{${g}}}`);
+ let res;
+ if(n1.isInt()&&n1.n<0){const m=-n1.n,gpart=m===1?(K.d===1?g:`(${g})`):`(${g})^{${m}}`;res=`${K.n<0?'-':''}\\dfrac{${Math.abs(K.n)}}{${K.d===1?'':K.d}${gpart}}`}
+ else if(n1.isInt())res=tD(K,`(${g})^{${n1.n}}`,true);
+ else if(n1.n===3)res=tD(K,`(${g})^{\\frac{3}{2}}`,true);
+ else res=tD(K,`\\sqrt{${g}}`,true);
+ res+=' + c';
+ const sol=[`The inside is $f(x)=${g}$, and $f'(x)=${gpx}$.`];
+ if(j===gp&&nf.isInt()&&nf.n>0)sol.push(`The integrand has the form $f'(x)[f(x)]^{${nT}}$.`);
+ else sol.push(`Write the integrand as a multiple of $f'(x)[f(x)]^{${nT}}$:`,`$$\\int ${integ}\\,dx=${j===gp?'':dT(ratio)}\\int ${gpx}(${g})^{${nT}}\\,dx$$`);
+ sol.push(`Increase the index by $1$ and divide by the new index:`,`$$${j===gp&&nf.isInt()&&nf.n>0?`\\int ${integ}\\,dx`:''}=${j===gp?'':dT(ratio)+'\\times '}\\dfrac{(${g})^{${n1.isInt()?n1.n:'\\frac{'+n1.n+'}{'+n1.d+'}'}}}{${dT(n1)}}+c$$`,`$$=${res}$$`);
+ const gf=x=>a*Math.pow(x,p)+d;
+ return{q:`Find $\\displaystyle\\int ${integ}\\,dx$.`,sol,ans:`$${res}$`,chk:{f:x=>K.val()*Math.pow(gf(x),n1.val()),df:x=>j*Math.pow(x,p-1)*Math.pow(gf(x),nf.val())}}}
+
+function gIcInitial(R){let n,k,a,b,F0a,cc,tries=0;
+ const kinds=R.sample(['q','l','c'],R.int(1,2)),co={q:3*R.nz(-3,3),l:2*R.nz(-4,4),c:R.nz(-9,9)};
+ do{n=R.pick([2,3]);k=n===2?R.nz(-9,9):2*R.nz(-5,5);a=R.pick([1,2,3,-1,-2]);b=R.int(-8,12);
+  const pr=x=>kinds.reduce((s,t)=>s.add(t==='q'?F(co.q/3).mul(Math.pow(x,3)):t==='l'?F(co.l/2).mul(x*x):F(co.c).mul(x)),F(0));
+  F0a=pr(a).add(F(-k,n-1).mul(F(1).div(F(Math.pow(a,n-1)))));cc=F(b).sub(F0a);tries++}while((cc.isZero()||cc.d>2||b===0||Math.abs(k)===1)&&tries<500);
+ const order=['q','l','c'].filter(t=>kinds.includes(t));
+ const dPoly=poly(order.map(t=>t==='q'?[co.q,'x^{2}']:t==='l'?[co.l,'x']:[co.c,''])),pPoly=poly(order.map(t=>t==='q'?[co.q/3,'x^{3}']:t==='l'?[co.l/2,'x^{2}']:[co.c,'x']));
+ const dTex=dPoly+sgn(k,false)+`\\dfrac{${Math.abs(k)}}{x^{${n}}}`;
+ const pc=F(-k,n-1),pTexAll=pPoly+sgn(pc.n,false)+`\\dfrac{${Math.abs(pc.n)}}{${xp(n-1)}}`;
+ const pF=x=>order.reduce((s,t)=>s+(t==='q'?co.q/3*x**3:t==='l'?co.l/2*x*x:co.c*x),0)+pc.val()/Math.pow(x,n-1),dF=x=>order.reduce((s,t)=>s+(t==='q'?co.q*x*x:t==='l'?co.l*x:co.c),0)+k/Math.pow(x,n);
+ const vals=[...order.map(t=>t==='q'?[co.q/3*a**3,'']:t==='l'?[co.l/2*a*a,'']:[co.c*a,'']),[pc.mul(F(1).div(F(Math.pow(a,n-1)))),'']];
+ const final=`f(x)=${pTexAll}${sgn(cc.n,false)}${cc.abs().tex().replace('\\frac','\\dfrac')}`;
+ return{q:`Find $f(x)$, given that $f'(x)=${dTex}$ and $f(${a})=${b}$.`,
+  sol:[`Write $\\dfrac{${Math.abs(k)}}{x^{${n}}}$ as $${Math.abs(k)}x^{-${n}}$.`,`$$f(x)=\\int\\left(${dPoly}${sgn(k,false)}${Math.abs(k)}x^{-${n}}\\right)dx=${pTexAll}+c$$`,
+   `Use $f(${a})=${b}$:`,`$$${poly(vals).replace(/\\frac/g,'\\dfrac')}+c=${b}$$`,`$$${F0a.tex().replace('\\frac','\\dfrac')}+c=${b}, \\quad c=${cc.tex().replace('\\frac','\\dfrac')}$$`,`$$${final}$$`],
+  ans:`$${final}$`,chk:{f:x=>pF(x)+cc.val(),df:dF,x0:a,y0:b}}}
+
+function gIcVarLimit(R){const deg=R.pick([1,2,2]);let cs;
+ if(deg===2)cs=[R.int(-6,6),2*R.int(-4,4),3*R.nz(-3,3)];else cs=[R.nz(-8,8),2*R.nz(-4,4)];
+ const P=pInt(cs),Pv=x=>pEval(P,x).val(),pv=x=>pEval(cs,x).val(),ptx=tVar(pTex(cs));
+ if(R.next()<0.34){const b=R.pick([1,2,3]),neg=cs.map(c=>Fr.of(c).neg());
+  return{q:`Let $F(t)$ be a primitive of $p(t)=${ptx}$, and let $g(x)=\\displaystyle\\int_{x}^{${b}}(${ptx})dt$. Write $g(x)$ in terms of $F$, then find $g'(x)$. Do not find $F(t)$.`,
+   sol:[`$$g(x)=\\int_{x}^{${b}}(${ptx})dt=\\left[F(t)\\right]_{x}^{${b}}=F(${b})-F(x)$$`,`$F(${b})$ is a constant, so differentiating gives:`,`$$g'(x)=-F'(x)=-p(x)=${pTex(neg)}$$`],
+   ans:`$g(x)=F(${b})-F(x)$ and $g'(x)=${pTex(neg)}$`,chk:{f:x=>Pv(b)-Pv(x),df:x=>-pv(x),x0:b,y0:0}}}
+ let a,pa;do{a=R.pick([1,2,3,-1,-2]);pa=pEval(P,a)}while(pa.isZero());
+ const P2=P.slice();P2[0]=pa.neg();const Ax=pTex(P2);
+ return{q:`Find $A(x)=\\displaystyle\\int_{${a}}^{x}(${ptx})dt$, then find $A'(x)$.`,
+  sol:[`$$A(x)=\\int_{${a}}^{x}(${ptx})dt=\\left[${tVar(pTex(P))}\\right]_{${a}}^{x}$$`,`$$=\\left(${pTex(P)}\\right)-\\left(${subTex(P,a)}\\right)=${Ax}$$`,`Differentiate:`,`$$A'(x)=${pTex(cs)}$$`],
+  ans:`$A(x)=${Ax}$ and $A'(x)=${pTex(cs)}$`,chk:{f:x=>Pv(x)-Pv(a),df:pv,x0:a,y0:0}}}
+
+function gIcInitExp(R){const k=R.pick([-5,-4,-3,-2,2,3,4,5]),m=R.pick([-9,-8,-7,-6,-5,-4,-3,-2,2,3,4,5,6,7,8,9])*R.pick([1,1,10]),A=k*m;let P0;
+ do{P0=R.int(2,60)*R.pick([1,1,10])}while(P0===m);
+ const c=P0-m,ex=`e^{${k}t}`;
+ const res=`${term(m,ex,true)}${c<0?' - '+(-c):' + '+c}`;
+ return{q:`Find an expression for $P(t)$, given that $\\dfrac{dP}{dt}=${term(A,ex,true)}$ and $P=${P0}$ when $t=0$.`,
+  sol:[`$$P(t)=\\int ${term(A,ex,true)}\\,dt=${term(m,ex,true)}+c$$`,`When $t=0$: $${m}e^{0}+c=${P0}$, so $c=${c}$.`,`$$P(t)=${res}$$`],ans:`$P(t)=${res}$`,
+  chk:{f:t=>m*Math.exp(k*t)+c,df:t=>A*Math.exp(k*t),x0:0,y0:P0}}}
+
+
 // ================= TOPICS & LESSONS =================
 // Rename / reorder / regroup freely. Lesson ids are used in share links, so keep them stable once in use.
 const TOPICS=[
@@ -1223,14 +1357,22 @@ const TOPICS=[
  {id:'12adv-integration',name:'Integral calculus',course:'Year 12 Advanced',lessons:[
   {id:'ic-power',name:'Power rule (polynomials)',gen:gPower,marks:2},
   {id:'ic-index',name:'Negative and fractional indices',gen:gIndices,marks:2},
-  {id:'ic-chain',name:'Reverse chain rule: (ax + b)ⁿ',gen:gLinPow,marks:2},
+  {id:'ic-chain',name:'Linear inside: (ax + b)ⁿ',gen:gLinPow,marks:2},
   {id:'ic-def',name:'Definite integrals',gen:gDef,marks:2},
   {id:'ic-exp',name:'Integrating exponentials',gen:gExp,marks:1},
   {id:'ic-log',name:'Integrals giving logarithms',gen:gLog,marks:1},
   {id:'ic-trig',name:'Integrating trig functions',gen:gTrig,marks:1},
   {id:'ic-area',name:'Area between curve and x-axis',gen:gArea,marks:3},
   {id:'ic-signed',name:'Area: curve crosses the x-axis',gen:gSigned,marks:3},
-  {id:'ic-trap',name:'Trapezoidal rule',gen:gTrap,marks:2}]},
+  {id:'ic-trap',name:'Trapezoidal rule',gen:gTrap,marks:2},
+  {id:'ic-ax',name:'Integrating a to the x',gen:gIcAx,marks:1},
+  {id:'ic-geom',name:'Definite integrals from geometry',gen:gIcGeom,marks:2},
+  {id:'ic-oddeven',name:'Odd and even functions',gen:gIcOddEven,marks:2},
+  {id:'ic-limits',name:'Rules for limits of integration',gen:gIcLimits,marks:2},
+  {id:'ic-revchain',name:'Reverse chain rule: f\'(x)[f(x)]ⁿ',gen:gIcRev,marks:2},
+  {id:'ic-initial',name:'Finding f(x) from f\'(x)',gen:gIcInitial,marks:3},
+  {id:'ic-varlimit',name:'Variable limit of integration',gen:gIcVarLimit,marks:3},
+  {id:'ic-initexp',name:'Rate of change with e to the kt',gen:gIcInitExp,marks:3}]},
  {id:'11adv-functions',name:'Working with functions',course:'Year 11 Advanced',lessons:[
   {id:'wf-index',group:'Algebraic techniques',name:'Index laws',gen:gIndexLaws,marks:2},
   {id:'wf-fracidx',group:'Algebraic techniques',name:'Negative and fractional indices',gen:gFracIdx,marks:1},
@@ -1325,6 +1467,7 @@ const CODE_ORDER=[
  "dc-avg","dc-first","dc-index","dc-chain","dc-product","dc-quotient","dc-tangent","dc-normal",
  "dc-gradpt","dc-incline","dc-stat","dc-velocity","pr-sets","pr-add","pr-tree","pr-dice",
  "pr-cond","pr-indep","pr-rv","pr-data","pr-relfreq",
+ "ic-ax","ic-geom","ic-oddeven","ic-limits","ic-revchain","ic-initial","ic-varlimit","ic-initexp",
 ];
 function encodeLessons(ids){const on=new Set(ids);let n=0n;CODE_ORDER.forEach((id,i)=>{if(on.has(id))n|=1n<<BigInt(i)});return n.toString(36)}
 function decodeLessons(s){let n=0n;for(const ch of String(s).toLowerCase()){const d=parseInt(ch,36);if(isNaN(d))return [];n=n*36n+BigInt(d)}return CODE_ORDER.filter((id,i)=>(n>>BigInt(i))&1n).filter(id=>LESSONS[id])}

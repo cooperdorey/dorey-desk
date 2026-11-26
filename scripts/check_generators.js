@@ -34,6 +34,8 @@ function checkNumbers(where,c){if(!c)return;
   if(c.y0!==undefined&&!close(c.f(x0),c.y0))fail(where,`y0: ${c.f(x0)} vs ${c.y0}`);
   if(c.c!==undefined&&!close(c.y0-c.m*x0,c.c))fail(where,'intercept')}
  if(c.q!==undefined&&c.a1!==undefined){[[c.m1,c.k1],[c.m2,c.k2]].forEach(([m,k])=>{if(!close(m*c.p+k,c.q))fail(where,'tangent does not pass through the point')})}
+ if(c.g&&c.lo!==undefined&&c.val!==undefined&&!c.f){const N=2000,h=(c.hi-c.lo)/N;let s=c.g(c.lo)+c.g(c.hi);for(let i=1;i<N;i++)s+=c.g(c.lo+i*h)*(i%2?4:2);const v=s*h/3;if(!close(v,c.val))fail(where,`integral ${v} vs ${c.val}`)}
+ if(c.eq)c.eq.forEach(([u,v])=>{if(!close(u,v))fail(where,`${u} vs ${v}`)})
  if(c.fp!==undefined&&!close((c.fp*c.g-c.f*c.gp)/(c.g*c.g),c.val))fail(where,'quotient value')}
 
 // ---- HSC bank ----
@@ -50,7 +52,7 @@ HSC_BANK.forEach(e=>{const w='bank '+e.id;
 console.log(`HSC bank: ${HSC_BANK.length} entries, ${HSC_BANK.filter(e=>e.gen).length} with new-number versions`);
 
 // ---- every lesson's own generator (optional) ----
-if(ALL){let n=0;Object.values(LESSONS).forEach(L=>{for(let s=0;s<SEEDS;s++){let Q;try{Q=L.gen(makeRng(L.id+s))}catch(e){fail('lesson '+L.id,'threw '+e.message);break}checkText(`lesson ${L.id} seed ${s}`,Q);n++}});console.log('lesson generators checked:',n)}
+if(ALL){let n=0;Object.values(LESSONS).forEach(L=>{for(let s=0;s<SEEDS;s++){let Q;try{Q=L.gen(makeRng(L.id+s))}catch(e){fail('lesson '+L.id,'threw '+e.message);break}checkText(`lesson ${L.id} seed ${s}`,Q);checkNumbers(`lesson ${L.id} seed ${s}`,Q.chk);n++}});console.log('lesson generators checked:',n)}
 
 // ---- sets and codes ----
 const dd=TOPICS.find(t=>t.id==='12adv-differentiation').lessons.map(l=>l.id),dc=TOPICS.find(t=>/differentiation|rates/i.test(t.id)&&t.id!=='12adv-differentiation');
