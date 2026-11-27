@@ -561,7 +561,7 @@ window.addEventListener('hashchange',route);
 
 // ---------- presentation mode ----------
 // One row of cards at a time, scaled to fill the screen. Next / Back step through the lesson;
-// Show answers reveals the worked solutions; Re-teach (on a Warm-up) shows that atom's Re-teach
+// Show answers reveals the worked solutions; Re-teach (on a Warm-up or We Do) shows that atom's Re-teach
 // cards, and Next then carries on from the Warm-up. Arrow keys, space, Escape and a clicker work.
 let P = null;
 // one card per slide, so an I Do has the whole screen and its We Dos stay hidden until their turn
@@ -618,7 +618,7 @@ function presDraw(full){
   // examples marked class="step" appear one at a time (e.g. the N P P P N of a Category model); going Back onto a card shows them all
   P.n = sheet.querySelectorAll('.step').length; P.k = P.n ? (full ? P.n : 1) : 0;
   presApply();
-  const warm = !P.sub && cards.some(c=>/^warm-up/i.test(labelOf(c)));
+  const warm = !P.sub && cards.some(c=>/^(warm-up|we do)/i.test(labelOf(c)));
   $('pRe').hidden = !(warm && P.re.length) && !P.sub;
   $('pRe').textContent = P.sub ? 'Back to lesson' : 'Re-teach';
   $('pNext').textContent = P.sub && P.si < P.reList.length - 1 ? 'Next re-teach' : (P.i >= P.rows.length - 1 && !P.sub ? 'Finish' : 'Next');
@@ -642,7 +642,7 @@ function presBack(){
 function presRe(){
   if (!P) return;
   if (P.sub){ P.sub = null; return presDraw(); }
-  // this Warm-up's atoms, if the cards say which; otherwise every Re-teach card in order
+  // this Warm-up's or We Do's atoms, if the cards say which; otherwise every Re-teach card in order
   const atoms = P.rows[P.i].cards.map(c=>c.dataset.atom).filter(Boolean);
   let list = atoms.length ? P.re.filter(c=>atoms.includes(c.dataset.atom)) : [];
   if (!list.length) list = P.re;

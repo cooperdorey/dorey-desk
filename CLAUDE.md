@@ -8,7 +8,7 @@ We Do levels) live in the Lesson Creator project; this file covers the repo form
 - Versions: a lesson taught at several levels (11 STD A / B / C classes) is one file per version,
   `<code>-<slug>.A.html`, `.B.html`, `.C.html`, sharing code and title. The manifest groups them into one
   lesson with `versions`; the lesson view shows A / B / C buttons and each course remembers the last version used.
-  A course's `_meta.json` can rename the buttons: `"versions": {"B": "ATAR", "C": "HSC"}` (12 STD 1).
+  A course's `_meta.json` can rename the buttons: `"versions": {"B": "ATAR", "C": "HSC"}` (12 STD 1; 11 STD is A Std 2 ATAR, B Std 1 ATAR, C Std 1 HSC). A card is shared by listing several versions; a We Do tagged for fewer versions is how each level stops at its own ceiling.
 - Cards use the existing `.c` / `.h` / `.b` markup with `$…$` maths (rendered at runtime
   by KaTeX as MathML). Do not paste pre-rendered MathML.
 - Worked solutions go inline as `<div class="ws">…</div>` under each question, including
@@ -27,7 +27,7 @@ We Do levels) live in the Lesson Creator project; this file covers the repo form
   Re-teach cards button (one card per row, 760px) and gets `pdf/<id>-reteach.pdf` and `-reteach-answers.pdf` (A4 portrait-shaped pages,
   for importing into OneNote). Put them last in the lesson file.
 - Present mode (lesson view's Present button): full screen, one card per slide scaled to fill the screen as it is showing (answers hidden = larger; Show answers rescales it to fit), so a We Do stays hidden during its I Do, with a clickable dot map bottom right; Next / Back, Show answers
-  and, on a Warm-up, Re-teach (shows that atom's Re-teach cards, matched by the `atom:` id in the metadata comment above each card,
+  and, on a Warm-up or We Do, Re-teach (shows that atom's Re-teach cards, matched by the `atom:` id in the metadata comment above each card,
   else every Re-teach card; Next returns to the lesson). Keys: arrows, space, Esc, A (answers), R (re-teach).
   Elements with class `step` (the examples in a Category model) appear one per forward click in Present mode and all at once elsewhere.
 - Lesson PDFs: `pages.yml` runs `scripts/build_pdfs.py _site` after collecting the site (headless Chromium
