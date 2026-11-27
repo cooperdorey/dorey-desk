@@ -621,7 +621,7 @@ async function persist(){markDirty();if(S.dir)await saveAll()}
 /* ---------- tabs ---------- */
 document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('#tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));
-  ['dash','entry','catch','book','lsq','asm','sum','naw','cls'].forEach(t=>$('t-'+t).hidden=(t!==b.dataset.t));
+  ['dash','entry','catch','prog','book','lsq','asm','sum','naw','cls'].forEach(t=>$('t-'+t).hidden=(t!==b.dataset.t));
   showGroup(groupOf(b.dataset.t));
   refreshAll();
 });
