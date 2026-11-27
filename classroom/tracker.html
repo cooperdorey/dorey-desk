@@ -95,7 +95,7 @@ td.n,th.n{text-align:right}
 .pgrid{border-collapse:collapse;font-size:13px;width:100%}
 .pgrid th,.pgrid td{border-bottom:1px solid var(--line);padding:6px 10px;text-align:left;vertical-align:top}
 .pgrid thead th{background:var(--tint)}
-.pgrid td.cd{white-space:nowrap}.pgrid ul{margin:0;padding-left:16px}
+.pgrid td.cd{white-space:nowrap}
 .bgrid{border-collapse:collapse;font-size:13px}
 .bgrid th,.bgrid td{border:1px solid var(--line);padding:5px 4px;text-align:center}
 .bgrid td.st,.bgrid th.st{position:sticky;left:0;z-index:1;background:var(--panel);text-align:left;white-space:nowrap;min-width:150px}
@@ -206,7 +206,6 @@ dialog .row{margin-top:12px}
   #printArea .pgPrint td{border-bottom:1px solid #000;padding:1.5mm 2mm;vertical-align:top;overflow-wrap:anywhere}
   #printArea .pgPrint tr{break-inside:avoid}
   #printArea .pgPrint .cd{width:15mm}#printArea .pgPrint .dt{width:30mm}
-  #printArea .pgPrint ul{margin:0;padding-left:4mm}
   #printArea .bwPrint{font-family:Arial,Helvetica,sans-serif;color:#000;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   #printArea .bwPrint .cls{font-size:12pt;font-weight:bold;margin:0 0 2mm}
   #printArea .bwPrint .ptitle{font-size:14pt;border-bottom:1px solid #000;margin:0 0 3mm;padding-bottom:1mm}
@@ -918,7 +917,7 @@ function buildTopics(data){
     const label=c.short||((y.name?y.name+' ':'')+c.name);
     let any=false;
     (c.topics||[]).forEach(t=>{
-      const lessons=(t.lessons||[]).map(l=>({code:l.code,title:l.title,points:l.points||[]}));
+      const lessons=(t.lessons||[]).map(l=>({code:l.code,title:l.title}));
       lessons.forEach(l=>{
         LESSON_TITLE.set(key+'|'+l.code,l.title);
         if(LESSON_ANY.has(l.code)){if(LESSON_ANY.get(l.code)!==l.title)LESSON_AMBIG.add(l.code)}
@@ -1047,7 +1046,7 @@ $('bPrint').onclick=()=>{
 };
 $('bClass').onchange=fillBookTopics;$('bTopic').onchange=drawBook;
 
-/* ---------- program sign off: lesson code, title, content points, date done ---------- */
+/* ---------- program sign off: lesson code, title, date done ---------- */
 function showFull(iso){const d=new Date(iso+'T12:00:00');return isNaN(d)?iso:d.toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'})}
 function fillProgTopics(){
   let cc=classCourse($('pClass').value);
@@ -1063,15 +1062,14 @@ function progRows(){
   const topics=(tv==='all'||tv==='')?TOPICS.filter(t=>!cc||t.course===cc):[TOPICS[+tv]];
   return {cls,topics,rows:topics.map(t=>({topic:t,lessons:t.lessons.map(l=>({l,dates:taughtDates(cls,l.code)}))}))};
 }
-const pointsHtml=pts=>pts.length>1?'<ul>'+pts.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul>':esc(pts[0]||'');
 function progTable(g,print){
   return g.rows.map(r=>{
-    const head=g.topics.length>1?'<tr><td colspan="4" style="font-weight:bold;'+(print?'':'background:var(--panel);')+'">'+esc(r.topic.label)+'</td></tr>':'';
-    return head+r.lessons.map(x=>'<tr><td class="cd">'+esc(x.l.code)+'</td><td>'+esc(x.l.title)+'</td><td>'+pointsHtml(x.l.points)+'</td><td class="dt">'+(print?esc(x.dates.length?showFull(lastDate(x.dates)):''):'<input type="date" data-lesson="'+esc(x.l.code)+'" value="'+esc(lastDate(x.dates))+'" aria-label="Date completed, lesson '+esc(x.l.code)+'">')+'</td></tr>').join('');
+    const head=g.topics.length>1?'<tr><td colspan="3" style="font-weight:bold;'+(print?'':'background:var(--panel);')+'">'+esc(r.topic.label)+'</td></tr>':'';
+    return head+r.lessons.map(x=>'<tr><td class="cd">'+esc(x.l.code)+'</td><td>'+esc(x.l.title)+'</td><td class="dt">'+(print?esc(x.dates.length?showFull(lastDate(x.dates)):''):'<input type="date" data-lesson="'+esc(x.l.code)+'" value="'+esc(lastDate(x.dates))+'" aria-label="Date completed, lesson '+esc(x.l.code)+'">')+'</td></tr>').join('');
   }).join('');
 }
 const lastDate=ds=>ds.length?ds[ds.length-1]:'';
-const PROG_HEAD='<tr><th class="cd">Code</th><th>Lesson title</th><th>Content points</th><th class="dt">Date completed</th></tr>';
+const PROG_HEAD='<tr><th class="cd">Code</th><th>Lesson title</th><th class="dt">Date completed</th></tr>';
 function drawProg(){
   const box=$('pList');
   if(!S.loaded){box.innerHTML='<p class="empty" style="padding:10px 12px;margin:0">Open your folder or files first.</p>';return}
