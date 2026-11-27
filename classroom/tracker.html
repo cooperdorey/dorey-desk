@@ -414,6 +414,7 @@ dialog .row{margin-top:12px}
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const CC=['id','last','first','class','course','left'];
+const TC=['class','date','lesson'];
 const AC=['date','period','class','id','reason','lesson','status','notes'];
 const BC=['id','lesson','done'];
 const NC=['id','date','number','topic','outcomes','detail','status','crt','ht','dp'];
@@ -421,7 +422,7 @@ const IC=['class','kind','item','name','outof','cmean','csd'];
 const RC=['class','kind','item','id','mark'];
 let NAWARD={classroomCodes:{},outcomes:{}};
 const DEFAULT_REASONS=['Explained','Learning Enrichment','SBAT','School Business','Sick','Suspension','Tafe','Truant','Unexplained','Wellbeing','Work Placement'];
-const S={classes:[],abs:[],book:new Map(),naw:[],ritems:[],res:new Map(),dir:null,handles:{},loaded:false,dirty:false};
+const S={classes:[],abs:[],taught:[],book:new Map(),naw:[],ritems:[],res:new Map(),dir:null,handles:{},loaded:false,dirty:false};
 const E={marks:{},reason:''};
 const TOPICS=[];
 const COURSES=[];
@@ -526,8 +527,8 @@ function updateBar(){
     setMsg(S.dirty?where+' · unsaved changes':where+' · '+S.classes.length+' enrolments, '+S.abs.length+' absence rows');
   }
 }
-function loadFromText(ct,at,bt,nt,it,rt){
-  const c=parseCSV(ct),a=parseCSV(at),b=parseCSV(bt),nw=parseCSV(nt),ri=parseCSV(it),rr=parseCSV(rt);
+function loadFromText(ct,at,bt,nt,it,rt,tt){
+  const c=parseCSV(ct),tc=parseCSV(tt||''),a=parseCSV(at),b=parseCSV(bt),nw=parseCSV(nt),ri=parseCSV(it),rr=parseCSV(rt);
   S.ritems=ri.rows.filter(r=>r.class&&r.kind&&r.item).map(r=>{const o={};IC.forEach(k=>o[k]=r[k]||'');return o});
   S.res=new Map();
   rr.rows.filter(r=>r.id&&r.kind&&r.item&&r.mark!=='').forEach(r=>setRes(r.kind,r.class,r.item,r.id,r.mark));
@@ -537,6 +538,7 @@ function loadFromText(ct,at,bt,nt,it,rt){
     return o;
   });
   S.abs=a.rows.filter(r=>r.date&&r.id).map(r=>{const o={};AC.forEach(k=>o[k]=r[k]||'');o.date=isoDate(o.date);return o});
+  S.taught=tc.rows.filter(r=>r.class&&r.date&&r.lesson).map(r=>({class:r.class,date:isoDate(r.date),lesson:r.lesson}));
   S.book=new Map();
   b.rows.filter(r=>r.id&&r.lesson).forEach(r=>S.book.set(bKey(r.id,r.lesson),r.done||'yes'));
   S.naw=nw.rows.filter(r=>r.id&&r.date).map(r=>{const o={};NC.forEach(k=>o[k]=r[k]||'');if(!o.topic&&r.task)o.topic=r.task;if(!o.detail&&r.notes)o.detail=r.notes;o.date=isoDate(o.date);o.status=/^resolved/i.test(o.status)?'resolved':'unresolved';['crt','ht','dp'].forEach(k=>{o[k]=o[k]?isoDate(o[k]):''});return o});
@@ -556,8 +558,8 @@ $('openDir').onclick=async()=>{
   try{
     const dir=await window.showDirectoryPicker({mode:'readwrite'});
     S.dir=dir;S.handles={};
-    const ct=await readHandle(dir,'classes.csv'),at=await readHandle(dir,'absences.csv'),bt=await readHandle(dir,'bookwork.csv'),nt=await readHandle(dir,'nawards.csv'),it=await readHandle(dir,'resultitems.csv'),rt=await readHandle(dir,'results.csv');
-    loadFromText(ct,at,bt,nt,it,rt);
+    const ct=await readHandle(dir,'classes.csv'),at=await readHandle(dir,'absences.csv'),bt=await readHandle(dir,'bookwork.csv'),nt=await readHandle(dir,'nawards.csv'),it=await readHandle(dir,'resultitems.csv'),rt=await readHandle(dir,'results.csv'),tt=await readHandle(dir,'taught.csv');
+    loadFromText(ct,at,bt,nt,it,rt,tt);
     if(!ct&&!at){S.dirty=true;updateBar();setMsg('Folder open: '+dir.name+' · no files found yet, starting empty. Add a class on the Classes tab.')}
   }catch(e){ if(!e||e.name!=='AbortError') setMsg('Couldn’t open that folder. '+(e&&e.message?e.message:'')) }
 };
@@ -565,10 +567,11 @@ $('openFiles').onclick=()=>$('fileIn').click();
 $('fileIn').onchange=async ev=>{
   const files=[...ev.target.files];ev.target.value='';
   if(!files.length)return;
-  let ct='',at='',bt='',nt='',it='',rt='';
+  let ct='',at='',bt='',nt='',it='',rt='',tt='';
   for(const f of files){
     const t=await f.text(),p=parseCSV(t);
-    if(/resultitem/i.test(f.name)||p.head.includes('outof')) it=t;
+    if(/taught/i.test(f.name)||(p.head.includes('lesson')&&p.head.includes('date')&&!p.head.includes('id'))) tt=t;
+    else if(/resultitem/i.test(f.name)||p.head.includes('outof')) it=t;
     else if(/^results/i.test(f.name)||(p.head.includes('mark')&&p.head.includes('kind'))) rt=t;
     else if(/naward/i.test(f.name)||p.head.includes('task')) nt=t;
     else if(/book/i.test(f.name)||(p.head.includes('lesson')&&p.head.includes('done'))) bt=t;
@@ -576,7 +579,7 @@ $('fileIn').onchange=async ev=>{
     else if(p.head.includes('last')||p.head.includes('name')||/class/i.test(f.name)) ct=t;
   }
   S.dir=null;S.handles={};
-  loadFromText(ct,at,bt,nt,it,rt);
+  loadFromText(ct,at,bt,nt,it,rt,tt);
   setMsg('Files loaded'+(ct?'':' (no classes file chosen)')+(at?'':' (no absences file chosen)')+'. '+(S.dirty?'N-awards updated to the new wording. ':'')+'Save by downloading the files back over the originals.');
 };
 async function writeFile(name,text){
@@ -593,6 +596,7 @@ async function saveAll(){
     await writeFile('nawards.csv',toCSV(NC,S.naw));
     await writeFile('resultitems.csv',toCSV(IC,S.ritems));
     await writeFile('results.csv',toCSV(RC,resRows()));
+    await writeFile('taught.csv',toCSV(TC,S.taught));
     S.dirty=false;updateBar();return true;
   }catch(e){setMsg('Couldn’t save to the folder: '+(e&&e.message?e.message:e)+'. Use Download both instead.');return false}
 }
@@ -608,6 +612,7 @@ $('dlAll').onclick=()=>{
   setTimeout(()=>download('nawards.csv',toCSV(NC,S.naw)),900);
   setTimeout(()=>download('resultitems.csv',toCSV(IC,S.ritems)),1200);
   setTimeout(()=>download('results.csv',toCSV(RC,resRows())),1500);
+  setTimeout(()=>download('taught.csv',toCSV(TC,S.taught)),1800);
   S.dirty=false;updateBar();
 };
 window.addEventListener('beforeunload',e=>{if(S.dirty){e.preventDefault();e.returnValue=''}});
@@ -695,6 +700,7 @@ async function saveEntry(){
     S.abs.push({date:k.date,period:prev?prev.period:'',class:k.cls,id,reason,lesson,status:prev?prev.status:'',notes:prev?prev.notes:''});
   });
   S.abs.sort((a,b)=>a.date.localeCompare(b.date)||a.class.localeCompare(b.class)||a.id.localeCompare(b.id));
+  if(lesson)setTaught(k.cls,lesson,k.date,k.date);
   await persist();
   $('eMsg').textContent=Object.keys(E.marks).length+' away saved'+(S.dir?' to your folder':' (download to keep)');
   return true;
@@ -974,7 +980,18 @@ function drawBook(){
   const cc0=classCourse(cls),known0=COURSES.some(c=>c.key===cc0);
   $('bMsg').textContent=known0?students.length+' students · '+topic.lessons.length+' lessons':(cc0?'This class’s course “'+cc0+'” isn’t on the site — showing all topics. Pick its course on the Classes tab.':'This class has no course set — showing all topics. Set its course on the Classes tab.');
 }
-function taughtDates(cls,lesson){return [...new Set(S.abs.filter(r=>r.class===cls&&r.lesson===lesson&&r.date).map(r=>r.date))].sort()}
+/* taught.csv (class, date, lesson; no students) records a lesson taught even when nobody was away; if it has rows for a lesson they win, else the dates come from absences */
+function taughtDates(cls,lesson){
+  const t=S.taught.filter(r=>r.class===cls&&r.lesson===lesson&&r.date).map(r=>r.date);
+  if(t.length)return [...new Set(t)].sort();
+  return [...new Set(S.abs.filter(r=>r.class===cls&&r.lesson===lesson&&r.date).map(r=>r.date))].sort();
+}
+/* set a lesson's taught date: replaces its old dates, and that day's other lesson when re-saving a roll with a corrected code */
+function setTaught(cls,lesson,date,sameDay){
+  S.taught=S.taught.filter(r=>!(r.class===cls&&(r.lesson===lesson||(sameDay&&r.date===sameDay))));
+  if(date)S.taught.push({class:cls,date,lesson});
+  S.taught.sort((a,b)=>a.class.localeCompare(b.class)||a.date.localeCompare(b.date)||a.lesson.localeCompare(b.lesson));
+}
 $('bApply').onclick=async()=>{
   const cls=$('bClass').value,lesson=$('bLesson').value;
   if(!cls||!lesson){$('bApplyMsg').textContent='Choose a class, topic and lesson first.';return}
@@ -1050,9 +1067,10 @@ const pointsHtml=pts=>pts.length>1?'<ul>'+pts.map(x=>'<li>'+esc(x)+'</li>').join
 function progTable(g,print){
   return g.rows.map(r=>{
     const head=g.topics.length>1?'<tr><td colspan="4" style="font-weight:bold;'+(print?'':'background:var(--panel);')+'">'+esc(r.topic.label)+'</td></tr>':'';
-    return head+r.lessons.map(x=>'<tr><td class="cd">'+esc(x.l.code)+'</td><td>'+esc(x.l.title)+'</td><td>'+pointsHtml(x.l.points)+'</td><td class="dt">'+esc(x.dates.map(showFull).join(', '))+'</td></tr>').join('');
+    return head+r.lessons.map(x=>'<tr><td class="cd">'+esc(x.l.code)+'</td><td>'+esc(x.l.title)+'</td><td>'+pointsHtml(x.l.points)+'</td><td class="dt">'+(print?esc(x.dates.length?showFull(lastDate(x.dates)):''):'<input type="date" data-lesson="'+esc(x.l.code)+'" value="'+esc(lastDate(x.dates))+'" aria-label="Date completed, lesson '+esc(x.l.code)+'">')+'</td></tr>').join('');
   }).join('');
 }
+const lastDate=ds=>ds.length?ds[ds.length-1]:'';
 const PROG_HEAD='<tr><th class="cd">Code</th><th>Lesson title</th><th>Content points</th><th class="dt">Date completed</th></tr>';
 function drawProg(){
   const box=$('pList');
@@ -1062,7 +1080,7 @@ function drawProg(){
   if(!g||!g.topics.length||!g.topics.some(t=>t.lessons.length)){box.innerHTML='<p class="empty" style="padding:10px 12px;margin:0">Choose a class with lessons on Dorey Desk.</p>';$('pMsg').textContent='';return}
   box.innerHTML='<table class="pgrid"><thead>'+PROG_HEAD+'</thead><tbody>'+progTable(g,false)+'</tbody></table>';
   const n=g.rows.reduce((a,r)=>a+r.lessons.length,0),done=g.rows.reduce((a,r)=>a+r.lessons.filter(x=>x.dates.length).length,0);
-  $('pMsg').textContent=n+' lessons · '+done+' with a date (from the lesson recorded against absences)';
+  $('pMsg').textContent=n+' lessons · '+done+' with a date · pick a date for any lesson, saved even when everyone was present';
 }
 $('pPrint').onclick=()=>{
   const g=progRows();
@@ -1073,6 +1091,11 @@ $('pPrint').onclick=()=>{
   const pg=document.createElement('style');pg.textContent='@media print{@page{size:A4 portrait;margin:10mm}}';document.head.append(pg);
   window.addEventListener('afterprint',()=>pg.remove(),{once:true});
   window.print();
+};
+$('pList').onchange=async ev=>{
+  const i=ev.target.closest('input[type=date][data-lesson]');if(!i)return;
+  setTaught($('pClass').value,i.dataset.lesson,i.value);
+  drawProg();await persist();
 };
 $('pClass').onchange=fillProgTopics;$('pTopic').onchange=drawProg;
 
