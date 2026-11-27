@@ -8,6 +8,7 @@ Each lesson file starts with front matter:
     ---
     code: 1.01
     title: The Derivative of Exponential Functions
+    points: first content point | second content point    (optional; shown on the tracker's Program sign off)
     ---
 then its cards. A lesson can have versions (e.g. for A, B and C classes) as
 <code>-<slug>.A.html, <code>-<slug>.B.html …; they share the code and title and
@@ -75,7 +76,8 @@ def read_lesson(path, rel):
         problems.append(f'{rel}: unbalanced <div> tags ({body.count("<div")} open, {body.count("</div>")} close)')
     if re.sub(r'\\\$', '', body).count('$') % 2:
         problems.append(f'{rel}: odd number of $ signs (an unclosed maths expression)')
-    return {'code': fm['code'], 'title': fm['title'], 'cards': cards}
+    points = [x.strip() for x in fm.get('points', '').split(' | ') if x.strip()]
+    return {'code': fm['code'], 'title': fm['title'], 'cards': cards, 'points': points}
 
 def pdf_info(path, rel):
     with open(path, 'rb') as fh:
@@ -154,7 +156,7 @@ for y in subdirs(LESSONS):
                         versioned.setdefault(vm.group(1), []).append(dict(info, v=vm.group(2), id=lid, path=rel))
                         continue
                     lessons.append({'id': lid, 'code': info['code'], 'title': info['title'],
-                                    'path': rel, 'cards': info['cards']})
+                                    'path': rel, 'cards': info['cards'], 'points': info['points']})
             for base, vs in versioned.items():
                 vs.sort(key=lambda v: v['v'])
                 if len({v['code'] for v in vs}) > 1:
@@ -162,7 +164,7 @@ for y in subdirs(LESSONS):
                 if any(l['code'] == vs[0]['code'] for l in lessons):
                     problems.append(f'lessons/{base}: lesson {vs[0]["code"]} exists both with and without versions')
                 lessons.append({'id': base, 'code': vs[0]['code'], 'title': vs[0]['title'],
-                                'path': vs[0]['path'], 'cards': vs[0]['cards'],
+                                'path': vs[0]['path'], 'cards': vs[0]['cards'], 'points': vs[0]['points'],
                                 'versions': [{'v': v['v'], 'id': v['id'], 'path': v['path'], 'cards': v['cards']}
                                              for v in vs]})
             lessons.sort(key=lambda l: code_key(l['code']))

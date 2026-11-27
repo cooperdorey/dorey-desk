@@ -92,6 +92,10 @@ th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);vertic
 th{font-size:12.5px;color:var(--muted);font-weight:600}
 td.n,th.n{text-align:right}
 .tag{display:inline-block;padding:1px 8px;border-radius:999px;background:var(--tint);color:var(--ink);font-size:12.5px;margin:1px 3px 1px 0;border:1px solid var(--line)}
+.pgrid{border-collapse:collapse;font-size:13px;width:100%}
+.pgrid th,.pgrid td{border-bottom:1px solid var(--line);padding:6px 10px;text-align:left;vertical-align:top}
+.pgrid thead th{background:var(--tint)}
+.pgrid td.cd{white-space:nowrap}.pgrid ul{margin:0;padding-left:16px}
 .bgrid{border-collapse:collapse;font-size:13px}
 .bgrid th,.bgrid td{border:1px solid var(--line);padding:5px 4px;text-align:center}
 .bgrid td.st,.bgrid th.st{position:sticky;left:0;z-index:1;background:var(--panel);text-align:left;white-space:nowrap;min-width:150px}
@@ -194,6 +198,15 @@ dialog .row{margin-top:12px}
   #printArea .owePrint td{border-bottom:1px solid #999;padding:2mm;vertical-align:middle}
   #printArea .owePrint tr{page-break-inside:avoid}
   #printArea .owePrint .lt{width:6mm;height:6mm;font-size:8pt}
+  #printArea .pgPrint{font-family:Arial,Helvetica,sans-serif;color:#000}
+  #printArea .pgPrint .cls{font-size:12pt;font-weight:bold;margin:0 0 2mm}
+  #printArea .pgPrint .ptitle{font-size:14pt;border-bottom:1px solid #000;margin:0 0 3mm;padding-bottom:1mm}
+  #printArea .pgPrint table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:9.5pt}
+  #printArea .pgPrint th{text-align:left;border-bottom:1.5px solid #000;padding:1.5mm 2mm}
+  #printArea .pgPrint td{border-bottom:1px solid #000;padding:1.5mm 2mm;vertical-align:top;overflow-wrap:anywhere}
+  #printArea .pgPrint tr{break-inside:avoid}
+  #printArea .pgPrint .cd{width:15mm}#printArea .pgPrint .dt{width:30mm}
+  #printArea .pgPrint ul{margin:0;padding-left:4mm}
   #printArea .bwPrint{font-family:Arial,Helvetica,sans-serif;color:#000;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   #printArea .bwPrint .cls{font-size:12pt;font-weight:bold;margin:0 0 2mm}
   #printArea .bwPrint .ptitle{font-size:14pt;border-bottom:1px solid #000;margin:0 0 3mm;padding-bottom:1mm}
@@ -236,6 +249,7 @@ dialog .row{margin-top:12px}
     <button role="tab" aria-selected="false" data-t="sum">Attendance summary</button>
     <button role="tab" aria-selected="false" data-t="book">Book work</button>
     <button role="tab" aria-selected="false" data-t="catch">Catch-up slips</button>
+    <button role="tab" aria-selected="false" data-t="prog">Program sign off</button>
     <button role="tab" aria-selected="false" data-t="naw">N-awards</button>
     <button role="tab" aria-selected="false" data-t="lsq">LSQ results</button>
     <button role="tab" aria-selected="false" data-t="asm">Assessments</button>
@@ -282,6 +296,16 @@ dialog .row{margin-top:12px}
       <button class="solid" id="cPrint">Print slips for ticked students</button>
     </div>
     <div class="card" style="padding:6px 10px"><div id="cList"></div></div>
+  </section>
+
+  <section id="t-prog" hidden>
+    <div class="row">
+      <label class="f">Class<select id="pClass"></select></label>
+      <label class="f">Topic<select id="pTopic"></select></label>
+      <span id="pMsg" class="note" style="margin:0"></span>
+      <button class="solid" id="pPrint">Print</button>
+    </div>
+    <div class="card" style="padding:0;overflow:auto"><div id="pList"></div></div>
   </section>
 
   <section id="t-book" hidden>
@@ -596,7 +620,7 @@ document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>{
   showGroup(groupOf(b.dataset.t));
   refreshAll();
 });
-const GROUPS={over:['dash'],att:['entry','sum'],work:['book','catch','naw'],assess:['lsq','asm'],setup:['cls']};
+const GROUPS={over:['dash'],att:['entry','sum'],work:['book','catch','prog','naw'],assess:['lsq','asm'],setup:['cls']};
 const groupOf=t=>Object.keys(GROUPS).find(g=>GROUPS[g].includes(t));
 function showGroup(g){
   document.querySelectorAll('#groups button').forEach(x=>x.setAttribute('aria-selected',x.dataset.g===g));
@@ -888,7 +912,7 @@ function buildTopics(data){
     const label=c.short||((y.name?y.name+' ':'')+c.name);
     let any=false;
     (c.topics||[]).forEach(t=>{
-      const lessons=(t.lessons||[]).map(l=>({code:l.code,title:l.title}));
+      const lessons=(t.lessons||[]).map(l=>({code:l.code,title:l.title,points:l.points||[]}));
       lessons.forEach(l=>{
         LESSON_TITLE.set(key+'|'+l.code,l.title);
         if(LESSON_ANY.has(l.code)){if(LESSON_ANY.get(l.code)!==l.title)LESSON_AMBIG.add(l.code)}
@@ -902,6 +926,7 @@ function buildTopics(data){
   fillSelect($('kCourse'),[''].concat(COURSES.map(c=>c.key)),true,v=>v?(COURSES.find(c=>c.key===v)||{}).label:'— not set —');
   fillBookTopics();
   if($('nTopic'))fillNTopics();
+  fillProgTopics();
 }
 function fillBookTopics(){
   let cc=classCourse($('bClass').value);
@@ -1004,6 +1029,52 @@ $('bPrint').onclick=()=>{
   window.print();
 };
 $('bClass').onchange=fillBookTopics;$('bTopic').onchange=drawBook;
+
+/* ---------- program sign off: lesson code, title, content points, date done ---------- */
+function showFull(iso){const d=new Date(iso+'T12:00:00');return isNaN(d)?iso:d.toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'})}
+function fillProgTopics(){
+  let cc=classCourse($('pClass').value);
+  if(cc&&!COURSES.some(c=>c.key===cc))cc='';
+  const idxs=TOPICS.map((t,i)=>i).filter(i=>!cc||TOPICS[i].course===cc);
+  fillSelect($('pTopic'),['all'].concat(idxs.map(String)),true,v=>v==='all'?'All topics':TOPICS[+v].label);
+  drawProg();
+}
+function progRows(){
+  const cls=$('pClass').value,tv=$('pTopic').value;
+  if(!cls||!TOPICS.length)return null;
+  let cc=classCourse(cls);if(cc&&!COURSES.some(c=>c.key===cc))cc='';
+  const topics=(tv==='all'||tv==='')?TOPICS.filter(t=>!cc||t.course===cc):[TOPICS[+tv]];
+  return {cls,topics,rows:topics.map(t=>({topic:t,lessons:t.lessons.map(l=>({l,dates:taughtDates(cls,l.code)}))}))};
+}
+const pointsHtml=pts=>pts.length>1?'<ul>'+pts.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul>':esc(pts[0]||'');
+function progTable(g,print){
+  return g.rows.map(r=>{
+    const head=g.topics.length>1?'<tr><td colspan="4" style="font-weight:bold;'+(print?'':'background:var(--panel);')+'">'+esc(r.topic.label)+'</td></tr>':'';
+    return head+r.lessons.map(x=>'<tr><td class="cd">'+esc(x.l.code)+'</td><td>'+esc(x.l.title)+'</td><td>'+pointsHtml(x.l.points)+'</td><td class="dt">'+esc(x.dates.map(showFull).join(', '))+'</td></tr>').join('');
+  }).join('');
+}
+const PROG_HEAD='<tr><th class="cd">Code</th><th>Lesson title</th><th>Content points</th><th class="dt">Date completed</th></tr>';
+function drawProg(){
+  const box=$('pList');
+  if(!S.loaded){box.innerHTML='<p class="empty" style="padding:10px 12px;margin:0">Open your folder or files first.</p>';return}
+  if(!TOPICS.length){box.innerHTML='<p class="empty" style="padding:10px 12px;margin:0">Lesson list not loaded yet.</p>';return}
+  const g=progRows();
+  if(!g||!g.topics.length||!g.topics.some(t=>t.lessons.length)){box.innerHTML='<p class="empty" style="padding:10px 12px;margin:0">Choose a class with lessons on Dorey Desk.</p>';$('pMsg').textContent='';return}
+  box.innerHTML='<table class="pgrid"><thead>'+PROG_HEAD+'</thead><tbody>'+progTable(g,false)+'</tbody></table>';
+  const n=g.rows.reduce((a,r)=>a+r.lessons.length,0),done=g.rows.reduce((a,r)=>a+r.lessons.filter(x=>x.dates.length).length,0);
+  $('pMsg').textContent=n+' lessons · '+done+' with a date (from the lesson recorded against absences)';
+}
+$('pPrint').onclick=()=>{
+  const g=progRows();
+  if(!S.loaded||!g||!g.topics.length){$('pMsg').textContent='Choose a class to print.';return}
+  const title=g.topics.length>1?'Program sign off':'Program sign off · '+g.topics[0].label;
+  $('printArea').innerHTML='<div class="pgPrint"><p class="cls">'+esc(g.cls)+'</p><div class="ptitle">'+esc(title)+'</div>'+
+    '<table><thead>'+PROG_HEAD+'</thead><tbody>'+progTable(g,true)+'</tbody></table></div>';
+  const pg=document.createElement('style');pg.textContent='@media print{@page{size:A4 portrait;margin:10mm}}';document.head.append(pg);
+  window.addEventListener('afterprint',()=>pg.remove(),{once:true});
+  window.print();
+};
+$('pClass').onchange=fillProgTopics;$('pTopic').onchange=drawProg;
 
 
 /* ---------- results: LSQs and assessment tasks ---------- */
@@ -1363,7 +1434,7 @@ $('dPrint').onclick=()=>{
 $('dClass').onchange=drawDash;$('dEnd').oninput=drawDash;$('dN').oninput=drawDash;
 
 /* ---------- one class for every tab (each tab can still override) ---------- */
-const CLS_SELECTS=['eClass','cClass','sClass','bClass','lClass','mClass','nClass','dClass','kClass'];
+const CLS_SELECTS=['eClass','cClass','sClass','bClass','pClass','lClass','mClass','nClass','dClass','kClass'];
 const OVR=new Set();
 function syncClass(){
   const g=$('gClass').value;
@@ -1387,6 +1458,7 @@ function refreshAll(){
   fillSelect($('cClass'),['all'].concat(active),true,v=>v==='all'?'All classes':v);
   fillSelect($('sClass'),active);
   fillSelect($('bClass'),active);
+  fillSelect($('pClass'),active);
   fillSelect($('lClass'),active);
   fillSelect($('mClass'),active);
   fillSelect($('nClass'),active);
@@ -1398,7 +1470,7 @@ function refreshAll(){
   if(!$('nDate').value)$('nDate').value=todayISO();
   if(!$('dEnd').value)$('dEnd').value=todayISO();
   if(S.loaded)loadMarks();else drawRoll();
-  drawCatch();drawSummary();fillBookTopics();fillNTopics();drawNaw();drawDash();drawClasses();drawResults('lsq');drawResults('task');
+  drawCatch();drawSummary();fillBookTopics();fillProgTopics();fillNTopics();drawNaw();drawDash();drawClasses();drawResults('lsq');drawResults('task');
 }
 $('eDate').value=todayISO();
 refreshAll();
