@@ -286,6 +286,9 @@ math{font-family:"Cambria Math","STIX Two Math","Latin Modern Math",math,serif}
   .lesson-head .btn{padding:6px 10px}
 }
 /* lesson versions (A / B / C) */
+.vbadge{flex:none;display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;border:2px solid #fff;color:#fff;font:700 17px/1 "Segoe UI",Arial,sans-serif;font-style:normal;box-shadow:0 0 0 1px rgba(0,0,0,.25)}
+.h:has(.vbadge) span{margin-left:auto}
+.vbadge.v-A{background:#1d6fd8}.vbadge.v-B{background:#e08a00}.vbadge.v-C{background:#7b3fb5}
 .ver{display:inline-flex;gap:4px;margin-right:6px}
 .ver[hidden]{display:none}
 .ver .btn{min-width:34px;text-align:center;padding-left:10px;padding-right:10px}

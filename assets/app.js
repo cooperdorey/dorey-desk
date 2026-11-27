@@ -429,7 +429,7 @@ async function fetchLesson(L){
   const parse = h => { const t=document.createElement('template'); t.innerHTML=h||''; const out=[]; let atom='';
     t.content.childNodes.forEach(n=>{
       if (n.nodeType===8){ const m=/atom:\s*([^|\s]+)/.exec(n.data); atom=m?m[1]:''; }
-      else if (n.nodeType===1 && n.classList.contains('c')){ if (atom) n.dataset.atom=atom; out.push(n); atom=''; }
+      else if (n.nodeType===1 && n.classList.contains('c')){ if (atom) n.dataset.atom=atom; if (L.version){ const h=n.querySelector('.h'); if (h){ const b=document.createElement('i'); b.className='vbadge v-'+L.version; b.textContent=L.version; b.title='Version '+L.version; h.append(b) } } out.push(n); atom=''; }
     }); return out; };
   const out = {cards: parse(main), solutions: sols ? parse(sols) : null};
   cache.set(L.id, out); return out;
